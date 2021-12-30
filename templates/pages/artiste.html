@@ -2,9 +2,9 @@
 <html lang="fr">
 <meta charset="utf-8">
 
-{% extends 'conteneur.html'}
+{% extends "conteneur.html" %}
 
-{% block titre}
+{% block titre %}
     {% if artiste %} | {{artiste.nom}} {% endif %}
 {% endblock %}
 
@@ -24,7 +24,7 @@
         Quelques informations sur l'artiste:
     </p>
     <dl>
-        <dt>Prénom, nom</dt><dd>{% artiste.prenom%} {% artiste.nom %}</dd>
+        <dt>Prénom, nom</dt><dd>{% artiste.prenom %} {% artiste.nom %}</dd>
         <dt>Nationalité</dt><dd>{% artiste.nationalite %}</dd>
         <dt>Date de naissance</dt><dd>{% artiste.date_naissance %}</dd>
         <dt>Genre</dt> : <dd>{% if artiste.genre == 'F'%} Femme {% else %} Homme {% endif %} </dd>

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 {% extends "conteneur.html" %}
+
 {% block recherche %}
-    {% include "partials/recherche.html %}
+    {% include "partials/recherche.html" %}
 {% endblock %}
 
 {% block corps %}
@@ -25,7 +26,7 @@
                 créer pour la fonction accueil(); pour artiste, il faudra faire la jointure avec la table nomination dans accueil()-->
             </ul>
     {% else %}
-        <p>Aucune nomination n'a encore été ajoutée à la base de données</p>
+        <p>La base de données est en cours de constitution. Des données doivent encore être ajoutées.</p>
     {% endif %}
 {% endblock %}
 
