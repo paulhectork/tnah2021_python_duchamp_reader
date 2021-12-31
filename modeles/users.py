@@ -123,6 +123,7 @@ class User (UserMixin, db.Model):
         :return: ID de l'utilisateur.ice
         :rtype: int
         """
+        return self.id
 
 #récupérer l'id de l'utilisateur.ice courant.e
 @login.user_loader
