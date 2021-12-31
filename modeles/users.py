@@ -1,7 +1,8 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
-# from .. import db #importer la base de données du duchamp_reader
+# from .. app import db,login #importer la base de donnée, l'application et le module Login
+# du duchamp_reader
 
 
 # en nommant seulement mes variables 'id', 'user'..., il est possible que je me farcisse des msg d'erreur bêbêtes
@@ -28,12 +29,13 @@ class User (UserMixin, db.Model):
     :get_id(self): récupérer l'ID de l'utilisateur.ice courant.e
 
     """
-
+    __tablename__ = "user"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, nullable=False)
     login = db.Column(db.String(45), nullable=False, unique=True)
     email = db.Column(db.Text, nullable=False)
     password = db.Column(db.String(100), nullable=False)
+    authorships = db.relationship("Authorship", back_populates="user")
 
     @staticmethod
     def usr_connexion(login, mdp):
