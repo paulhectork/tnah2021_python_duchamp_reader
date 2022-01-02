@@ -7,7 +7,7 @@ from flask_login import UserMixin
 
 # en nommant seulement mes variables 'id', 'user'..., il est possible que je me farcisse des msg d'erreur bêbêtes
 # puisque les variables sont redéfinies ailleurs
-class User (UserMixin, db.Model):
+class User(UserMixin, db.Model):
     """
     La classe représentant les utilisateur.ices du duchamp_reader
 
