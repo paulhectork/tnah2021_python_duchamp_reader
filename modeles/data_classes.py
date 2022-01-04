@@ -123,3 +123,5 @@ class Theme(db.Model):
 # les relations dont je suis assez sûr : toutes les tables de relation, la relation artiste-nomination, la relation artiste-theme
 # là où j'ai un plus gros doute : les relations artiste-ville, si on doit utiliser ou non Artiste.id_nomination
 # je ne suis pas non plus sûr de la manière dont on écrit la valeur de "secondary="
+# ni de si, en mettant la table de relation comme relation secondaire (avec "secondary=", il faut, dans la table de relation, faire des db.relationship vers les autres tables ?
+# dans les exemples de la doc, avec "secondary=", il n'y a pas de "db.relationship" dans la table de relation, seult des clés externes "ForeignKey"
