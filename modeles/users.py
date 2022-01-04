@@ -35,7 +35,7 @@ class User(UserMixin, db.Model):
     login = db.Column(db.String(45), nullable=False, unique=True)
     email = db.Column(db.Text, nullable=False)
     password = db.Column(db.String(100), nullable=False)
-    authorships = db.relationship("Authorship", back_populates="user")
+    authorships = db.relationship("Artiste", secondary=Authorship, back_populates="user")
 
     @staticmethod
     def usr_connexion(login, mdp):
