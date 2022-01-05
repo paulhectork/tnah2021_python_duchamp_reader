@@ -60,7 +60,7 @@ def artiste_new(nom, prenom, date_naissance, genre, ville_naissance, ville_resid
         try:
             db.session.add(nv_ville)
             db.session.commit()
-            return True, nv_ville  # est-ce que c'est utile d'avoir un return là ?
+            return True, nv_ville  # on est pas obligés de retourner l'objet, mais ça mange pas de pain ; faut-il mettre un return, ou est-ce que ça risque de baiser tte la fonction ?
         except Exception as error:
             return False, [str(error)]
     ville_residence_check = Ville.query.filter(Ville.nom == ville_residence).count()
@@ -71,7 +71,7 @@ def artiste_new(nom, prenom, date_naissance, genre, ville_naissance, ville_resid
         try:
             db.session.add(nv_ville)
             db.session.commit()
-            return True, nv_ville  # est-ce que c'est utile d'avoir un return là ?
+            return True, nv_ville  # on est pas obligés de retourner l'objet, NE PAS POSER DE RETURN, ÇA MET FIN À LA FONCTION ; VOIR SI ON PEUT UTILISER YIELD À LA PLACE, mais ça transforme la fonction en générateur
         except Exception as error:
             return False, [str(error)]
 
