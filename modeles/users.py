@@ -1,8 +1,8 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
- from .. app import db,login #importer la base de donnée, l'application et le module Login du duchamp_reader
-
+from .. app import db,login #importer la base de donnée, l'application et le module Login du duchamp_reader
+from .. regex import *
 
 class User(UserMixin, db.Model):
     """
@@ -70,15 +70,18 @@ class User(UserMixin, db.Model):
         """
         erreurs = []
         if not login:
-            erreurs.append("Veuillez fournir un login.")
+            erreurs.append("Veuillez fournir un login")
         if not email:
-            erreurs.append("Veuillez fournir un email.")
+            erreurs.append("Veuillez fournir un email")
         if not nom:
-            erreurs.append("Veuillez fournir un nom d'utilisateur.ice.")
+            erreurs.append("Veuillez fournir un nom d'utilisateur.ice")
         if not mdp:
-            erreurs.append("Veuillez fournir un mot de passe.")
+            erreurs.append("Veuillez fournir un mot de passe")
 
         # vérifier que le mot de passe réponde à quelques consignes de sécurité
+        emailregex = re.search(regexmail, email)
+        if not emailregex:
+            erreurs.append("Veuillez fournir un email valide")
         mdp2 = ""
         for character in mdp:
             mdp2 += character
@@ -94,12 +97,12 @@ class User(UserMixin, db.Model):
             erreurs.append("Votre mot de passe doit contenir au moins un chiffre !")
 
         # vérifier que l'email et le login sont ne sont pas déjà utilisés
-        login_check = User.query.filter(User.login == login).count()
-        if login_check > 0:
-            erreurs.append("Ce login est déjà utilisé ; veuillez en choisir un autre.")
-        email_check = User.query.filter(User.email == email).count()
-        if email_check > 0:
-            erreurs.append("Cette adresse mail est déjà utilisée. Veuillez en choisir une autre.")
+        db_login_check = User.query.filter(User.login == login).count()
+        if db_login_check > 0:
+            erreurs.append("Ce login est déjà utilisé ; veuillez en choisir un autre")
+        db_email_check = User.query.filter(User.email == email).count()
+        if db_email_check > 0:
+            erreurs.append("Cette adresse mail est déjà utilisée. Veuillez en choisir une autre")
 
         # vérifier qu'il n'y a pas d'erreurs dans la création de compte
         if len(erreurs) > 0:
@@ -139,4 +142,3 @@ def get_usr_by_id(identifiant):
     :return: l'objet 'User' correspondant à cet identifiant
     """
     return User.query.get(int(identifiant))
-
