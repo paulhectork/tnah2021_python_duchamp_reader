@@ -1,12 +1,9 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
-# from .. app import db,login #importer la base de donnée, l'application et le module Login
-# du duchamp_reader
+ from .. app import db,login #importer la base de donnée, l'application et le module Login du duchamp_reader
 
 
-# en nommant seulement mes variables 'id', 'user'..., il est possible que je me farcisse des msg d'erreur bêbêtes
-# puisque les variables sont redéfinies ailleurs
 class User(UserMixin, db.Model):
     """
     La classe représentant les utilisateur.ices du duchamp_reader
@@ -35,7 +32,12 @@ class User(UserMixin, db.Model):
     login = db.Column(db.String(45), nullable=False, unique=True)
     email = db.Column(db.Text, nullable=False)
     password = db.Column(db.String(100), nullable=False)
-    authorships = db.relationship("Artiste", secondary=Authorship, back_populates="user")
+
+    authorships_ariste = db.relationship("Authorship_Artiste", back_populates="user")
+    authorships_nomination = db.relationship("Authorship_Nomination", back_populates="user")
+    authorships_galerie = db.relationship("Authorship_Galerie", back_populates="user")
+    authorships_ville = db.relationship("Authorship_Ville", back_populates="user")
+    authorships_theme = db.relationship("Authorship_Theme", back_populates="user")
 
     @staticmethod
     def usr_connexion(login, mdp):
@@ -127,7 +129,8 @@ class User(UserMixin, db.Model):
         """
         return self.id
 
-#récupérer l'id de l'utilisateur.ice courant.e
+
+# récupérer l'id de l'utilisateur.ice courant.e
 @login.user_loader
 def get_usr_by_id(identifiant):
     """Récupérer l'id de l'utilisateur.ice courant.e pour gérer les connexions actives.
@@ -136,3 +139,4 @@ def get_usr_by_id(identifiant):
     :return: l'objet 'User' correspondant à cet identifiant
     """
     return User.query.get(int(identifiant))
+

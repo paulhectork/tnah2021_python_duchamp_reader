@@ -9,7 +9,7 @@ class Authorship_Artiste(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"))
-    user = db.relationship("User", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorships_artiste")
     artiste = db.relationship("Artiste", back_populates="authorships")
 
 
@@ -19,7 +19,7 @@ class Authorship_Nomination(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_nomination = db.Column(db.Integer, db.ForeignKey("nomination.id"))
-    user = db.relationship("User", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorships_nomination")
     nomination = db.relationship("Nomination", back_populates="authorships")
 
 
@@ -29,7 +29,7 @@ class Authorship_Galerie(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_galerie = db.Column(db.Integer, db.ForeignKey("galerie.id"))
-    user = db.relationship("User", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorships_galerie")
     galerie = db.relationship("Galerie", back_populates="authorships")
 
 
@@ -39,7 +39,7 @@ class Authorship_Ville(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_ville = db.Column(db.Integer, db.ForeignKey("ville.id"))
-    user = db.relationship("User", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorships_ville")
     ville = db.relationship("Ville", back_populates="authorships")
 
 
@@ -49,7 +49,7 @@ class Authorship_Theme(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_theme = db.Column(db.Integer, db.ForeignKey("theme.id"))
-    user = db.relationship("User", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorships_theme")
     theme = db.relationship("Theme", back_populates="authorships")
 
 
