@@ -1,9 +1,6 @@
-from flask import url_for
 import datetime
 
-from .. import db #importer la base de données du duchamp_reader, que je dois encore créer
-# from users.py import User #on importe la classe user / ou alors ptet qu'on devra seult importer une partie
-# ou alors rien du tout jsp
+from .. import db
 
 # les tables de relation : tables d'Authorship, Represente(Artiste-Galerie), Localisation(Galerie-Ville)
 class Authorship_Artiste(db.Model):
@@ -91,11 +88,11 @@ class Artiste(db.Model):
     represents = db.relationship("Represente", back_populates="artiste")
     ville_residence = db.relationship("Ville", foreign_keys=[id_ville_residence], uselist=False)
     ville_naissance = db.relationship("Ville", foreign_keys=[id_ville_naissance], uselist=False)
-    # j'ai un doute sur la table où utiliser uselist=False pour le lien One-to-one entre Artiste et ville :
-    # si on suit la doc, il faudrait placer uselist=False sur Ville (ville n'a pas de clé externe), mais je veux que la relation scalaire
-    # soit de Artiste vers Ville (1 artiste = 1 ville), pas l'inverse
+    # j'ai un doute sur la classe où utiliser uselist=False pour le lien One-to-one entre Artiste et ville :
+    # si on suit la doc SQLAlchemy pour la création de relations One to One, il faudrait placer uselist=False sur Ville
+    # (ville n'a pas de clé externe), mais je veux que la relation scalaire soit de Artiste vers Ville (1 artiste = 1 ville), pas l'inverse
     nomination = db.relationship("Nomination", back_populates="artiste", uselist=False)
-    # relation avec Ville du côté de Ville
+    # à ajouter : staticmethod de création de données
 
 
 class Nomination(db.Model):
@@ -108,7 +105,7 @@ class Nomination(db.Model):
     authorships = db.relationship("Authorship_Nomination", back_populates="nomination")
     artiste = db.relationship("Artiste", back_populates="nomination")
     theme = db.relationship("Theme", back_populates="nominations", uselist = False)
-    # staticmethod de création
+    # staticmethod de création de données
 
 
 class Galerie(db.Model):
@@ -119,7 +116,7 @@ class Galerie(db.Model):
     authorships = db.relationship("Authorship_Galerie", back_populates="galerie")
     represents = db.relationship("Represente", back_populates="galerie")
     localisations = db.relationship("Localisation", back_populates="galerie")
-    # staticmethod de création
+    # staticmethod de création de données
 
 
 class Ville(db.Model):
@@ -133,8 +130,7 @@ class Ville(db.Model):
     localisations = db.relationship("Localisation", back_populates="ville")
     artistes_ville_naissance = db.relationship("Artiste", back_populates="ville_naissance")
     artistes_ville_residence = db.relationship("Artiste", back_populates="ville_residence")
-    # quoi faire ici pour mettre en relation avec Artiste ?
-    # staticmethod de création
+    # staticmethod de création de données
 
 
 class Theme(db.Model):
@@ -145,9 +141,9 @@ class Theme(db.Model):
 
     authorships = db.relationship("Authorship_Theme", back_populates="theme")
     nominations = db.relationship("Nomination", back_populates="theme")
-    # staticmethod de création
+    # staticmethod de création de données
 
 
 
 # les relations dont je suis assez sûr : toutes les tables de relation, la relation artiste-nomination, la relation artiste-theme
-# là où j'ai un plus gros doute : les relations artiste-ville, si on doit utiliser ou non Artiste.id_nomination
+# là où j'ai un plus gros doute : les relations artiste-ville
