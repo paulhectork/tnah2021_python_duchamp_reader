@@ -154,11 +154,9 @@ class Artiste(db.Model):
         db_artiste_check = Artiste.query.filter(db.and_(
             Artiste.nom == nom,
             Artiste.prenom == prenom
-        )
-        ).count()
+        )).count()
         if db_artiste_check > 0:
-            erreurs.append(
-                "Cet.te artiste existe déjà dans la base; veuillez changer le nom ou le prénom de l'artiste pour ajouter un.e nouvel.le artiste à la base")
+            erreurs.append("Cet.te artiste existe déjà dans la base; veuillez changer le nom ou le prénom de l'artiste pour ajouter un.e nouvel.le artiste à la base")
 
         # vérifier qu'il n'y a pas d'erreurs dans l'ajout d'un nouvel artiste
         if len(erreurs) > 0:
@@ -167,9 +165,7 @@ class Artiste(db.Model):
         # ma politique dans l'ajout de données sur tableA qui implique l'ajout de donnée sur tableB : l'ajout de données est seult obligatoire quand on ajoute les données sur la table principale (tableA), pas sur la table secondaire (tableB)
         db_ville_n_check = Ville.query.filter(Ville.nom == ville_naissance).count()
         if db_ville_n_check == 0:
-            nv_ville = Ville(
-                nom=ville_naissance
-            )
+            nv_ville = Ville(nom=ville_naissance)
             try:
                 db.session.add(nv_ville)
                 db.session.commit()
@@ -178,9 +174,7 @@ class Artiste(db.Model):
                 return False, [str(error)]
         db_ville_r_check = Ville.query.filter(Ville.nom == ville_residence).count()
         if db_ville_r_check == 0:
-            nv_ville = Ville(
-                nom=ville_residence
-            )
+            nv_ville = Ville(nom=ville_residence)
             try:
                 db.session.add(nv_ville)
                 db.session.commit()
@@ -279,8 +273,7 @@ class Nomination(db.Model):
         db_artiste_check = Artiste.query.filter(db.and_(
             Artiste.nom == nom_artiste,
             Artiste.prenom == prenom_artiste
-            )
-        ).count()
+        )).count()
         if db_artiste_check == 0:
             nv_artiste = Artiste(
                 nom=nom_artiste,
@@ -307,8 +300,7 @@ class Nomination(db.Model):
         db_artiste = Artiste.query.filter(db.and_(
             Artiste.nom == nom_artiste,
             Artiste.prenom == prenom_artiste
-            )
-        ).first()
+        )).first()
         id_artiste = db_artiste.id
         db_theme = Theme.query.filter(Theme.nom == theme).first() # EN FAIT JE CROIS PAS EN AVOIR BESOIN
         id_theme = db_theme.id # EN FAIT JE CROIS PAS EN AVOIR BESOIN
@@ -383,7 +375,55 @@ class Ville(db.Model):
     localisations = db.relationship("Localisation", back_populates="ville")
     artistes_ville_naissance = db.relationship("Artiste", back_populates="ville_naissance")
     artistes_ville_residence = db.relationship("Artiste", back_populates="ville_residence")
-    # staticmethod de création de données
+
+    @staticmethod
+    def ville_new(nom, longitude, lattitude):
+        # vérifier que les données ont été fournies
+        erreurs = []
+        if not nom:
+            erreurs.append("Vous devez fournir un nom pour la ville")
+        if not longitude:
+            erreurs.append("Vous devez fournir une longitude pour cette ville")
+        if not lattitude:
+            erreurs.append("Vous devez fournir une lattitude pour cette ville")
+
+        # nettoyer les données et vérifier leur validité
+        nom = clean_string(nom)
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append(
+                "Un nom de ville correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+            )
+        if not isinstance(longitude, float):
+            erreurs.append("La longitude doit être un nombre décimal")
+        if not isinstance(lattitude, float):
+            erreurs.append("La lattitude doit être un nombre décimal")
+
+        # vérifier que la ville n'existe pas déjà dans la  base de données
+        db_ville_check = Ville.query.filter(db.and_(
+            Ville.nom == nom,
+            Ville.longitude == longitude,
+            Ville.lattitude == lattitude
+        )).count()
+        if db_ville_check > 0:
+            erreurs.append("Cette ville existe déjà ; veuillez changer le nom ou ses coordonnées pour rajouter une nouvelle ville à la base")
+
+        if len(erreurs) > 0:
+            return False, erreurs
+
+        # si tout va bien, ajouter la ville à la base de données
+        nv_ville = Ville(
+            nom = nom,
+            longitude = longitude,
+            lattitude = lattitude
+        )
+        try:
+            db.session.add(nv_ville)
+            db.session.commit()
+            return True, nv_ville
+        except Exception as error:
+            return False, [str(error)]
 
 
 class Theme(db.Model):
