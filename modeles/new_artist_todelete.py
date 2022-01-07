@@ -1,3 +1,4 @@
+from .. import db
 from .. regex import *
 
 # POUR TOUT CE QUI N'EST PAS DES STRINGS, FAIRE ISINSTANCE()

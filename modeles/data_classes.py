@@ -74,7 +74,6 @@ class Localisation(db.Model):
 
 
 # les autres tables
-
 class Artiste(db.Model):
     __tablename__ = "artiste"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
@@ -111,15 +110,13 @@ class Artiste(db.Model):
         if not ville_residence:
             erreurs.append("Vous devez fournir la ville de résidence de votre artiste")
 
-        # retirer les espaces superflus en début et fin des chaînes de caractères
+        # nettoyer les données et vérifier leur validité
         nom = clean_string(nom)
-        prenom = clean_strip(prenom)
+        prenom = clean_string(prenom)
         # genre = je fais de genre une liste dans le formulaire donc jsp encore
         ville_naissance = clean_string(ville_naissance)
         ville_residence = clean_string(ville_residence)
         # je fais pas ça à date, vu que date sera un INT
-
-        # vérifier que les données fournies sont correctes
         nomregex = re.search(regexnp, nom)
         if not nomregex:
             erreurs.append(
@@ -141,7 +138,6 @@ class Artiste(db.Model):
             erreurs.append(
                 "Veulliez indiquer un genre correct: M pour masculin, F pour féminin, A pour autre ou non-binaire")
         # avec la ligne au dessus, il n'y a pas besoin de faire if len(genre)>1, ni de vérifier le datatype
-
         ville_n_regex = re.search(regexnp, ville_naissance)
         if not ville_n_regex:
             erreurs.append(
@@ -225,7 +221,7 @@ class Nomination(db.Model):
     artiste = db.relationship("Artiste", back_populates="nomination")
     theme = db.relationship("Theme", back_populates="nominations", uselist = False)
 
-        # traduire le lauréat en booléen
+    # COMMENT traduire le lauréat en booléen
     @staticmethod
     def nomination_new (annee, laureat, nom_artiste, prenom_artiste, theme):
         # vérifier que toutes les données ont été fournies
@@ -241,31 +237,29 @@ class Nomination(db.Model):
         if not theme:
             erreurs.append("Vous devez indiquer le thème sur lequel travaille l'artiste")
 
-        # nettoyer les données-chaînes de carctères
+        # nettoyer les données et vérifier leur validité
         nom_artiste = clean_string(nom_artiste)
         prenom_artiste = clean_string(prenom_artiste)
         theme = clean_string(theme).lower()
-
-        # vérifier la validité des données fournies
         if len(str(annee)) != 4:
             erreurs.append("La date de naissance doit être au format: AAAA")
         if not isinstance(annee, int):
             erreurs.append("La date de naissance ne doit contenir que des chiffres")
         # pour lauréat j'y réfléchis plus tard
-        nomverif = re.search(regexnp, nom_artiste)
-        if not nomverif:
+        nomregex = re.search(regexnp, nom_artiste)
+        if not nomregex:
             erreurs.append(
                 "Un nom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
             )
-        prenomverif = re.search(regexnp, prenom_artiste)
-        if not prenomverif:
+        prenomregex = re.search(regexnp, prenom_artiste)
+        if not prenomregex:
             erreurs.append(
                 "Un prénom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
             )
-        themeverif = re.search(regexnc, theme)
-        if not themeverif:
+        themeregex = re.search(regexnc, theme)
+        if not themeregex:
             erreurs.append(
                 "Un nom de thème correspond à l'expression: ^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+(-|\s)?)([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$ \
                 (caractères en minuscules, accentués ou non, séparés ou non par un unique espace ou tiret)"
@@ -277,6 +271,7 @@ class Nomination(db.Model):
         # on a un champ <select><option>Oui</option><option>Non</option></select>, qui fait un choix dans une liste défilante ;
         # faut récupérer ces valeurs et les traduire en booléen
 
+        # vérifier qu'il n'y ait pas d'erreurs
         if len(erreurs) > 0:
             return False, erreurs
 
@@ -341,7 +336,40 @@ class Galerie(db.Model):
     authorships = db.relationship("Authorship_Galerie", back_populates="galerie")
     represents = db.relationship("Represente", back_populates="galerie")
     localisations = db.relationship("Localisation", back_populates="galerie")
-    # staticmethod de création de données
+
+    @staticmethod
+    def galerie_new(nom):
+        # vérifier que les données ont été fournies
+        erreurs = []
+        if not nom:
+            erreurs.append("Une galerie doit avoir un nom")
+
+        # nettoyer les données et vérifier leur validité
+        nom = clean_string(nom)
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append(
+                "Un nom de galerie correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+            )
+
+        # vérifier si la galerie existe déjà dans la base de données
+        db_galerie_check = Galerie.query.filter(Galerie.nom == nom).count()
+        if db_galerie_check > 0:
+            erreurs.append("Cette galerie existe déjà dans la base; veuillez changer le nom pour ajouter une nouvelle galerie à la base")
+
+        if len(erreurs) > 0:
+            return False, erreurs
+
+        # si tout va bien, ajouter la galerie à la base de données
+        nv_galerie = Galerie(nom=nom)
+        try:
+            db.session.add(nv_galerie)
+            db.session.commit()
+            return True, nv_galerie
+        except Exception as error:
+            return False, [str(error)]
+
 
 
 class Ville(db.Model):
