@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
 
-from constantes import SECRET_KEY
+from .constantes import SECRET_KEY
 
 actual_path = os.path.dirname(os.path.abspath(__file__))
 templates = os.path.join(actual_path, "templates")
