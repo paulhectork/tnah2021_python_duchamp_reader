@@ -1,5 +1,5 @@
 from .. import db
-from .. regex import *
+from regex import *
 
 # POUR TOUT CE QUI N'EST PAS DES STRINGS, FAIRE ISINSTANCE()
 # SQLite (pas sqlalchemy) fait la conversion automatique des datatypes tradi SQL (varchar, date...) en datatypes SQLite

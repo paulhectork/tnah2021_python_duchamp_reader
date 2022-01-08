@@ -1,7 +1,7 @@
 import datetime
 
-from .. import db
-from .. regex import *
+from app import db
+from regex import *
 
 # les tables de relation : tables d'Authorship, Represente(Artiste-Galerie), Localisation(Galerie-Ville)
 class Authorship_Artiste(db.Model):
@@ -308,8 +308,8 @@ class Nomination(db.Model):
         nv_nomination = Nomination(
             annee=annee,
             laureat=laureat,
-            #id_artiste=lajsp
-            # jsp non plus pour les thèmes, et plus globalement, est-ce que SQLAlchemy ajoute automatiquement les clés étrangères ?
+            id_artiste=id_artiste, # je croiiiiis
+            id_theme=id_theme # je croiiiiiiis. plus globalement, est-ce que SQLAlchemy ajoute automatiquement les clés étrangères ?
         )
         try:
             db.session.add(nv_nomination)
