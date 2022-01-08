@@ -17,7 +17,7 @@ app = Flask(
 # configurer le secret
 app.config['SECRET_KEY'] = SECRET_KEY
 # configurer la base de données
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../db.sqlite'
 # On initie l'extension
 db = SQLAlchemy(app)
 
