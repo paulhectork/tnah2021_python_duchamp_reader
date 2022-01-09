@@ -23,6 +23,5 @@ db = SQLAlchemy(app)
 # configurer la gestion d'utilisateur-rice-s
 login = LoginManager(app)
 
-from .routes import *
-
-
+from .routes import * # importer les routes utilisées par l'application
+from .modeles import classes_users # j'ai dû faire ça sinon j'avais une erreur: Missing user_loader or request_loader

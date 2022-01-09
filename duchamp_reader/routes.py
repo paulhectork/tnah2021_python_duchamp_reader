@@ -6,6 +6,10 @@ from .modeles.classes_generic import *
 
 @app.route("/")
 def accueil():
+    return render_template("pages/accueil.html")
+
+@app.route("/hi")
+def hi():
     return render_template("pages/hi.html")
 
 @app.route("/artiste")

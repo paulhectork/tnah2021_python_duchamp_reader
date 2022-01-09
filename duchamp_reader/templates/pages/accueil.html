@@ -20,12 +20,13 @@
     <p>Les dernier.ère.s nominé.e.s au prix Marcel Duchamp sont :</p>
         <ul>
             {% for nomination in nominations %}
-            <li><a href="{{url_for('nomination', nomin_id=nomination.id}}"></a>{{nomination.annee}} : {{artiste.prenom}} {{artiste.nom}}</li>
+            <li><a href="{{url_for('nomination', nomin_id=nomination.id)}}"></a>{{nomination.annee}} : {{artiste.prenom}} {{artiste.nom}}</li>
             <!-- ce qu'il se passe au dessus : je crée un renvoi vers la fonction nomination(),
                 qui affichera une page complète d'info pour une nomination ; on s'assurera qu'on renvoie vers la bonne nomination avec nomination.id .
                 comme contenu à afficher : l'année de nomination : prénom et nom de l'artiste (avec nomination et artiste 2 variables qu'il faudra
                 créer pour la fonction accueil(); pour artiste, il faudra faire la jointure avec la table nomination dans accueil()-->
             </ul>
+            {% endfor %}
     {% else %}
         <p>La base de données est en cours de constitution. Des données doivent encore être ajoutées.</p>
     {% endif %}
