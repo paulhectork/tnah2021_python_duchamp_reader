@@ -1,4 +1,5 @@
 from flask import render_template, url_for, request, flash, redirect
+from flask_login import current_user, login_user, logout_user
 
 from .app import app
 from .modeles.data_classes import *

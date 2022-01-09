@@ -1,8 +1,8 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
-from app import db, login #importer la base de donnée, l'application et le module Login du duchamp_reader
-from regex import *
+from ..app import db, login #importer la base de donnée, l'application et le module Login du duchamp_reader
+from ..regex import *
 
 class User(UserMixin, db.Model):
     """

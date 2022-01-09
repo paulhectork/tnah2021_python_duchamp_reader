@@ -21,7 +21,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../db.sqlite'
 # On initie l'extension
 db = SQLAlchemy(app)
 
-# On met en place la gestion d'utilisateur-rice-s
+# configurer la gestion d'utilisateur-rice-s
 login = LoginManager(app)
 
 
