@@ -1,13 +1,12 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-import os
 
-from .constantes import SECRET_KEY
+from .constantes import SECRET_KEY, templates, statics
 
-actual_path = os.path.dirname(os.path.abspath(__file__))
-templates = os.path.join(actual_path, "templates")
-statics = os.path.join(actual_path, "static")
+# actual_path = os.path.dirname(os.path.abspath(__file__))
+# templates = os.path.join(actual_path, "templates")
+# statics = os.path.join(actual_path, "static")
 
 app = Flask(
     "Application",
@@ -23,5 +22,7 @@ db = SQLAlchemy(app)
 
 # configurer la gestion d'utilisateur-rice-s
 login = LoginManager(app)
+
+from .routes import *
 
 

@@ -1,7 +1,7 @@
 import datetime
 
-from app import db
-from regex import *
+from ..app import db
+from ..regex import *
 
 # les tables de relation : tables d'Authorship, Represente(Artiste-Galerie), Localisation(Galerie-Ville)
 class Authorship_Artiste(db.Model):

@@ -1,3 +1,6 @@
-.idea/
-env_duchamp_reader/
+.idea/*
+env_duchamp_reader/*
 apropos.md
+__pycache__/*
+*/__pycache__/*
+*/*/__pycache__/*

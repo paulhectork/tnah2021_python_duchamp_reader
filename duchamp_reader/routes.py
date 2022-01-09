@@ -2,11 +2,11 @@ from flask import render_template, url_for, request, flash, redirect
 from flask_login import current_user, login_user, logout_user
 
 from .app import app
-from .modeles.data_classes import *
+from .modeles.classes_generic import *
 
 @app.route("/")
 def accueil():
-    #...
+    return render_template("pages/hi.html")
 
 @app.route("/artiste")
 @app.route("/artiste/<int:id>")
@@ -106,7 +106,9 @@ def ville_ajout():
     else:
         return render_template("pages/ville_ajout.html")
 
+"""
 @app.route("/theme")
 @app.route("/theme/<int:id>")
 @app.route("/theme/add", methods=["POST", "GET"])
 # j'ai pas encore créé ma staticmethod de création pour Theme, donc j'attends pour faire la route
+"""

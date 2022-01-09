@@ -1,7 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
-from ..app import db, login #importer la base de donnée, l'application et le module Login du duchamp_reader
+from ..app import db, login #importer la base de donnée, l'application et le LoginManager() du duchamp_reader
 from ..regex import *
 
 class User(UserMixin, db.Model):
@@ -29,9 +29,9 @@ class User(UserMixin, db.Model):
     __tablename__ = "user"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, nullable=False)
-    login = db.Column(db.String(45), nullable=False, unique=True)
+    login = db.Column(db.Text, nullable=False, unique=True)
     email = db.Column(db.Text, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.Text, nullable=False)
 
     authorships_ariste = db.relationship("Authorship_Artiste", back_populates="user")
     authorships_nomination = db.relationship("Authorship_Nomination", back_populates="user")
@@ -133,12 +133,14 @@ class User(UserMixin, db.Model):
         return self.id
 
 
-# récupérer l'id de l'utilisateur.ice courant.e
-@login.user_loader
-def get_usr_by_id(identifiant):
-    """Récupérer l'id de l'utilisateur.ice courant.e pour gérer les connexions actives.
+
+# récupérer l'id de l'utilisateur.ice courant.e et gérer les connexions actives
+
+@login.user_loader # IL Y A UNE ERREUR A CET ENDROIT MAIS FUCK IF I KNOW WHY
+def load_user(user_id):
+    """Configurer l'user_loader: récupérer l'id de l'utilisateur.ice courant.e pour gérer les connexions actives.
 
     :param identifiant: l'identifiant de l'utilisateur.ice actuel.le
     :return: l'objet 'User' correspondant à cet identifiant
     """
-    return User.query.get(int(identifiant))
+    return User.query.get(int(user_id))
