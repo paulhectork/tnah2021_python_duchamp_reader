@@ -1,14 +1,11 @@
-<!DOCTYPE html>
-<html lang="fr">
-<meta charset="UTF-8"/>
 {% extends "conteneur.html" %}
 
 {% block recherche %}
     {% include "partials/recherche.html" %}
 {% endblock %}
 
-{% block corps %}
-<h1>Bienvenue sur le <strong>duchamp_reader</strong></h1>
+    {% block corps %}
+    <h1>Bienvenue sur le <strong>duchamp_reader</strong></h1>
     <p>Le duchamp_reader est une application qui permet d'explorer les quatre dernières
         éditions du prix Marcel Duchamp (2018-2021).<br>
         Créé en 2000 en partenariat avec l'ADIAF (Association pour la diffusion internationale
@@ -17,19 +14,20 @@
         Chaque année, quatre artistes sont nominé.e.s. Un.e lauréat.e est ensuite désigné.e
         après le vote d'un jury.</p>
     {% if nomination %}
-    <p>Les dernier.ère.s nominé.e.s au prix Marcel Duchamp sont :</p>
-        <ul>
-            {% for nomination in nominations %}
-            <li><a href="{{url_for('nomination', nomin_id=nomination.id)}}"></a>{{nomination.annee}} : {{artiste.prenom}} {{artiste.nom}}</li>
-            <!-- ce qu'il se passe au dessus : je crée un renvoi vers la fonction nomination(),
+        <p>Les dernier.ère.s nominé.e.s au prix Marcel Duchamp sont :</p>
+        {% for nomination in nominations %}
+            <ul>
+                <li><a href="{{url_for('nomination', nomin_id=nomination.id)}}"></a>
+                    {{nomination.annee}} : {{artiste.prenom}}{{artiste.nom}}
+                </li>
+                <!-- ce qu'il se passe au dessus : je crée un renvoi vers la fonction nomination(),
                 qui affichera une page complète d'info pour une nomination ; on s'assurera qu'on renvoie vers la bonne nomination avec nomination.id .
                 comme contenu à afficher : l'année de nomination : prénom et nom de l'artiste (avec nomination et artiste 2 variables qu'il faudra
                 créer pour la fonction accueil(); pour artiste, il faudra faire la jointure avec la table nomination dans accueil()-->
             </ul>
-            {% endfor %}
+        {% endfor %}
     {% else %}
         <p>La base de données est en cours de constitution. Des données doivent encore être ajoutées.</p>
     {% endif %}
+    <a href="{{url_for('about')}}">À propos</a>
 {% endblock %}
-
-</html>

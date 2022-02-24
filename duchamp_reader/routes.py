@@ -8,6 +8,10 @@ from .modeles.classes_generic import *
 def accueil():
     return render_template("pages/accueil.html")
 
+@app.route("/about")
+def about():
+    return render_template("pages/about.html")
+
 @app.route("/hi")
 def hi():
     return render_template("pages/hi.html")
@@ -67,7 +71,7 @@ def nomination_ajout():
 
 @app.route("/galerie")
 @app.route("/galerie/<int:id>")
-@app.route("/galerie/add")
+@app.route("/galerie/add", methods=["POST", "GET"])
 def galerie_ajout():
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
