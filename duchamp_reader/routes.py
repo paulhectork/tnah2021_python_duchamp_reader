@@ -12,9 +12,14 @@ def accueil():
 def about():
     return render_template("pages/about.html")
 
+# IL FAUDRA LA SUPPRIMER CELLE LÀ
 @app.route("/hi")
 def hi():
     return render_template("pages/hi.html")
+
+@app.route("/recherche", methods=["GET", "POST"])
+def recherche():
+    pass # RAJOUTER LA FONCTION PLUS TARD
 
 @app.route("/artiste")
 @app.route("/artiste/<int:id>")

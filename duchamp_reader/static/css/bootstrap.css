@@ -6,6 +6,24 @@
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
 
+/* RÈGLES MODIFIEES
+ * @font-face : ajout de la police 'Mels'
+ * :root : changement de
+    * --bs-font-sans-serif pour définir Mels comme police principale
+    * --bs-body-color pour définir une nv couleur de texte
+    * --bs-body-bg pour définir une nouvelle couleur de fond
+    * --bs-hlink-text: définition d'une couleur d'hyperliens
+ * .navbar-light .navbar-brand:hover, .navbar-light .navbar-brand:focus : changement de color pour couleur du texte hovered
+ * a : modification d'une couleur de texte pour les hyperliens
+ * a:hover : modification de la couleur de texte pour les hyperliens
+ * .form-inline : ajout d'une nouvelle règle pour cette classe pour aligner le formulaire de recherche
+ * .hero : ajout d'une règle pour cette classe pour avoir une image de fond pour le template recherche
+ * .container .hero : ajout d'une autre règle pour le template recherche
+ * .btn-primary : modification de background et border color
+ * .btn-primary:hover : modification de background-color
+ * .btn-outline-info : modification des couleurs
+ * .btn-outline-info:hover : modification des couleurs
+
 /* definition d'une nouvelle police à utiliser */
 @font-face {
     font-family: 'Mels';
@@ -59,14 +77,22 @@
   --bs-body-color-rgb: 33, 37, 41;
   --bs-body-bg-rgb: 255, 255, 255;
   --bs-font-sans-serif: "Mels", "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  /* --bs-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
   --bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --bs-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
   --bs-body-font-family: var(--bs-font-sans-serif);
   --bs-body-font-size: 1rem;
   --bs-body-font-weight: 400;
   --bs-body-line-height: 1.5;
-  --bs-body-color: #212529;
-  --bs-body-bg: #fff;
+  --bs-body-color: #FFFFFF;
+  /* --bs-body-color: 000000; */
+  --bs-body-bg: #0000FF;
+  /* --bs-body-bg: #fff; */
+  --hlink-text: color: #FF99FF;
+  --custom-blue-bg: #0000FF;
+  --custom-light-pink: #ffb0ff;
+  --custom-dark-pink: #ff99ed;
+  --custom-plum: #bd148b;
 }
 
 *,
@@ -240,11 +266,13 @@ sup {
 }
 
 a {
-  color: #0d6efd;
+  color: var(--custom-dark-pink);
+  /*color: #0d6efd;*/
   text-decoration: underline;
 }
 a:hover {
-  color: #0a58ca;
+  color: var(--custom-plum);
+  /*color: #0a58ca;*/
 }
 
 a:not([href]):not([class]), a:not([href]):not([class]):hover {
@@ -539,6 +567,12 @@ progress {
   .display-4 {
     font-size: 3.5rem;
   }
+}
+
+.hero {
+  background-position: top center;
+  padding:10vh;
+  background-image: url('../images/2021duchamp_cornaro5_bg.jpg');
 }
 
 .display-5 {
@@ -2160,6 +2194,7 @@ progress {
     -webkit-overflow-scrolling: touch;
   }
 }
+
 .form-label {
   margin-bottom: 0.5rem;
 }
@@ -2188,6 +2223,13 @@ progress {
   margin-top: 0.25rem;
   font-size: 0.875em;
   color: #6c757d;
+}
+
+.form-inline {
+  margin-left: auto;
+  margin-right: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .form-control {
@@ -3018,14 +3060,17 @@ textarea.form-control-lg {
 }
 
 .btn-primary {
-  color: #fff;
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  color: #ffffff;
+  background-color: var(--custom-light-pink);
+  /*background-color: #0d6efd;*/
+  border-color: var(--custom-light-pink)
+  /*border-color: #0d6efd;*/
 }
 .btn-primary:hover {
   color: #fff;
-  background-color: #0b5ed7;
-  border-color: #0a58ca;
+  background-color: var(--custom-plum);
+  /*background-color: #0b5ed7;*/
+  /*border-color: #0a58ca;*/
 }
 .btn-check:focus + .btn-primary, .btn-primary:focus {
   color: #fff;
@@ -3049,7 +3094,7 @@ textarea.form-control-lg {
 
 .btn-secondary {
   color: #fff;
-  background-color: #6c757d;
+  background-color: #6c757d
   border-color: #6c757d;
 }
 .btn-secondary:hover {
@@ -3333,13 +3378,18 @@ textarea.form-control-lg {
 }
 
 .btn-outline-info {
-  color: #0dcaf0;
-  border-color: #0dcaf0;
+  color: var(--custom-blue-bg);
+  border-color: var(--custom-blue-bg);
+  /*color: #0dcaf0;*/
+  /*border-color: #0dcaf0;*/
 }
 .btn-outline-info:hover {
-  color: #000;
-  background-color: #0dcaf0;
-  border-color: #0dcaf0;
+  color: #ffffff;
+  /*color: #000;*/
+  background-color: var(--custom-light-pink);
+  /*background-color: #0dcaf0;*/
+  border-color: var(--custom-plum);
+  /*border-color: #0dcaf0;*/
 }
 .btn-check:focus + .btn-outline-info, .btn-outline-info:focus {
   box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.5);
@@ -4024,6 +4074,7 @@ textarea.form-control-lg {
   justify-content: space-between;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  clear: both;
 }
 .navbar > .container,
 .navbar > .container-fluid,
@@ -4427,10 +4478,13 @@ textarea.form-control-lg {
 }
 
 .navbar-light .navbar-brand {
-  color: rgba(0, 0, 0, 0.9);
+  margin-left: 20px;
+  color: #0000FF;
+  /*color: rgba(0, 0, 0, 0.9);*/
 }
 .navbar-light .navbar-brand:hover, .navbar-light .navbar-brand:focus {
-  color: rgba(0, 0, 0, 0.9);
+  color: var(--custom-light-pink);
+  /*color: rgba(0, 0, 0, 0.9);*/
 }
 .navbar-light .navbar-nav .nav-link {
   color: rgba(0, 0, 0, 0.55);
@@ -4463,6 +4517,7 @@ textarea.form-control-lg {
 
 .navbar-dark .navbar-brand {
   color: #fff;
+
 }
 .navbar-dark .navbar-brand:hover, .navbar-dark .navbar-brand:focus {
   color: #fff;
