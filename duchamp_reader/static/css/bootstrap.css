@@ -23,6 +23,8 @@
  * .btn-primary:hover : modification de background-color
  * .btn-outline-info : modification des couleurs
  * .btn-outline-info:hover : modification des couleurs
+ * .navbar + * : ajout d'une règle pour que les éléments soient pas mangés par le navbar
+ * .navbar + .hero : ajout d'une règle pour que le hero soit pas mangé par le navbar
 
 /* definition d'une nouvelle police à utiliser */
 @font-face {
@@ -86,10 +88,10 @@
   --bs-body-line-height: 1.5;
   --bs-body-color: #FFFFFF;
   /* --bs-body-color: 000000; */
-  --bs-body-bg: #0000FF;
-  /* --bs-body-bg: #fff; */
+  --bs-body-bg: #fff;
+  /*nouvelles couleurs en dessous*/
   --hlink-text: color: #FF99FF;
-  --custom-blue-bg: #0000FF;
+  --custom-blue-bg: #0000ef;
   --custom-light-pink: #ffb0ff;
   --custom-dark-pink: #ff99ed;
   --custom-plum: #bd148b;
@@ -115,7 +117,7 @@ body {
   line-height: var(--bs-body-line-height);
   color: var(--bs-body-color);
   text-align: var(--bs-body-text-align);
-  background-color: var(--bs-body-bg);
+  background-color: var(--custom-blue-bg);
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
@@ -3060,16 +3062,17 @@ textarea.form-control-lg {
 }
 
 .btn-primary {
-  color: #ffffff;
-  background-color: var(--custom-light-pink);
+  color: #fff;
+  background-color: var(--custom-plum);
   /*background-color: #0d6efd;*/
-  border-color: var(--custom-light-pink)
+  border-color: var(--custom-light-pink);
   /*border-color: #0d6efd;*/
 }
 .btn-primary:hover {
   color: #fff;
-  background-color: var(--custom-plum);
+  background-color: var(--custom-light-pink);
   /*background-color: #0b5ed7;*/
+  border-color: var(--custom-plum);
   /*border-color: #0a58ca;*/
 }
 .btn-check:focus + .btn-primary, .btn-primary:focus {
@@ -4076,6 +4079,15 @@ textarea.form-control-lg {
   padding-bottom: 0.5rem;
   clear: both;
 }
+
+.navbar + * {
+  margin-top: 70px;
+}
+
+.navbar + .hero {
+  margin-top: 55px;
+}
+
 .navbar > .container,
 .navbar > .container-fluid,
 .navbar > .container-sm,
