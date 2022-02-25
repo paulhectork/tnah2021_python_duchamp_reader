@@ -1,8 +1,9 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
-from ..app import db, login #importer la base de donnée, l'application et le LoginManager() du duchamp_reader
+from ..app import db, login  # importer la base de donnée, l'application et le LoginManager() du duchamp_reader
 from ..regex import *
+
 
 class User(UserMixin, db.Model):
     """
@@ -33,7 +34,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.Text, nullable=False)
     password = db.Column(db.Text, nullable=False)
 
-    authorships_ariste = db.relationship("Authorship_Artiste", back_populates="user")
+    authorships_artiste = db.relationship("Authorship_Artiste", back_populates="user")
     authorships_nomination = db.relationship("Authorship_Nomination", back_populates="user")
     authorships_galerie = db.relationship("Authorship_Galerie", back_populates="user")
     authorships_ville = db.relationship("Authorship_Ville", back_populates="user")
