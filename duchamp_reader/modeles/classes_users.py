@@ -34,11 +34,11 @@ class User(UserMixin, db.Model):
     email = db.Column(db.Text, nullable=False)
     password = db.Column(db.Text, nullable=False)
 
-    authorships_artiste = db.relationship("Authorship_Artiste", back_populates="user")
-    authorships_nomination = db.relationship("Authorship_Nomination", back_populates="user")
-    authorships_galerie = db.relationship("Authorship_Galerie", back_populates="user")
-    authorships_ville = db.relationship("Authorship_Ville", back_populates="user")
-    authorships_theme = db.relationship("Authorship_Theme", back_populates="user")
+    authorships_artiste = db.relationship("AuthorshipArtiste", back_populates="user")
+    authorships_nomination = db.relationship("AuthorshipNomination", back_populates="user")
+    authorships_galerie = db.relationship("AuthorshipGalerie", back_populates="user")
+    authorships_ville = db.relationship("AuthorshipVille", back_populates="user")
+    authorships_theme = db.relationship("AuthorshipTheme", back_populates="user")
 
     @staticmethod
     def usr_connexion(login, mdp):

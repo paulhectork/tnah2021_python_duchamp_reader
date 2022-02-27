@@ -17,17 +17,22 @@ app = Flask(
 # configurer le secret
 app.config['SECRET_KEY'] = SECRET_KEY
 # configurer la base de données
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../db.sqlite'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 # On initie l'extension
 db = SQLAlchemy(app)
 
 # configurer la gestion d'utilisateur-rice-s
 login = LoginManager(app)
 
-# vérifier si la bdd est déjà créé ; sinon, la créer et peupler
-if not database_exists('sqlite:///../db.sqlite'):
-    db.create_all()
+
+from .modeles import classes_users, classes_generic # j'ai dû faire ça sinon j'avais une erreur:
+# Missing user_loader or request_loader
 
 # éviter les imports circulaires
 from .routes import * # importer les routes utilisées par l'application
-from .modeles import classes_users # j'ai dû faire ça sinon j'avais une erreur: Missing user_loader or request_loader
+
+# vérifier si la bdd est déjà créé ; sinon, la créer et peupler
+if not database_exists('sqlite:///db.sqlite'):
+    db.create_all()
+if not Artiste.query.get(1):
+    Artiste.artiste_new_init("Fontaine", "Claire", 1985, "F", 1, 1)

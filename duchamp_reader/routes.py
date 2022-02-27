@@ -6,7 +6,11 @@ from .modeles.classes_generic import *
 
 @app.route("/")
 def accueil():
-    return render_template("pages/accueil.html")
+    """Route utilisée pour la page d'accueil
+    :return: render_template permettant la visualisation de la page d'accueil
+    """
+    artistes = Artiste.query.order_by(Artiste.id.desc()).limit(5).all()
+    return render_template("pages/accueil.html", artistes=artistes)
 
 @app.route("/about")
 def about():

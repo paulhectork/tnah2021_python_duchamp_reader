@@ -13,19 +13,21 @@ class Artiste(db.Model):
     id_ville_naissance = db.Column(db.Integer, db.ForeignKey("ville.id"))
     id_ville_residence = db.Column(db.Integer, db.ForeignKey("ville.id"))
 
-    authorships = db.relationship("Authorship_Artiste", back_populates="artiste")
-    represents = db.relationship("Represente", back_populates="artiste")
+    authorships = db.relationship("AuthorshipArtiste", back_populates="artiste")
+    represents = db.relationship("RelationRepresente", back_populates="artiste")
     ville_naissance = db.relationship("Ville", foreign_keys=[id_ville_naissance],
                                       backref="artistes_ville_naissance", uselist=False)
     ville_residence = db.relationship("Ville", foreign_keys=[id_ville_residence],
                                       backref="artistes_ville_residence", uselist=False)
     # poser un back populates sur les clés au dessus
     # solution possible pour les pbs de jointures: placer sur la table Ville quelque chose comme:
-    # id_artiste = db.relationship('Artiste', primaryjoin="or_(Ville.id==Artiste.id_ville_naissance, Ville.id==Artiste.id_ville_residence)", lazy='dynamic')
+    # id_artiste = db.relationship('Artiste', primaryjoin="or_(Ville.id==Artiste.id_ville_naissance,
+    # Ville.id==Artiste.id_ville_residence)", lazy='dynamic')
 
     #j'ai un doute sur la classe où utiliser uselist=False pour le lien One-to-one entre Artiste et ville :
     # si on suit la doc SQLAlchemy pour la création de relations One to One, il faudrait placer uselist=False sur Ville
-    # (ville n'a pas de clé externe), mais je veux que la relation scalaire soit de Artiste vers Ville (1 artiste = 1 ville), pas l'inverse
+    # (ville n'a pas de clé externe), mais je veux que la relation scalaire soit de Artiste vers Ville
+    # (1 artiste = 1 ville), pas l'inverse
     nomination = db.relationship("Nomination", back_populates="artiste", uselist=False)
 
     @staticmethod
@@ -56,13 +58,15 @@ class Artiste(db.Model):
         if not nomregex:
             erreurs.append(
                 "Un nom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
             )
         prenomregex = re.search(regexnp, prenom)
         if not prenomregex:
             erreurs.append(
                 "Un prénom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
             )
         if len(str(annee_naissance)) != 4:
             erreurs.append("La date de naissance doit être au format: AAAA")
@@ -76,14 +80,18 @@ class Artiste(db.Model):
         ville_n_regex = re.search(regexnp, ville_naissance)
         if not ville_n_regex:
             erreurs.append(
-                "Un nom de ville de naissance correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+                "Un nom de ville de naissance correspond à l'expression: \
+                ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
             )
         ville_r_regex = re.search(regexnp, ville_residence)
         if not ville_r_regex:
             erreurs.append(
-                "Un nom de ville de résidence correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+                "Un nom de ville de résidence correspond à l'expression: \
+                ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
             )
 
         db_artiste_check = Artiste.query.filter(db.and_(
@@ -91,20 +99,23 @@ class Artiste(db.Model):
             Artiste.prenom == prenom
         )).count()
         if db_artiste_check > 0:
-            erreurs.append("Cet.te artiste existe déjà dans la base; veuillez changer le nom ou le prénom de l'artiste pour ajouter un.e nouvel.le artiste à la base")
+            erreurs.append("Cet.te artiste existe déjà dans la base; veuillez changer le nom ou le prénom de l'artiste \
+            pour ajouter un.e nouvel.le artiste à la base")
 
         # vérifier qu'il n'y a pas d'erreurs dans l'ajout d'un nouvel artiste
         if len(erreurs) > 0:
             return False, erreurs
 
-        # ma politique dans l'ajout de données sur tableA qui implique l'ajout de donnée sur tableB : l'ajout de données est seult obligatoire quand on ajoute les données sur la table principale (tableA), pas sur la table secondaire (tableB)
+        # ma politique dans l'ajout de données sur tableA qui implique l'ajout de donnée sur tableB : l'ajout de
+        # données est seult obligatoire quand on ajoute les données sur la table principale (tableA), pas sur la table secondaire (tableB)
         db_ville_n_check = Ville.query.filter(Ville.nom == ville_naissance).count()
         if db_ville_n_check == 0:
             nv_ville = Ville(nom=ville_naissance)
             try:
                 db.session.add(nv_ville)
                 db.session.commit()
-                return True, nv_ville  # on est pas obligés de retourner l'objet, mais ça mange pas de pain ; faut-il mettre un return, ou est-ce que ça risque de baiser tte la fonction ?
+                return True, nv_ville  # on est pas obligés de retourner l'objet, mais ça mange pas de pain ; faut-il
+                # mettre un return, ou est-ce que ça risque de baiser tte la fonction ?
             except Exception as error:
                 return False, [str(error)]
         db_ville_r_check = Ville.query.filter(Ville.nom == ville_residence).count()
@@ -138,17 +149,72 @@ class Artiste(db.Model):
         except Exception as error:
             return False, [str(error)]
 
+    # une version allégée de artiste_new() pour ajouter des données au moment de l'initialisation de la base
+    @staticmethod
+    def artiste_new_init(nom, prenom, annee_naissance, genre, id_ville_naissance, id_ville_residence):
+        print("INIT")
+        erreurs = []
+        if not nom:
+            erreurs.append("Un.e artiste doit avoir un nom")
+        if not prenom:
+            erreurs.append("Un.e artiste doit avoir un prénom")
+        if not annee_naissance:
+            erreurs.append("Un.e artiste doit avoir une date de naissance")
+        if not genre:
+            erreurs.append("Un.e artiste doit avoir un genre")
+        if not id_ville_naissance:
+            erreurs.append("Vous devez fournir la ville de naissance de votre artiste")
+        if not id_ville_residence:
+            erreurs.append("Vous devez fournir la ville de résidence de votre artiste")
+
+        # vérification des données
+        nom = clean_string(nom)
+        prenom = clean_string(prenom)
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append("Nom incorrect. Voir regex")
+        prenomregex = re.search(regexnp, prenom)
+        if not prenomregex:
+            erreurs.append("Prenom incorrect. Voir regex")
+        if len(str(annee_naissance)) != 4:
+            erreurs.append("La date de naissance doit être au format: AAAA")
+        if not isinstance(annee_naissance, int):
+            erreurs.append("La date de naissance ne doit contenir que des chiffres")
+        genres_autorises = ["A", "F", "M"]
+        if genre not in genres_autorises:
+            erreurs.append("Le genre doit être A, F ou M")
+
+        # si tout va bien, on ajoute les données
+        if len(erreurs) > 0:
+            return False, erreurs
+        # le code arrête de marcher là on dirait: ça doit return false ?
+        nv_artiste = Artiste(
+            nom=nom,
+            prenom=prenom,
+            genre=genre,
+            annee_naissance=annee_naissance,
+            id_ville_naissance=id_ville_naissance,
+            id_ville_residence=id_ville_residence
+        )
+        try:
+            db.session.add(nv_artiste)
+            db.session.commit()
+            return True, nv_artiste
+        except Exception as error:
+            return False, [str(error)]
+
 
 class Nomination(db.Model):
     __tablename__ = "nomination"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     annee = db.Column(db.Integer, nullable=False) # format YYYY
     laureat = db.Column(db.Boolean, nullable=False) # 1 si lauréat, 0 si non
-    id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"))
+    id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"), nullable=False)
+    id_theme = db.Column(db.Integer, db.ForeignKey("theme.id"), nullable=False)
 
-    authorships = db.relationship("Authorship_Nomination", back_populates="nomination")
+    authorships = db.relationship("AuthorshipNomination", back_populates="nomination")
     artiste = db.relationship("Artiste", back_populates="nomination")
-    theme = db.relationship("Theme", back_populates="nominations", uselist = False)
+    theme = db.relationship("Theme", back_populates="nominations", uselist=False)
 
     # COMMENT traduire le lauréat en booléen
     @staticmethod
@@ -179,25 +245,29 @@ class Nomination(db.Model):
         if not nomregex:
             erreurs.append(
                 "Un nom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
             )
         prenomregex = re.search(regexnp, prenom_artiste)
         if not prenomregex:
             erreurs.append(
                 "Un prénom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
             )
         themeregex = re.search(regexnc, theme)
         if not themeregex:
             erreurs.append(
-                "Un nom de thème correspond à l'expression: ^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+(-|\s)?)([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$ \
+                "Un nom de thème correspond à l'expression: \
+                ^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+(-|\s)?)([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$ \
                 (caractères en minuscules, accentués ou non, séparés ou non par un unique espace ou tiret)"
             )
 
         # LAUREAT
         # comment récupérer les données d'une liste à champ contrôlé ?
         # pour le lauréat, difficulté supplémentaire : dans le formulaire,
-        # on a un champ <select><option>Oui</option><option>Non</option></select>, qui fait un choix dans une liste défilante ;
+        # on a un champ <select><option>Oui</option><option>Non</option></select>,
+        # qui fait un choix dans une liste défilante ;
         # faut récupérer ces valeurs et les traduire en booléen
 
         # vérifier qu'il n'y ait pas d'erreurs
@@ -237,14 +307,54 @@ class Nomination(db.Model):
             Artiste.prenom == prenom_artiste
         )).first()
         id_artiste = db_artiste.id
-        db_theme = Theme.query.filter(Theme.nom == theme).first() # EN FAIT JE CROIS PAS EN AVOIR BESOIN
-        id_theme = db_theme.id # EN FAIT JE CROIS PAS EN AVOIR BESOIN
+        db_theme = Theme.query.filter(Theme.nom == theme).first()
+        id_theme = db_theme.id
 
         nv_nomination = Nomination(
             annee=annee,
             laureat=laureat,
             id_artiste=id_artiste, # je croiiiiis
-            id_theme=id_theme # je croiiiiiiis. plus globalement, est-ce que SQLAlchemy ajoute automatiquement les clés étrangères ?
+            id_theme=id_theme
+        )
+        try:
+            db.session.add(nv_nomination)
+            db.session.commit()
+            return True, nv_nomination
+        except Exception as error:
+            return False, [str(error)]
+
+    @staticmethod
+    def nomination_new_init(annee, laureat, id_artiste, id_theme):
+        erreurs = []
+        if not annee:
+            erreurs.append("Fournir une année")
+        if not laureat:
+            erreurs.append("Fournir un BOOL pour le lauréat")
+        if not id_artiste:
+            erreurs.append("Fournir un id d'artiste")
+        if not id_theme:
+            erreurs.append("Fournir un id de theme")
+
+        # nettoyer les données et vérifier leur validité
+        if len(str(annee)) != 4:
+            erreurs.append("La date de naissance doit être au format: AAAA")
+        if not isinstance(annee, int):
+            erreurs.append("La date de naissance ne doit contenir que des chiffres")
+        if not isinstance(laureat, bool):
+            erreurs.append("Le lauréat est un BOOL (1: Oui, 0: Non)")
+        if not isinstance(id_artiste, int):
+            erreurs.append("L'id_artiste doit être un integer")
+        if not isinstance(id_theme, int):
+            erreurs.append("L'id_theme doit être un integer")
+
+        # si tout va bien, on rajoute les données
+        if len(erreurs) > 0:
+            return False, erreurs
+        nv_nomination = Nomination(
+            annee=annee,
+            laureat=laureat,
+            id_artiste=id_artiste,
+            id_theme=id_theme
         )
         try:
             db.session.add(nv_nomination)
@@ -254,17 +364,19 @@ class Nomination(db.Model):
             return False, [str(error)]
 
 
-
 class Galerie(db.Model):
     __tablename__ = "galerie"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, nullable=False)
 
-    authorships = db.relationship("Authorship_Galerie", back_populates="galerie")
-    represents = db.relationship("Represente", back_populates="galerie")
-    localisations = db.relationship("Localisation", back_populates="galerie")
+    authorships = db.relationship("AuthorshipGalerie", back_populates="galerie")
+    represents = db.relationship("RelationRepresente", back_populates="galerie")
+    localisations = db.relationship("RelationLocalisation", back_populates="galerie")
 
     @staticmethod
+    # EUH? J'AI OUBLIÉ D'AJOUTER LA LOCALISATION ET QUI EST REPRÉSENTÉ PAR LA GALERIE
+    # POUR FAIRE ÇA, IL FAUDRAIT GÉRER L'AJOUT DE DONNÉES AUX TABLES "RELATION_LOCALISATION"
+    # ET "RELATION_REPRESENTE", CE QUI EN SOIT EST FAISABLE (mais doit être fait)
     def galerie_new(nom):
         # vérifier que les données ont été fournies
         erreurs = []
@@ -276,14 +388,17 @@ class Galerie(db.Model):
         nomregex = re.search(regexnp, nom)
         if not nomregex:
             erreurs.append(
-                "Un nom de galerie correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+                "Un nom de galerie correspond à l'expression: \
+                ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
             )
 
         # vérifier si la galerie existe déjà dans la base de données
         db_galerie_check = Galerie.query.filter(Galerie.nom == nom).count()
         if db_galerie_check > 0:
-            erreurs.append("Cette galerie existe déjà dans la base; veuillez changer le nom pour ajouter une nouvelle galerie à la base")
+            erreurs.append("Cette galerie existe déjà dans la base; veuillez changer le nom pour ajouter une nouvelle \
+            galerie à la base")
 
         if len(erreurs) > 0:
             return False, erreurs
@@ -297,6 +412,28 @@ class Galerie(db.Model):
         except Exception as error:
             return False, [str(error)]
 
+    @staticmethod
+    def galerie_new_init(nom):
+        erreurs = []
+        if not nom:
+            erreurs.append("Une galerie doit avoir un nom")
+
+        # nettoyer les données et vérifier leur validité
+        nom = clean_string(nom)
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append("Nom incorrect. Voir regex")
+
+        # vérifier si il y a des erreurs; sinon, rajouter les données à la base
+        if len(erreurs) > 0:
+            return False, erreurs
+        nv_galerie = Galerie(nom=nom)
+        try:
+            db.session.add(nv_galerie)
+            db.session.commit()
+            return True, nv_galerie
+        except Exception as error:
+            return False, [str(error)]
 
 
 class Ville(db.Model):
@@ -306,8 +443,8 @@ class Ville(db.Model):
     longitude = db.Column(db.Float)  # je mets nullable=True pour que ça fonctionne avec l'ajout d'artiste
     latitude = db.Column(db.Float)  # je mets nullable=True pour que ça fonctionne avec l'ajout d'artiste
 
-    authorships = db.relationship("Authorship_Ville", back_populates="ville")
-    localisations = db.relationship("Localisation", back_populates="ville")
+    authorships = db.relationship("AuthorshipVille", back_populates="ville")
+    localisations = db.relationship("RelationLocalisation", back_populates="ville")
     # artistes_ville_naissance = db.relationship("Artiste", back_populates="ville_naissance")
     # artistes_ville_residence = db.relationship("Artiste", back_populates="ville_residence")
 
@@ -327,8 +464,10 @@ class Ville(db.Model):
         nomregex = re.search(regexnp, nom)
         if not nomregex:
             erreurs.append(
-                "Un nom de ville correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne)"
+                "Un nom de ville correspond à l'expression: \
+                ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
             )
         if not isinstance(longitude, float):
             erreurs.append("La longitude doit être un nombre décimal")
@@ -342,7 +481,8 @@ class Ville(db.Model):
             Ville.lattitude == lattitude
         )).count()
         if db_ville_check > 0:
-            erreurs.append("Cette ville existe déjà ; veuillez changer le nom ou ses coordonnées pour rajouter une nouvelle ville à la base")
+            erreurs.append("Cette ville existe déjà ; veuillez changer le nom ou ses coordonnées pour rajouter une \
+            nouvelle ville à la base")
 
         if len(erreurs) > 0:
             return False, erreurs
@@ -360,17 +500,78 @@ class Ville(db.Model):
         except Exception as error:
             return False, [str(error)]
 
+    @staticmethod
+    def ville_new_init(nom, longitude, lattitude):
+        # vérifier que toutes les données sont fournies
+        erreurs = []
+        if not nom:
+            erreurs.append("Vous devez fournir un nom pour la ville")
+        if not longitude:
+            erreurs.append("Vous devez fournir une longitude pour cette ville")
+        if not lattitude:
+            erreurs.append("Vous devez fournir une lattitude pour cette ville")
+
+        # nettoyer les données et vérifier leur validité
+        nom = clean_string(nom)
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append("Nom non conforme à la regex")
+        if not isinstance(longitude, float):
+            erreurs.append("La longitude doit être un nombre décimal")
+        if not isinstance(lattitude, float):
+            erreurs.append("La lattitude doit être un nombre décimal")
+
+        # vérifier si il y a des erreurs; sinon, ajouter les données à la base
+        if len(erreurs) > 0:
+            return False, erreurs
+        nv_ville = Ville(
+            nom = nom,
+            longitude = longitude,
+            lattitude = lattitude
+        )
+        try:
+            db.session.add(nv_ville)
+            db.session.commit()
+            return True, nv_ville
+        except Exception as error:
+            return False, [str(error)]
+
 
 class Theme(db.Model):
     __tablename__ = "theme"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, nullable=False)
-    id_nomination = db.Column(db.Text, db.ForeignKey("nomination.id"))
+    # id_nomination = db.Column(db.Text, db.ForeignKey("nomination.id"))
 
-    authorships = db.relationship("Authorship_Theme", back_populates="theme")
+    authorships = db.relationship("AuthorshipTheme", back_populates="theme")
     nominations = db.relationship("Nomination", back_populates="theme")
-    # staticmethod de création de données
 
+    #staticmethod de création de données
 
-# les relations dont je suis assez sûr : toutes les tables de relation, la relation artiste-nomination, la relation artiste-theme
+    @staticmethod
+    def theme_new_init(nom):
+        # vérifier que les données existent et qu'elles sont valides
+        erreurs = []
+        if not nom:
+            erreurs.append("Fournir un nom")
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append("Nom non conforme à la regex")
+        nom = clean_string(nom).lower()
+
+        # si il n'y a pas d'erreurs, ajouter les données à la base
+        if len(erreurs) > 0:
+            return False, erreurs
+        nv_theme = Theme(
+            nom=nom
+        )
+        try:
+            db.session.add(nv_theme)
+            db.session.commit()
+            return True, nv_theme
+        except Exception as error:
+            return False, [str(error)]
+
+# les relations dont je suis assez sûr : toutes les tables de relation, la relation artiste-nomination, la relation
+# artiste-theme
 # là où j'ai un plus gros doute : les relations artiste-ville

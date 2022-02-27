@@ -2,8 +2,9 @@ from ..app import db
 import datetime
 
 
-# les tables de relation : tables d'Authorship, Represente(Artiste-Galerie), Localisation(Galerie-Ville)
-class Authorship_Artiste(db.Model):
+# les tables de relation : tables d'Authorship,
+# RelationRepresente(Artiste-Galerie), RelationLocalisation(Galerie-Ville)
+class AuthorshipArtiste(db.Model):
     __tablename__ = "authorship_artiste"
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -13,7 +14,7 @@ class Authorship_Artiste(db.Model):
     artiste = db.relationship("Artiste", back_populates="authorships")
 
 
-class Authorship_Nomination(db.Model):
+class AuthorshipNomination(db.Model):
     __tablename__ = "authorship_nomination"
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -23,7 +24,7 @@ class Authorship_Nomination(db.Model):
     nomination = db.relationship("Nomination", back_populates="authorships")
 
 
-class Authorship_Galerie(db.Model):
+class AuthorshipGalerie(db.Model):
     __tablename__ = "authorship_galerie"
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -33,7 +34,7 @@ class Authorship_Galerie(db.Model):
     galerie = db.relationship("Galerie", back_populates="authorships")
 
 
-class Authorship_Ville(db.Model):
+class AuthorshipVille(db.Model):
     __tablename__ = "authorship_ville"
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -43,7 +44,7 @@ class Authorship_Ville(db.Model):
     ville = db.relationship("Ville", back_populates="authorships")
 
 
-class Authorship_Theme(db.Model):
+class AuthorshipTheme(db.Model):
     __tablename__ = "authorship_theme"
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -53,19 +54,74 @@ class Authorship_Theme(db.Model):
     theme = db.relationship("Theme", back_populates="authorships")
 
 
-class Represente(db.Model):
-    __tablename__ = "represente"
+class RelationRepresente(db.Model):
+    __tablename__ = "relation_represente"
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"))
     id_galerie =  db.Column(db.Integer, db.ForeignKey("galerie.id"))
     artiste = db.relationship("Artiste", back_populates="represents")
     galerie = db.relationship("Galerie", back_populates="represents")
 
+    # méthode de création de données à l'initialisation de la base
+    @staticmethod
+    def represente_new_init(id_artiste, id_galerie):
+        # vérifier que les données sont fournies et valides
+        erreurs=[]
+        if not id_artiste:
+            erreurs.append("Fournir id_artiste")
+        if not id_galerie:
+            erreurs.append("Fournir id_galerie")
+        if not isinstance(id_artiste, int):
+            erreurs.append("id_artiste doit être un integer")
+        if not isinstance(id_galerie, int):
+            erreurs.append("id_galerie doit être un integer")
 
-class Localisation(db.Model):
-    __tablename__ = "localisation"
+        # si tout va bien, ajouter les données à la classe
+        if len(erreurs) > 0:
+            return False, erreurs
+        nv_represente = RelationRepresente(
+            id_galerie=id_galerie,
+            id_artiste=id_artiste
+        )
+        try:
+            db.session.add(nv_represente)
+            db.session.commit()
+            return True, nv_represente
+        except Exception as error:
+            return False, [str(error)]
+
+
+class RelationLocalisation(db.Model):
+    __tablename__ = "relation_localisation"
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     id_galerie = db.Column(db.Integer, db.ForeignKey("galerie.id"))
     id_ville = db.Column(db.Integer, db.ForeignKey("ville.id"))
     galerie = db.relationship("Galerie", back_populates="localisations")
     ville = db.relationship("Ville", back_populates="localisations")
+
+    @staticmethod
+    def localisation_new_init(id_galerie, id_ville):
+        # vérifier que les données sont fournies et valides
+        erreurs = []
+        if not id_ville:
+            erreurs.append("Fournir id_ville")
+        if not id_galerie:
+            erreurs.append("Fournir id_galerie")
+        if not isinstance(id_ville, int):
+            erreurs.append("id_ville doit être un integer")
+        if not isinstance(id_galerie, int):
+            erreurs.append("id_galerie doit être un integer")
+
+        # si tout va bien, ajouter les données à la classe
+        if len(erreurs) > 0:
+            return False, erreurs
+        nv_localisation = RelationLocalisation(
+            id_galerie=id_galerie,
+            id_ville=id_ville
+        )
+        try:
+            db.session.add(nv_localisation)
+            db.session.commit()
+            return True, nv_localisation
+        except Exception as error:
+            return False, [str(error)]
