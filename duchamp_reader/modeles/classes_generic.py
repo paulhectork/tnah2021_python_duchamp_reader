@@ -57,14 +57,14 @@ class Artiste(db.Model):
         nomregex = re.search(regexnp, nom)
         if not nomregex:
             erreurs.append(
-                "Un nom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                "Un nom correspond à l'expression: ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
         prenomregex = re.search(regexnp, prenom)
         if not prenomregex:
             erreurs.append(
-                "Un prénom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                "Un prénom correspond à l'expression: ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
@@ -81,7 +81,7 @@ class Artiste(db.Model):
         if not ville_n_regex:
             erreurs.append(
                 "Un nom de ville de naissance correspond à l'expression: \
-                ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
@@ -89,7 +89,7 @@ class Artiste(db.Model):
         if not ville_r_regex:
             erreurs.append(
                 "Un nom de ville de résidence correspond à l'expression: \
-                ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
@@ -244,14 +244,14 @@ class Nomination(db.Model):
         nomregex = re.search(regexnp, nom_artiste)
         if not nomregex:
             erreurs.append(
-                "Un nom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                "Un nom correspond à l'expression: ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
         prenomregex = re.search(regexnp, prenom_artiste)
         if not prenomregex:
             erreurs.append(
-                "Un prénom correspond à l'expression: ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                "Un prénom correspond à l'expression: ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
@@ -389,7 +389,7 @@ class Galerie(db.Model):
         if not nomregex:
             erreurs.append(
                 "Un nom de galerie correspond à l'expression: \
-                ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
@@ -442,6 +442,7 @@ class Ville(db.Model):
     nom = db.Column(db.Text, unique=True, nullable=False)
     longitude = db.Column(db.Float)  # je mets nullable=True pour que ça fonctionne avec l'ajout d'artiste
     latitude = db.Column(db.Float)  # je mets nullable=True pour que ça fonctionne avec l'ajout d'artiste
+    pays = db.Column(db.Text)
 
     authorships = db.relationship("AuthorshipVille", back_populates="ville")
     localisations = db.relationship("RelationLocalisation", back_populates="ville")
@@ -449,7 +450,7 @@ class Ville(db.Model):
     # artistes_ville_residence = db.relationship("Artiste", back_populates="ville_residence")
 
     @staticmethod
-    def ville_new(nom, longitude, lattitude):
+    def ville_new(nom, longitude, lattitude, pays):
         # vérifier que les données ont été fournies
         erreurs = []
         if not nom:
@@ -458,6 +459,8 @@ class Ville(db.Model):
             erreurs.append("Vous devez fournir une longitude pour cette ville")
         if not lattitude:
             erreurs.append("Vous devez fournir une lattitude pour cette ville")
+        if not pays:
+            erreurs.append("Vous devez fournir un pays pour cette ville")
 
         # nettoyer les données et vérifier leur validité
         nom = clean_string(nom)
@@ -465,7 +468,7 @@ class Ville(db.Model):
         if not nomregex:
             erreurs.append(
                 "Un nom de ville correspond à l'expression: \
-                ^[A-Z](([-\s][A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
@@ -473,12 +476,22 @@ class Ville(db.Model):
             erreurs.append("La longitude doit être un nombre décimal")
         if not isinstance(lattitude, float):
             erreurs.append("La lattitude doit être un nombre décimal")
+        pays = clean_string(pays)
+        paysregex = re.search(regexnp, pays)
+        if not paysregex:
+            erreurs.append(
+                "Un nom de pays correspond à l'expression: \
+                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
+            )
 
         # vérifier que la ville n'existe pas déjà dans la  base de données
         db_ville_check = Ville.query.filter(db.and_(
             Ville.nom == nom,
             Ville.longitude == longitude,
-            Ville.lattitude == lattitude
+            Ville.lattitude == lattitude,
+            Ville.pays == pays
         )).count()
         if db_ville_check > 0:
             erreurs.append("Cette ville existe déjà ; veuillez changer le nom ou ses coordonnées pour rajouter une \
@@ -489,9 +502,10 @@ class Ville(db.Model):
 
         # si tout va bien, ajouter la ville à la base de données
         nv_ville = Ville(
-            nom = nom,
-            longitude = longitude,
-            lattitude = lattitude
+            nom=nom,
+            longitude=longitude,
+            lattitude=lattitude,
+            pays=pays
         )
         try:
             db.session.add(nv_ville)
@@ -501,7 +515,7 @@ class Ville(db.Model):
             return False, [str(error)]
 
     @staticmethod
-    def ville_new_init(nom, longitude, lattitude):
+    def ville_new_init(nom, longitude, lattitude, pays):
         # vérifier que toutes les données sont fournies
         erreurs = []
         if not nom:
@@ -510,6 +524,8 @@ class Ville(db.Model):
             erreurs.append("Vous devez fournir une longitude pour cette ville")
         if not lattitude:
             erreurs.append("Vous devez fournir une lattitude pour cette ville")
+        if not pays:
+            erreurs.append("Vous devez fournir un pays pour cette ville")
 
         # nettoyer les données et vérifier leur validité
         nom = clean_string(nom)
@@ -520,14 +536,19 @@ class Ville(db.Model):
             erreurs.append("La longitude doit être un nombre décimal")
         if not isinstance(lattitude, float):
             erreurs.append("La lattitude doit être un nombre décimal")
+        pays = clean_string(pays)
+        paysregex = re.search(regexnp, nom)
+        if not paysregex:
+            erreurs.append("Nom de pays non conforme à la regex")
 
         # vérifier si il y a des erreurs; sinon, ajouter les données à la base
         if len(erreurs) > 0:
             return False, erreurs
         nv_ville = Ville(
-            nom = nom,
-            longitude = longitude,
-            lattitude = lattitude
+            nom=nom,
+            longitude=longitude,
+            lattitude=lattitude,
+            pays=pays
         )
         try:
             db.session.add(nv_ville)
@@ -541,12 +562,45 @@ class Theme(db.Model):
     __tablename__ = "theme"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, nullable=False)
-    # id_nomination = db.Column(db.Text, db.ForeignKey("nomination.id"))
 
     authorships = db.relationship("AuthorshipTheme", back_populates="theme")
     nominations = db.relationship("Nomination", back_populates="theme")
 
-    #staticmethod de création de données
+    @staticmethod
+    def theme_new(nom):
+        # vérifier que les données sont fournies
+        erreurs = []
+        if not nom:
+            erreurs.append("Vous devez fournir un nom")
+
+        # nettoyer les données et vérifier leur validité
+        nom = clean_string(nom)
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append("Un nom doit correspondre à l'expression: \
+                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)")
+        nom = clean_string(nom).lower()
+
+        # vérifier si le thème existe déjà dans la base de données
+        db_theme_check = Theme.query.filter(Theme.nom == nom).count()
+        if db_theme_check > 0:
+            erreurs.append("Ce thème existe déjà; veuillez en fournir un autre")
+
+        if len(erreurs) > 0:
+            return False, erreurs
+
+        # si tout va bien, rajouter les données à la base de données
+        nv_theme = Theme(
+            nom=nom
+        )
+        try:
+            db.session.add(nv_theme)
+            db.session.commit()
+            return True, nv_theme
+        except Exception as error:
+            return False, [str(error)]
 
     @staticmethod
     def theme_new_init(nom):
