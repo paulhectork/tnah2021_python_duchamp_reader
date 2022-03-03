@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from populate import *
 
 from .constantes import SECRET_KEY, templates, statics
 
@@ -25,7 +24,8 @@ db = SQLAlchemy(app)
 login = LoginManager(app)
 
 # éviter les imports circulaires
-from .routes import * # importer les routes utilisées par l'application
+# from .routes import * # importer les routes utilisées par l'application
+from .populate import *
 
 # vérifier si la bdd est déjà créé ; sinon, la créer et peupler
 db_create()
