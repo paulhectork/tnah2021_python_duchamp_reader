@@ -87,24 +87,78 @@ def db_populate_ville():
         Ville.ville_new_init("Naples", 40.83588, 14.24877, "Italie")
         Ville.ville_new_init("New York", 40.71273, -74.00602, "Etats-Unis d'Amérique")
         Ville.ville_new_init("Paris", 48.85889, 2.32004, "France")
-        Ville.ville_new_init("Sarajevo", 43.85198, 18.38669, "Bosine-Herzégovine")
         Ville.ville_new_init("Ris-Orangis", 48.65388, 2.41512, "France")
         Ville.ville_new_init("Rome", 41.89332, 12.48293, "Italie")
         Ville.ville_new_init("Salt Lake City", 40.75962, -111.88680, "Etats-Unis d'Amérique")
         Ville.ville_new_init("Santiago", -33.43778, -70.65045, "Chili")
+        Ville.ville_new_init("Sarajevo", 43.85198, 18.38669, "Bosine-Herzégovine")
         Ville.ville_new_init("Stuttgart", 48.77845, 9.18001, "Allemagne")
         Ville.ville_new_init("Varsovie", 52.23372, 21.07143, "Pologne")
         Ville.ville_new_init("Vienne", 48.20835, 16.37250, "Autriche")
         Ville.ville_new_init("Zurich", 47.37445, 8.54104, "Suisse")
         Ville.ville_new_init("Zuoz", 46.60129, 9.96080, "Suisse")
 
-# def db_populate_theme
-# def db_populate_nomination
+def db_populate_theme():
+    if not Theme.query.get(1):
+        Theme.theme_new_init("mondialisation - migrations - décolonialisme")
+        Theme.theme_new_init("féminisme - identité de genre")
+        Theme.theme_new_init("médias - images")
+        Theme.theme_new_init("écologie - sciences - anthropocène")
+        Theme.theme_new_init("mémoire - histoire")
+        Theme.theme_new_init("abstraction - formalisme")
+
+def db_populate_artiste():
+    if not Artiste.query.get(1):
+        Artiste.artiste_new_init("Hadjithomas", "Joanna", 1969, "F", 5, 5)
+        Artiste.artiste_new_init("Bajevic", "Maja", 1967, "F", 38, 33)
+        Artiste.artiste_new_init("Moth", "Charlotte", 1978, "F", 8, 33)
+        Artiste.artiste_new_init("Vittorio", "Santoro", 1962, "M", 42, 42)
+        Artiste.artiste_new_init("Cotigore", "Clément", 1962, "M", 13, 33)
+        Artiste.artiste_new_init("Bourouissa", "Mohammed", 1978, "M", 6, 33)
+        Artiste.artiste_new_init("Tran", "Thu-Van", 1979, "F", 22, 33)
+        Artiste.artiste_new_init("Voignier", "Marie", 1974, "F", 34, 33)
+        Artiste.artiste_new_init("Baudelaire", "Eric", 1973, "M", 36, 33)
+        Artiste.artiste_new_init("Bock", "Katinka", 1976, "F", 18, 4)
+        Artiste.artiste_new_init("Humeau", "Marguerite", 1986, "F", 12, 27)
+        Artiste.artiste_new_init("Tursic", "Ida", 1974, "F", 3, 14)
+        Artiste.artiste_new_init("Kiwanga", "Kapwani", 1978, "F", 21, 33)
+        Artiste.artiste_new_init("Anderson", "Alice", 1972, "F", 1, 27)
+        Artiste.artiste_new_init("Berrada", "Hachim", 1986, "M", 9, 33)
+        Artiste.artiste_new_init("Ramirez", "Enrique", 1979, "M", 37, 37)
+        Artiste.artiste_new_init("Reynaud Dewar", "Lili", 1974, "F", 25, 20)
+        Artiste.artiste_new_init("Charrière", "Julian", 1987, "M", 30, 4)
+        Artiste.artiste_new_init("Cornaro", "Isabelle", 1974, "F", 2, 19)
+        Artiste.artiste_new_init("Creuzet", "Julian", 1986, "M", 26, 17)
+
+def db_populate_nomination():
+    if not Nomination.query.get(1):
+        Nomination.nomination_new_init(2017, True, 1, 1)
+        Nomination.nomination_new_init(2017, False, 2, 5)
+        Nomination.nomination_new_init(2017, False, 3, 3)
+        Nomination.nomination_new_init(2017, False, 4, 6)
+        Nomination.nomination_new_init(2018, True, 5, 5)
+        Nomination.nomination_new_init(2018, False, 6, 1)
+        Nomination.nomination_new_init(2018, False, 7, 1)
+        Nomination.nomination_new_init(2018, False, 8, 1)
+        Nomination.nomination_new_init(2019, True, 9, 3)
+        Nomination.nomination_new_init(2019, False, 10, 5)
+        Nomination.nomination_new_init(2019, False, 11, 4)
+        Nomination.nomination_new_init(2019, False, 12, 3)
+        Nomination.nomination_new_init(2020, True, 13, 1)
+        Nomination.nomination_new_init(2020, False, 14, 5)
+        Nomination.nomination_new_init(2020, False, 15, 4)
+        Nomination.nomination_new_init(2020, False, 16, 1)
+        Nomination.nomination_new_init(2021, True, 17, 2)
+        Nomination.nomination_new_init(2021, False, 18, 4)
+        Nomination.nomination_new_init(2021, False, 19, 3)
+        Nomination.nomination_new_init(2021, False, 20, 1)
+
 # def db_populate_relation_represente
 # def db_populate_relation_localisation
 
 def db_populate():
-    if not Artiste.query.get(1):
-        Artiste.artiste_new_init("Fontaine", "Claire", 1985, "F", 1, 1)
     db_populate_galerie()
     db_populate_ville()
+    db_populate_theme()
+    db_populate_artiste()
+    db_populate_nomination()

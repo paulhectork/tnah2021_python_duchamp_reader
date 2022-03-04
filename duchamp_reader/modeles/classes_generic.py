@@ -153,7 +153,6 @@ class Artiste(db.Model):
     # une version allégée de artiste_new() pour ajouter des données au moment de l'initialisation de la base
     @staticmethod
     def artiste_new_init(nom, prenom, annee_naissance, genre, id_ville_naissance, id_ville_residence):
-        print("INIT")
         erreurs = []
         if not nom:
             erreurs.append("Un.e artiste doit avoir un nom")
@@ -259,9 +258,9 @@ class Nomination(db.Model):
         themeregex = re.search(regexnc, theme)
         if not themeregex:
             erreurs.append(
-                "Un nom de thème correspond à l'expression: \
-                ^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+(-|\s)?)([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$ \
-                (caractères en minuscules, accentués ou non, séparés ou non par un unique espace ou tiret)"
+                "Un nom de thème doit correspondre à l'expression: \
+                ^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])|(\-?\s?))+([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$ \
+                (minuscules uniquement, accentuées ou non, séparées par des espaces et/ou tirets)"
             )
 
         # LAUREAT
@@ -350,6 +349,7 @@ class Nomination(db.Model):
 
         # si tout va bien, on rajoute les données
         if len(erreurs) > 0:
+            print(erreurs)
             return False, erreurs
         nv_nomination = Nomination(
             annee=annee,
@@ -599,12 +599,11 @@ class Theme(db.Model):
 
         # nettoyer les données et vérifier leur validité
         nom = clean_string(nom)
-        nomregex = re.search(regexnp, nom)
+        nomregex = re.search(regexnc, nom)
         if not nomregex:
-            erreurs.append("Un nom doit correspondre à l'expression: \
-                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)")
+            erreurs.append("Un nom de thème doit correspondre à l'expression: \
+                ^^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])|(\-?\s?))+([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$ \
+                (minuscules uniquement, accentuées ou non, séparées par des espaces et/ou tirets)")
         nom = clean_string(nom).lower()
 
         # vérifier si le thème existe déjà dans la base de données
@@ -632,7 +631,7 @@ class Theme(db.Model):
         erreurs = []
         if not nom:
             erreurs.append("Fournir un nom")
-        nomregex = re.search(regexnp, nom)
+        nomregex = re.search(regexnc, nom)
         if not nomregex:
             erreurs.append("Nom non conforme à la regex")
         nom = clean_string(nom).lower()
