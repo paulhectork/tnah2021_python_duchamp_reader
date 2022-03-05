@@ -66,7 +66,7 @@ class RelationRepresente(db.Model):
     @staticmethod
     def represente_new_init(id_artiste, id_galerie):
         # vérifier que les données sont fournies et valides
-        erreurs=[]
+        erreurs = []
         if not id_artiste:
             erreurs.append("Fournir id_artiste")
         if not id_galerie:
@@ -80,8 +80,8 @@ class RelationRepresente(db.Model):
         if len(erreurs) > 0:
             return False, erreurs
         nv_represente = RelationRepresente(
-            id_galerie=id_galerie,
-            id_artiste=id_artiste
+            id_artiste=id_artiste,
+            id_galerie=id_galerie
         )
         try:
             db.session.add(nv_represente)

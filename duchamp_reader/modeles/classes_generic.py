@@ -208,7 +208,7 @@ class Nomination(db.Model):
     __tablename__ = "nomination"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     annee = db.Column(db.Integer, nullable=False) # format YYYY
-    laureat = db.Column(db.Boolean, nullable=False) # 1 si lauréat, 0 si non
+    laureat = db.Column(db.Boolean, nullable=False, default=0) # 1 si lauréat, 0 si non
     id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"), nullable=False)
     id_theme = db.Column(db.Integer, db.ForeignKey("theme.id"), nullable=False)
 
@@ -223,8 +223,8 @@ class Nomination(db.Model):
         erreurs = []
         if not annee:
             erreurs.append("Vous devez fournir une année de nomination")
-        if not laureat:
-            erreurs.append("Vous devez indiquer si l'artiste est lauréat.e ou non")
+        #  if not laureat:
+        #    erreurs.append("Vous devez indiquer si l'artiste est lauréat.e ou non")
         if not nom_artiste:
             erreurs.append("Vous devez indiquer le nom de famille de l'artiste")
         if not prenom_artiste:
@@ -328,8 +328,6 @@ class Nomination(db.Model):
         erreurs = []
         if not annee:
             erreurs.append("Fournir une année")
-        if not laureat:
-            erreurs.append("Fournir un BOOL pour le lauréat")
         if not id_artiste:
             erreurs.append("Fournir un id d'artiste")
         if not id_theme:

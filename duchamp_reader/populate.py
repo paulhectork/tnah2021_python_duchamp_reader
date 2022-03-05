@@ -1,10 +1,8 @@
 from sqlalchemy_utils.functions import database_exists
 
 from .app import db
-from .routes import *
-from .modeles import classes_users, classes_generic
-# j'ai dû faire classes_users ça sinon j'avais une erreur:
-# Missing user_loader or request_loader
+from .modeles.classes_generic import *
+from .modeles.classes_relationships import RelationRepresente, RelationLocalisation
 
 def db_create():
     if not database_exists('sqlite:///db.sqlite'):
@@ -14,7 +12,7 @@ def db_populate_galerie():
     if not Galerie.query.get(1):
         Galerie.galerie_new_init("In-Situ Fabienne Leclerq", "http://insituparis.fr")
         Galerie.galerie_new_init("The Third Line", "https://www.thethirdline.com")
-        Galerie.galerie_new_init("CRC", "https://www.charlesryanclarke.com/gallery")
+        Galerie.galerie_new_init("Charles Ryan Clarke", "https://www.charlesryanclarke.com/gallery")
         Galerie.galerie_new_init("Michael Rein", "https://michelrein.com/")
         Galerie.galerie_new_init("Peter Kleichman", "https://www.peterkilchmann.com/")
         Galerie.galerie_new_init("Marcelle Alix", "http://www.marcellealix.com/")
@@ -22,7 +20,7 @@ def db_populate_galerie():
         Galerie.galerie_new_init("Counter Space", "https://www.counterspacegallery.com/")
         Galerie.galerie_new_init("Eva Hober", "http://www.evahober.com/")
         Galerie.galerie_new_init("Reinhard Hauff", "https://www.instagram.com/galeriereinhardhauff/")
-        Galerie.galerie_new_init("kammel mennour", "https://kamelmennour.com/")
+        Galerie.galerie_new_init("Kammel Mennour", "https://kamelmennour.com/")
         Galerie.galerie_new_init("Meessen de Clerq", "https://www.meessendeclercq.be/")
         Galerie.galerie_new_init("Greta Meert", "https://galeriegretameert.com/")
         Galerie.galerie_new_init("Barbara Wien", "https://www.barbarawien.de/")
@@ -153,8 +151,100 @@ def db_populate_nomination():
         Nomination.nomination_new_init(2021, False, 19, 3)
         Nomination.nomination_new_init(2021, False, 20, 1)
 
-# def db_populate_relation_represente
-# def db_populate_relation_localisation
+def db_populate_relation_represente():
+    if not RelationRepresente.query.get(1):
+        RelationRepresente.represente_new_init(1, 1)
+        RelationRepresente.represente_new_init(1, 2)
+        RelationRepresente.represente_new_init(1, 3)
+        RelationRepresente.represente_new_init(2, 4)
+        RelationRepresente.represente_new_init(2, 5)
+        RelationRepresente.represente_new_init(3, 6)
+        RelationRepresente.represente_new_init(4, 7)
+        RelationRepresente.represente_new_init(4, 8)
+        RelationRepresente.represente_new_init(5, 9)
+        RelationRepresente.represente_new_init(5, 10)
+        RelationRepresente.represente_new_init(6, 11)
+        RelationRepresente.represente_new_init(7, 12)
+        RelationRepresente.represente_new_init(8, 6)
+        RelationRepresente.represente_new_init(9, 13)
+        RelationRepresente.represente_new_init(9, 14)
+        RelationRepresente.represente_new_init(9, 15)
+        RelationRepresente.represente_new_init(10, 16)
+        RelationRepresente.represente_new_init(10, 17)
+        RelationRepresente.represente_new_init(11, 18)
+        RelationRepresente.represente_new_init(12, 19)
+        RelationRepresente.represente_new_init(12, 20)
+        RelationRepresente.represente_new_init(12, 21)
+        RelationRepresente.represente_new_init(12, 22)
+        RelationRepresente.represente_new_init(13, 23)
+        RelationRepresente.represente_new_init(13, 24)
+        RelationRepresente.represente_new_init(13, 25)
+        RelationRepresente.represente_new_init(14, 26)
+        RelationRepresente.represente_new_init(15, 11)
+        RelationRepresente.represente_new_init(15, 27)
+        RelationRepresente.represente_new_init(15, 28)
+        RelationRepresente.represente_new_init(16, 4)
+        RelationRepresente.represente_new_init(17, 18)
+        RelationRepresente.represente_new_init(17, 29)
+        RelationRepresente.represente_new_init(18, 30)
+        RelationRepresente.represente_new_init(18, 31)
+        RelationRepresente.represente_new_init(18, 32)
+        RelationRepresente.represente_new_init(18, 33)
+        RelationRepresente.represente_new_init(19, 34)
+        RelationRepresente.represente_new_init(19, 35)
+        RelationRepresente.represente_new_init(19, 36)
+        RelationRepresente.represente_new_init(19, 37)
+        RelationRepresente.represente_new_init(20, 38)
+        RelationRepresente.represente_new_init(20, 39)
+
+def db_populate_relation_localisation():
+    if not RelationLocalisation.query.get(1):
+        RelationLocalisation.localisation_new_init(1, 33)
+        RelationLocalisation.localisation_new_init(2, 15)
+        RelationLocalisation.localisation_new_init(3, 31)
+        RelationLocalisation.localisation_new_init(4, 7)
+        RelationLocalisation.localisation_new_init(4, 33)
+        RelationLocalisation.localisation_new_init(5, 42)
+        RelationLocalisation.localisation_new_init(6, 33)
+        RelationLocalisation.localisation_new_init(7, 33)
+        RelationLocalisation.localisation_new_init(8, 42)
+        RelationLocalisation.localisation_new_init(9, 33)
+        RelationLocalisation.localisation_new_init(10, 39)
+        RelationLocalisation.localisation_new_init(11, 33)
+        RelationLocalisation.localisation_new_init(11, 27)
+        RelationLocalisation.localisation_new_init(12, 7)
+        RelationLocalisation.localisation_new_init(13, 7)
+        RelationLocalisation.localisation_new_init(14, 7)
+        RelationLocalisation.localisation_new_init(15, 29)
+        RelationLocalisation.localisation_new_init(16, 33)
+        RelationLocalisation.localisation_new_init(17, 7)
+        RelationLocalisation.localisation_new_init(17, 24)
+        RelationLocalisation.localisation_new_init(18, 7)
+        RelationLocalisation.localisation_new_init(19, 33)
+        RelationLocalisation.localisation_new_init(19, 7)
+        RelationLocalisation.localisation_new_init(19, 27)
+        RelationLocalisation.localisation_new_init(19, 32)
+        RelationLocalisation.localisation_new_init(20, 7)
+        RelationLocalisation.localisation_new_init(21, 31)
+        RelationLocalisation.localisation_new_init(22, 10)
+        RelationLocalisation.localisation_new_init(23, 33)
+        RelationLocalisation.localisation_new_init(24, 23)
+        RelationLocalisation.localisation_new_init(25, 7)
+        RelationLocalisation.localisation_new_init(26, 7)
+        RelationLocalisation.localisation_new_init(27, 7)
+        RelationLocalisation.localisation_new_init(28, 9)
+        RelationLocalisation.localisation_new_init(29, 41)
+        RelationLocalisation.localisation_new_init(29, 35)
+        RelationLocalisation.localisation_new_init(30, 7)
+        RelationLocalisation.localisation_new_init(31, 32)
+        RelationLocalisation.localisation_new_init(32, 16)
+        RelationLocalisation.localisation_new_init(33, 43)
+        RelationLocalisation.localisation_new_init(34, 33)
+        RelationLocalisation.localisation_new_init(35, 42)
+        RelationLocalisation.localisation_new_init(36, 28)
+        RelationLocalisation.localisation_new_init(37, 40)
+        RelationLocalisation.localisation_new_init(38, 33)
+        RelationLocalisation.localisation_new_init(39, 11)
 
 def db_populate():
     db_populate_galerie()
@@ -162,3 +252,5 @@ def db_populate():
     db_populate_theme()
     db_populate_artiste()
     db_populate_nomination()
+    db_populate_relation_represente()
+    db_populate_relation_localisation()
