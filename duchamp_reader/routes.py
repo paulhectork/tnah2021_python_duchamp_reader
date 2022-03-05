@@ -1,8 +1,9 @@
-from flask import render_template, url_for, request, flash, redirect
+from flask import render_template, url_for, request, flash, redirect, jsonify
 from flask_login import current_user, login_user, logout_user
 
 from .app import app
 from .modeles.classes_generic import *
+from .constantes import PERPAGE
 
 @app.route("/")
 def accueil():
@@ -12,21 +13,56 @@ def accueil():
     artistes = Artiste.query.order_by(Artiste.id.desc()).limit(5).all()
     return render_template("pages/accueil.html", artistes=artistes)
 
-@app.route("/about")
-def about():
-    return render_template("pages/about.html")
 
 # IL FAUDRA LA SUPPRIMER CELLE LÀ
 @app.route("/hi")
 def hi():
     return render_template("pages/hi.html")
 
+
+@app.route("/about")
+def about():
+    return render_template("pages/about.html")
+
+
 @app.route("/recherche", methods=["GET", "POST"])
 def recherche():
     pass # RAJOUTER LA FONCTION PLUS TARD
 
+
 @app.route("/artiste")
-@app.route("/artiste/<int:id>")
+def artiste_index():
+    """Fonction permettant d'afficher un index de tou.te.s les artistes figurant dans la base de données
+    avec une pagination. La pagination est faite en fonction de l'édition du prix : chaque page correspond
+    à une année du prix Marcel Duchamp
+
+    :return: renvoi vers le fichier html d'index des artistes
+    :rtype: objet render_template
+    """
+    page = request.args.get("page", 1)
+    titre = "Artistes"
+
+    # pagination
+    if isinstance(page, str) and page.isdigit():
+        page = int(page)
+    else:
+        page = 1
+    artistes = Artiste.query.order_by(Artiste.id.desc()).paginate(page=page, per_page=PERPAGE)
+
+    # afficher dynamiquement une année par page de la requête
+    nominations = Nomination.query.group_by(Nomination.annee).order_by(Nomination.annee)
+    annees = []
+    for nomination in nominations:
+        annees.append(nomination.annee)
+
+    return render_template("pages/artiste_index.html", titre=titre, artistes=artistes, annees=annees)
+
+
+@app.route("/artiste/<int:id_artiste>")
+def artiste_main():
+    """page détaillée sur un.e artiste"""
+
+
 @app.route("/artiste/add", methods=["GET", "POST"])
 def artiste_ajout():
     # si l'utilisateur.ice n'est pas connecté.e
@@ -52,8 +88,34 @@ def artiste_ajout():
     else:
         return render_template("pages/artiste_ajout.html")
 
+
 @app.route("/nomination")
-@app.route("/nomination/<int:id>")
+def nomination_index():
+    page = request.args.get("page", 1)
+    titre = "Nominations"
+
+    # pagination
+    if isinstance(page, str) and page.isdigit():
+        page = int(page)
+    else:
+        page = 1
+    nominations = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id)\
+        .order_by(Nomination.id.desc()).paginate(page=page, per_page=PERPAGE)
+
+    # afficher dynamiquement une année par page de la requête
+    nom_annees = Nomination.query.group_by(Nomination.annee).order_by(Nomination.annee)
+    annees = []
+    for nom_annee in nom_annees:
+        annees.append(nom_annee.annee)
+    return render_template\
+        ("pages/nomination_index.html", titre=titre, nominations=nominations, annees=annees)
+
+
+@app.route("/nomination/<int:id_nomination>")
+def nomination_main():
+    """page détaillée sur une nomination"""
+    # PEUT-ÊTRE QU'IL FAUDRA REMPLACER ÇA VERS UN RENVOI À ARTISTE_MAIN ?
+
 @app.route("/nomination.add", methods=["GET", "POST"])
 def nomination_ajout():
     # si l'utilisateur.ice n'est pas connecté.e

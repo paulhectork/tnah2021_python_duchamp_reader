@@ -1,0 +1,80 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| {{titre}}{%endblock%}
+
+{% block homesearch %}
+    {% include "partials/recherche.html" %}
+{% endblock %}
+
+{% block corps %}
+<h1>{{titre}}</h1>
+    {% if artistes %}
+
+        <!-- corps de la page -->
+        <p>Les artistes nominé.e.s au prix Marcel Duchamp en
+            {% if artistes.page==1 %}
+                {{annees[4]}}
+            {% elif artistes.page==2 %}
+                {{annees[3]}}
+            {% elif artistes.page==3 %}
+                {{annees[2]}}
+            {% elif artistes.page==4 %}
+                {{annees[1]}}
+            {% else %}
+                {{annees[0]}}
+            {% endif %}
+            sont :</p>
+        <ul>
+            {% for artiste in artistes.items %} <!-- afficher les noms des artistes sur la page actuelle -->
+                <li><a href="{{url_for('artiste_main', id_artiste=artiste.id)}}">
+                    {{artiste.prenom}} {{artiste.nom}}
+                </a></li>
+            {% endfor %}
+        </ul>
+
+        <!-- pagination -->
+        <nav aria-label="research-pagination">
+            <ul class="pagination">
+                {% if artistes.has_prev %}
+                    <li class="page-item">
+                {% else%}
+                    <li class="page-item disabled">
+                {% endif %}
+                        <a class="page-link" href="{{url_for('artiste_index', page=artistes.prev_num)}}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                            <span class="sr-only">précédente</span>
+                        </a>
+                    </li>
+                {% for page in artistes.iter_pages() %}
+                    {% if page %}
+                        {% if page != artistes.page %} <!-- si la page n'est pas la page courante -->
+                        <li class="page-item">
+                            <a class="page-link" href="{{url_for('artiste_index', page=page)}}">
+                                {{page}}
+                            </a>
+                        </li>
+                        {% else %} <!-- la page courante -->
+                            <li class="page-item active disabled">
+                                <a class="page-link"><b style="color: var(--custom-light-pink)">{{page}}</b></a>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link">...</a>
+                    </li>
+                    {% endif%}
+                {% endfor %}
+                {% if artistes.has_next %}
+                    <li class="page-item">
+                {% else%}
+                    <li class="page-item disabled">
+                {% endif %}
+                    <a class="page-link" href="{{url_for('artiste_index', page=artistes.next_num)}}" aria-label="Next">
+                        <span class="sr-only">suivante</span>
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    {% endif %}
+{% endblock %}
