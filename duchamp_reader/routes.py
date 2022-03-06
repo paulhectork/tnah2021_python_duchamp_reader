@@ -1,4 +1,4 @@
-from flask import render_template, url_for, request, flash, redirect, jsonify
+from flask import render_template, url_for, request, flash, redirect
 from flask_login import current_user, login_user, logout_user
 import folium
 
@@ -7,7 +7,7 @@ from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
 from .constantes import PERPAGE, cartes, statics
 
-# ---------- ROUTES GÉNÉRALISTES ---------- #
+# ----- ROUTES GÉNÉRALISTES ----- #
 @app.route("/")
 def accueil():
     """Route utilisée pour la page d'accueil
@@ -33,7 +33,7 @@ def recherche():
     pass # RAJOUTER LA FONCTION PLUS TARD
 
 
-# ---------- ROUTES ARTISTE ---------- #
+# ----- ROUTES ARTISTE ----- #
 @app.route("/artiste")
 def artiste_index():
     """Fonction permettant d'afficher un index de tou.te.s les artistes figurant dans la base de données
@@ -85,7 +85,7 @@ def artiste_ajout():
         return render_template("pages/artiste_ajout.html")
 
 
-# ---------- ROUTES NOMINATION ---------- #
+# ----- ROUTES NOMINATION ----- #
 @app.route("/nomination")
 def nomination_index():
     """Fonction permettant d'afficher un index de toutes les nominations figurant dans la base de données
@@ -138,7 +138,7 @@ def nomination_ajout():
         return render_template("pages/nomination_ajout.html")
 
 
-# ---------- ROUTES GALERIE ---------- #
+# ----- ROUTES GALERIE ----- #
 @app.route("/galerie")
 def galerie_index():
     """Fonction permettant d'afficher un index de toutes les galeries figurant dans la base de données
@@ -182,7 +182,7 @@ def galerie_ajout():
         return render_template("pages/galerie_ajout.html")
 
 
-# ---------- ROUTES VILLE ---------- #
+# ----- ROUTES VILLE ----- #
 @app.route("/ville")
 def ville_index():
     """Fonction permettant d'afficher un index de toutes les galeries figurant dans la base de données
@@ -285,7 +285,7 @@ def ville_ajout():
         return render_template("pages/ville_ajout.html")
 
 
-# ---------- ROUTES THEME ---------- #
+# ----- ROUTES THEME ----- #
 @app.route("/theme")
 def theme_index():
     """Fonction permettant d'afficher un index de tous les thèmes figurant dans la base de données
@@ -313,7 +313,7 @@ def theme_add():
     """fonction de création d'un nouveau thème"""
 
 
-# ---------- ROUTES CARTES ---------- #
+# ----- ROUTES CARTES ----- #
 @app.route("/carte/<int:id>")
 def carte(id):
     return render_template(f"/partials/map/ville{id}.html")

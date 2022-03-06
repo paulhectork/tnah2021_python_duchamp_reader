@@ -1,15 +1,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-import atexit
-import os
+import atexit, os, glob
 
 from .constantes import SECRET_KEY, templates, statics, cartes
 
-# actual_path = os.path.dirname(os.path.abspath(__file__))
-# templates = os.path.join(actual_path, "templates")
-# statics = os.path.join(actual_path, "static")
-
+# ----- CONFIGURATION DE L'APPLICATION ----- #
 app = Flask(
     "Application",
     template_folder=templates,
@@ -27,17 +23,30 @@ login = LoginManager(app)
 
 # éviter les imports circulaires
 from .routes import * # importer les routes utilisées par l'application
+
+# ----- PEUPLER LA BDD ----- #
 # vérifier si la bdd est déjà créé ; sinon, la créer et peupler
 from .populate import *
 db_create()
 db_populate()
 
-# à la fermeture de l'appli, nettoyer toutes les cartes créées
+
+# ----- NETTOYER LES CARTES ----- #
 def nettoyage():
+    """Fonction permettant de supprimer les cartes stockées dans le dossier "maps/" pendant l'utilisation
+    de l'application. Cela permet d'éviter la coexistence de différentes versions de cartes (la manière dont
+    les cartes sont créées a évolué avec le temps; il faut mieux tout supprimer et recréer à chaque utilisation).
+
+    :return: dossier "maps/*" vidé de tous ses contenus
+    :rtype: None
+    """
+    a_suppr = glob.glob(os.path.join(cartes, "*.html"))
     try:
-        os.remove(f"{cartes}/*.html")
+        for f in a_suppr:
+            os.remove(f)
     except Exception as erreur:
         print(erreur)
-        return False
+        return False, [str(erreur)]
+
 
 atexit.register(nettoyage)
