@@ -10,8 +10,8 @@ class AuthorshipArtiste(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"))
-    user = db.relationship("User", back_populates="authorships_artiste")
-    artiste = db.relationship("Artiste", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorship_artiste")
+    artiste = db.relationship("Artiste", back_populates="authorship")
 
 
 class AuthorshipNomination(db.Model):
@@ -20,8 +20,8 @@ class AuthorshipNomination(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_nomination = db.Column(db.Integer, db.ForeignKey("nomination.id"))
-    user = db.relationship("User", back_populates="authorships_nomination")
-    nomination = db.relationship("Nomination", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorship_nomination")
+    nomination = db.relationship("Nomination", back_populates="authorship")
 
 
 class AuthorshipGalerie(db.Model):
@@ -30,8 +30,8 @@ class AuthorshipGalerie(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_galerie = db.Column(db.Integer, db.ForeignKey("galerie.id"))
-    user = db.relationship("User", back_populates="authorships_galerie")
-    galerie = db.relationship("Galerie", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorship_galerie")
+    galerie = db.relationship("Galerie", back_populates="authorship")
 
 
 class AuthorshipVille(db.Model):
@@ -40,8 +40,8 @@ class AuthorshipVille(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_ville = db.Column(db.Integer, db.ForeignKey("ville.id"))
-    user = db.relationship("User", back_populates="authorships_ville")
-    ville = db.relationship("Ville", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorship_ville")
+    ville = db.relationship("Ville", back_populates="authorship")
 
 
 class AuthorshipTheme(db.Model):
@@ -50,8 +50,8 @@ class AuthorshipTheme(db.Model):
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     id_user = db.Column(db.Integer, db.ForeignKey("user.id"))
     id_theme = db.Column(db.Integer, db.ForeignKey("theme.id"))
-    user = db.relationship("User", back_populates="authorships_theme")
-    theme = db.relationship("Theme", back_populates="authorships")
+    user = db.relationship("User", back_populates="authorship_theme")
+    theme = db.relationship("Theme", back_populates="authorship")
 
 
 class RelationRepresente(db.Model):
@@ -59,8 +59,8 @@ class RelationRepresente(db.Model):
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"))
     id_galerie =  db.Column(db.Integer, db.ForeignKey("galerie.id"))
-    artiste = db.relationship("Artiste", back_populates="represents")
-    galerie = db.relationship("Galerie", back_populates="represents")
+    artiste = db.relationship("Artiste", back_populates="represent")
+    galerie = db.relationship("Galerie", back_populates="represent")
 
     # méthode de création de données à l'initialisation de la base
     @staticmethod
@@ -96,8 +96,8 @@ class RelationLocalisation(db.Model):
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     id_galerie = db.Column(db.Integer, db.ForeignKey("galerie.id"))
     id_ville = db.Column(db.Integer, db.ForeignKey("ville.id"))
-    galerie = db.relationship("Galerie", back_populates="localisations")
-    ville = db.relationship("Ville", back_populates="localisations")
+    galerie = db.relationship("Galerie", back_populates="localisation")
+    ville = db.relationship("Ville", back_populates="localisation")
 
     @staticmethod
     def localisation_new_init(id_galerie, id_ville):

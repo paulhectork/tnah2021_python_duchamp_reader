@@ -13,21 +13,12 @@ class Artiste(db.Model):
     id_ville_naissance = db.Column(db.Integer, db.ForeignKey("ville.id"))
     id_ville_residence = db.Column(db.Integer, db.ForeignKey("ville.id"))
 
-    authorships = db.relationship("AuthorshipArtiste", back_populates="artiste")
-    represents = db.relationship("RelationRepresente", back_populates="artiste")
+    authorship = db.relationship("AuthorshipArtiste", back_populates="artiste")
+    represent = db.relationship("RelationRepresente", back_populates="artiste")
     ville_naissance = db.relationship("Ville", foreign_keys=[id_ville_naissance],
-                                      backref="artistes_ville_naissance", uselist=False)
+                                      backref="artiste_ville_naissance", uselist=False)
     ville_residence = db.relationship("Ville", foreign_keys=[id_ville_residence],
-                                      backref="artistes_ville_residence", uselist=False)
-    # poser un back populates sur les clés au dessus
-    # solution possible pour les pbs de jointures: placer sur la table Ville quelque chose comme:
-    # id_artiste = db.relationship('Artiste', primaryjoin="or_(Ville.id==Artiste.id_ville_naissance,
-    # Ville.id==Artiste.id_ville_residence)", lazy='dynamic')
-
-    #j'ai un doute sur la classe où utiliser uselist=False pour le lien One-to-one entre Artiste et ville :
-    # si on suit la doc SQLAlchemy pour la création de relations One to One, il faudrait placer uselist=False sur Ville
-    # (ville n'a pas de clé externe), mais je veux que la relation scalaire soit de Artiste vers Ville
-    # (1 artiste = 1 ville), pas l'inverse
+                                      backref="artiste_ville_residence", uselist=False)
     nomination = db.relationship("Nomination", back_populates="artiste", uselist=False)
 
     @staticmethod
@@ -212,9 +203,9 @@ class Nomination(db.Model):
     id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"), nullable=False)
     id_theme = db.Column(db.Integer, db.ForeignKey("theme.id"), nullable=False)
 
-    authorships = db.relationship("AuthorshipNomination", back_populates="nomination")
+    authorship = db.relationship("AuthorshipNomination", back_populates="nomination")
     artiste = db.relationship("Artiste", back_populates="nomination")
-    theme = db.relationship("Theme", back_populates="nominations", uselist=False)
+    theme = db.relationship("Theme", back_populates="nomination", uselist=False)
 
     # COMMENT traduire le lauréat en booléen
     @staticmethod
@@ -369,9 +360,9 @@ class Galerie(db.Model):
     nom = db.Column(db.Text, unique=True, nullable=False)
     url = db.Column(db.Text, unique=True)
 
-    authorships = db.relationship("AuthorshipGalerie", back_populates="galerie")
-    represents = db.relationship("RelationRepresente", back_populates="galerie")
-    localisations = db.relationship("RelationLocalisation", back_populates="galerie")
+    authorship = db.relationship("AuthorshipGalerie", back_populates="galerie")
+    represent = db.relationship("RelationRepresente", back_populates="galerie")
+    localisation = db.relationship("RelationLocalisation", back_populates="galerie")
 
     @staticmethod
     # EUH? J'AI OUBLIÉ D'AJOUTER LA LOCALISATION ET QUI EST REPRÉSENTÉ PAR LA GALERIE
@@ -466,10 +457,8 @@ class Ville(db.Model):
     longitude = db.Column(db.Float)  # je mets nullable=True pour que ça fonctionne avec l'ajout d'artiste
     pays = db.Column(db.Text)
 
-    authorships = db.relationship("AuthorshipVille", back_populates="ville")
-    localisations = db.relationship("RelationLocalisation", back_populates="ville")
-    # artistes_ville_naissance = db.relationship("Artiste", back_populates="ville_naissance")
-    # artistes_ville_residence = db.relationship("Artiste", back_populates="ville_residence")
+    authorship = db.relationship("AuthorshipVille", back_populates="ville")
+    localisation = db.relationship("RelationLocalisation", back_populates="ville")
 
     @staticmethod
     def ville_new(nom, latitude, longitude, pays):
@@ -585,8 +574,8 @@ class Theme(db.Model):
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, nullable=False)
 
-    authorships = db.relationship("AuthorshipTheme", back_populates="theme")
-    nominations = db.relationship("Nomination", back_populates="theme")
+    authorship = db.relationship("AuthorshipTheme", back_populates="theme")
+    nomination = db.relationship("Nomination", back_populates="theme")
 
     @staticmethod
     def theme_new(nom):

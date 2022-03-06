@@ -53,7 +53,7 @@ def db_populate_galerie():
 def db_populate_ville():
     if not Ville.query.get(1):
         Ville.ville_new_init("Alfortville", 48.80516, 2.41971, "France")
-        Ville.ville_new_init("Aurillac", 44.92854, 2.44331, "44.92854 2.44331")
+        Ville.ville_new_init("Aurillac", 44.92854, 2.44331, "France")
         Ville.ville_new_init("Belgrade", 44.81781, 20.45690, "Serbia")
         Ville.ville_new_init("Berlin", 52.51704, 13.38886, "Allemagne")
         Ville.ville_new_init("Beyrouth", 33.88894, 35.49442,"Liban")
@@ -110,7 +110,7 @@ def db_populate_artiste():
         Artiste.artiste_new_init("Hadjithomas", "Joanna", 1969, "F", 5, 5)
         Artiste.artiste_new_init("Bajevic", "Maja", 1967, "F", 38, 33)
         Artiste.artiste_new_init("Moth", "Charlotte", 1978, "F", 8, 33)
-        Artiste.artiste_new_init("Vittorio", "Santoro", 1962, "M", 42, 42)
+        Artiste.artiste_new_init("Santoro", "Vittorio", 1962, "M", 42, 42)
         Artiste.artiste_new_init("Cotigore", "Clément", 1962, "M", 13, 33)
         Artiste.artiste_new_init("Bourouissa", "Mohammed", 1978, "M", 6, 33)
         Artiste.artiste_new_init("Tran", "Thu-Van", 1979, "F", 22, 33)

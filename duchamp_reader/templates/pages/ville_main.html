@@ -1,0 +1,21 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}
+    {%if ville %}| {{ville.nom}} {% endif %}
+{% endblock %}
+
+{% block corps %}
+    {% if ville %}
+        <h1>{{ville.nom}} ({{ville.pays}})</h1>
+        <dl>
+            <dt>Latitude</dt><dd>{{ville.latitude}}</dd>
+            <dt>Longitude</dt><dd>{{ville.longitude}}</dd>
+        </dl>
+        {% if carte %}
+            <iframe src="{{url_for('carte', id=ville.id)}}"></iframe>
+        {% endif %}
+    {% else %}
+        <p>La base de données est en cours de constitution</p>
+    {% endif %}
+    <p><a href="{{url_for('accueil')}}">Accueil</a></p>
+{% endblock %}

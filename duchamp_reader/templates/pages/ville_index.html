@@ -8,14 +8,15 @@
 
 {% block corps %}
 <h1>{{titre}}</h1>
-    {% if artistes %}
+    {% if villes %}
 
         <!-- corps de la page -->
-        <p>Les artistes nominé.e.s au prix Marcel Duchamp en {{artistes.items[1].nomination.annee}} sont :</p>
+        <p>Les villes de naissance et de résidence des artistes nominé.e.s et les villes où sont situées les
+            galeries qui les représentent sont :</p>
         <ul>
-            {% for artiste in artistes.items %} <!-- afficher les noms des artistes sur la page actuelle -->
-                <li><a href="{{url_for('artiste_main', id_artiste=artiste.id)}}">
-                    {{artiste.prenom}} {{artiste.nom}}
+            {% for ville in villes.items %} <!-- afficher les noms des villes sur la page actuelle -->
+                <li><a href="{{url_for('ville_main', id_ville=ville.id)}}">
+                    {{ville.nom}}
                 </a></li>
             {% endfor %}
         </ul>
@@ -23,21 +24,21 @@
         <!-- pagination -->
         <nav aria-label="research-pagination">
             <ul class="pagination">
-                {% if artistes.has_prev %}
+                {% if villes.has_prev %}
                     <li class="page-item">
                 {% else%}
                     <li class="page-item disabled">
                 {% endif %}
-                        <a class="page-link" href="{{url_for('artiste_index', page=artistes.prev_num)}}" aria-label="Previous">
+                        <a class="page-link" href="{{url_for('ville_index', page=villes.prev_num)}}" aria-label="Previous">
                             <span aria-hidden="true">&laquo;</span>
                             <span class="sr-only">précédente</span>
                         </a>
                     </li>
-                {% for page in artistes.iter_pages() %}
+                {% for page in villes.iter_pages() %}
                     {% if page %}
-                        {% if page != artistes.page %} <!-- si la page n'est pas la page courante -->
+                        {% if page != villes.page %} <!-- si la page n'est pas la page courante -->
                         <li class="page-item">
-                            <a class="page-link" href="{{url_for('artiste_index', page=page)}}">
+                            <a class="page-link" href="{{url_for('ville_index', page=page)}}">
                                 {{page}}
                             </a>
                         </li>
@@ -52,12 +53,12 @@
                     </li>
                     {% endif %}
                 {% endfor %}
-                {% if artistes.has_next %}
+                {% if villes.has_next %}
                     <li class="page-item">
                 {% else %}
                     <li class="page-item disabled">
                 {% endif %}
-                    <a class="page-link" href="{{url_for('artiste_index', page=artistes.next_num)}}" aria-label="Next">
+                    <a class="page-link" href="{{url_for('ville_index', page=villes.next_num)}}" aria-label="Next">
                         <span class="sr-only">suivante</span>
                         <span aria-hidden="true">&raquo;</span>
                     </a>

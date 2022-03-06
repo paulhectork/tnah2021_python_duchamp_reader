@@ -11,24 +11,14 @@
     {% if nominations %}
 
         <!-- corps de la page -->
-        <p>L'édition
-            {% if nominations.page==1 %}
-                {{annees[4]}}
-            {% elif nominations.page==2 %}
-                {{annees[3]}}
-            {% elif nominations.page==3 %}
-                {{annees[2]}}
-            {% elif nominations.page==4 %}
-                {{annees[1]}}
-            {% else %}
-                {{annees[0]}}
-            {% endif %}
-            du prix Marcel Duchamp a comporté les nominations suivantes :</p>
+        <p>L'édition {{nominations.items[1].annee}} du prix Marcel Duchamp a comporté les nominations suivantes :</p>
         <ul>
             {% for nomination in nominations.items %} <!-- afficher les noms des artistes sur la page actuelle -->
                 <li>
+                    {% if nomination.laureat == 1 %}Lauréat.e {% else %}Nominé.e {% endif %}:
                     <a href="{{url_for('nomination_main', id_nomination=nomination.id)}}">
-                    {{nomination.id}}</a>
+                        {{nomination.artiste.prenom}} {{nomination.artiste.nom}}
+                    </a>
                 </li>
             {% endfor %}
         </ul>
@@ -63,11 +53,11 @@
                     <li class="page-item disabled">
                         <a class="page-link">...</a>
                     </li>
-                    {% endif%}
+                    {% endif %}
                 {% endfor %}
                 {% if nominations.has_next %}
                     <li class="page-item">
-                {% else%}
+                {% else %}
                     <li class="page-item disabled">
                 {% endif %}
                     <a class="page-link" href="{{url_for('nomination_index', page=nominations.next_num)}}" aria-label="Next">

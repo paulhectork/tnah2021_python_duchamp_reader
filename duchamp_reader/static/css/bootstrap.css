@@ -25,6 +25,7 @@
  * .btn-outline-info:hover : modification des couleurs
  * .navbar + * : ajout d'une règle pour que les éléments soient pas mangés par le navbar
  * .navbar + .hero : ajout d'une règle pour que le hero soit pas mangé par le navbar
+ * .col iframe : création d'une règle pour les cartes embedded
 
 /* definition d'une nouvelle police à utiliser */
 @font-face {
@@ -726,6 +727,11 @@ progress {
 
 .col {
   flex: 1 0 0%;
+}
+
+.col iframe {
+  width: 100%;
+  height: 120%;
 }
 
 .row-cols-auto > * {
