@@ -6,6 +6,7 @@ from .app import app
 from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
 from .constantes import PERPAGE, cartes, statics
+from .constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 
 # ----- ROUTES GÉNÉRALISTES ----- #
 @app.route("/")
@@ -14,18 +15,24 @@ def accueil():
     :return: render_template permettant la visualisation de la page d'accueil
     """
     artistes = Artiste.query.order_by(Artiste.id.desc()).limit(5).all()
-    return render_template("pages/accueil.html", artistes=artistes)
+    return render_template("pages/accueil.html", artistes=artistes,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 # IL FAUDRA LA SUPPRIMER CELLE LÀ
 @app.route("/hi")
 def hi():
-    return render_template("pages/hi.html")
+    return render_template("pages/hi.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/about")
 def about():
-    return render_template("pages/about.html")
+    return render_template("pages/about.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/recherche", methods=["GET", "POST"])
@@ -51,7 +58,9 @@ def artiste_index():
         page = 1
     artistes = Artiste.query.join(Nomination, Artiste.id == Nomination.id_artiste)\
         .order_by(Artiste.id.desc()).paginate(page=page, per_page=PERPAGE)
-    return render_template("pages/artiste_index.html", titre=titre, artistes=artistes)
+    return render_template("pages/artiste_index.html", titre=titre, artistes=artistes,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/artiste/<int:id_artiste>")
@@ -82,7 +91,9 @@ def artiste_ajout():
             flash("Error: " + " + ".join(donnees), "error") # data c'est quoi ?? je l'ai trouvé dans le devoir StoneAdvisor
             return render_template("pages/artiste_ajout.html") # artiste_ajout : fichier html contenant le formulaire d'ajout d'artiste
     else:
-        return render_template("pages/artiste_ajout.html")
+        return render_template("pages/artiste_ajout.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES NOMINATION ----- #
@@ -105,7 +116,9 @@ def nomination_index():
         .join(Theme, Nomination.id_theme == Theme.id)\
         .order_by(Nomination.id.desc()).paginate(page=page, per_page=PERPAGE)
     return render_template \
-        ("pages/nomination_index.html", titre=titre, nominations=nominations)
+        ("pages/nomination_index.html", titre=titre, nominations=nominations,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/nomination/<int:id_nomination>")
@@ -118,7 +131,9 @@ def nomination_ajout():
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login")
+        return redirect("/login",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Nomination.nomination_new(
@@ -133,9 +148,13 @@ def nomination_ajout():
             return redirect("/nomination")
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
-            return render_template("pages/nomination_ajout.html")
+            return render_template("pages/nomination_ajout.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
     else:
-        return render_template("pages/nomination_ajout.html")
+        return render_template("pages/nomination_ajout.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES GALERIE ----- #
@@ -154,7 +173,9 @@ def galerie_index():
     else:
         page = 1
     galeries = Galerie.query.order_by(Galerie.id.desc()).paginate(page=page, per_page=PERPAGE)
-    return render_template("pages/galerie_index.html", titre=titre, galeries=galeries)
+    return render_template("pages/galerie_index.html", titre=titre, galeries=galeries,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 @app.route("/galerie/<int:id_galerie>")
 def galerie_main():
@@ -166,7 +187,9 @@ def galerie_ajout():
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login")
+        return redirect("/login",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Galerie.galerie_new(
@@ -174,12 +197,18 @@ def galerie_ajout():
         )
         if succes is True:
             flash("Vous avez rajouté une nouvelle galerie à la base de données", "success")
-            return redirect("/artiste")
+            return redirect("/artiste",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
-            return render_template("pages/galerie_ajout.html")
+            return render_template("pages/galerie_ajout.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
     else:
-        return render_template("pages/galerie_ajout.html")
+        return render_template("pages/galerie_ajout.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES VILLE ----- #
@@ -198,7 +227,9 @@ def ville_index():
     else:
         page = 1
     villes = Ville.query.order_by(Ville.id.asc()).paginate(page=page, per_page=PERPAGE)
-    return render_template("pages/ville_index.html", titre=titre, villes=villes)
+    return render_template("pages/ville_index.html", titre=titre, villes=villes,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/ville/<int:id_ville>")
@@ -260,7 +291,9 @@ def ville_main(id_ville):
 
     carte.save(f"{cartes}/ville{id_ville}.html")
     # maphtml = f"partials/map/ville{id_ville}.html"
-    return render_template("pages/ville_main.html", ville=ville, carte=carte)
+    return render_template("pages/ville_main.html", ville=ville, carte=carte,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/ville/add", methods=["POST", "GET"])
@@ -268,7 +301,9 @@ def ville_ajout():
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login")
+        return redirect("/login",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Ville.ville_new(
@@ -277,12 +312,18 @@ def ville_ajout():
         )
         if succes is True:
             flash("Vous avez rajouté une nouvelle ville à la base de données", "success")
-            return redirect("/ville")
+            return redirect("/ville",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
-            return render_template("pages/ville_ajout.html")
+            return render_template("pages/ville_ajout.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
     else:
-        return render_template("pages/ville_ajout.html")
+        return render_template("pages/ville_ajout.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES THEME ----- #
@@ -301,7 +342,9 @@ def theme_index():
     else:
         page = 1
     themes = Theme.query.order_by(Theme.id.desc()).paginate(page=page, per_page=PERPAGE)
-    return render_template("pages/theme_index.html", titre=titre, themes=themes)
+    return render_template("pages/theme_index.html", titre=titre, themes=themes,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/theme/<int:id_theme>")
@@ -316,4 +359,17 @@ def theme_add():
 # ----- ROUTES CARTES ----- #
 @app.route("/carte/<int:id>")
 def carte(id):
-    return render_template(f"/partials/map/ville{id}.html")
+    return render_template(f"partials/maps/ville{id}.html")
+
+"""
+@app.route("/sidebar")
+def sidebar():
+    last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(5).all()
+    last_nominations = artistes = Artiste.query.join(Nomination, Artiste.id == Nomination.id_artiste) \
+        .order_by(Artiste.id.desc()).limit(5).all
+    last_galeries = Galerie.query.order_by(Galerie.id.desc()).limit(5).all()
+    last_villes = Ville.query.order_by(Ville.id.desc()).limit(5).all()
+    last_themes = Theme.query.order_by(Theme.id.desc()).limit(5).all()
+    return render_template("partials/sidebar.html", last_nominations=last_nominations, last_artistes=last_artistes,
+                           last_galeries=last_galeries, last_villes=last_villes, last_themes=last_themes)
+"""

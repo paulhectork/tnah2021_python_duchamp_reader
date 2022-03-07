@@ -33,11 +33,11 @@ db_populate()
 
 # ----- NETTOYER LES CARTES ----- #
 def nettoyage():
-    """Fonction permettant de supprimer les cartes stockées dans le dossier "maps/" pendant l'utilisation
-    de l'application. Cela permet d'éviter la coexistence de différentes versions de cartes (la manière dont
-    les cartes sont créées a évolué avec le temps; il faut mieux tout supprimer et recréer à chaque utilisation).
+    """Fonction permettant de supprimer les cartes créées pendant l'utilisation et stockées dans le dossier "maps/".
+    Cela permet d'éviter la coexistence de différentes versions de cartes (la manière dont les cartes sont créées a
+    évolué avec le temps; il faut mieux tout supprimer et recréer à chaque utilisation).
 
-    :return: dossier "maps/*" vidé de tous ses contenus
+    :return: dossier "maps/" vidé de tous ses contenus
     :rtype: None
     """
     a_suppr = glob.glob(os.path.join(cartes, "*.html"))
