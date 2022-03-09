@@ -42,20 +42,16 @@
                         <h3>Menu</h3>
                     </div>
                     <ul class="list-unstyled components">
-                        <li class="active">
+                        <li class="active" id="sidebarAccueil">
                             <a href="{{ url_for('accueil') }}" class="dropdown">
                                 Accueil
                             </a>
                         </li>
                         <li class="active">
-                            <a href="#nominationMenu">
-                                <!--<a href="#nominationMenu" data-toggle="collapse" aria-expanded="false"
-                                class="dropdown-toggle">-->
+                            <a href="{{ url_for('nomination_index') }}">
                                 Nominations
                             </a>
                             <ul class="list-unstyled" id="nominationMenu">
-                            <!-- <ul class="collapse list-unstyled" id="nominationMenu"> -->
-                                <li><a href="{{ url_for('nomination_index') }}">Index des nominations</a></li>
                                 {% if last_nominations %}
                                     {% for n in last_nominations %}
                                         <li><a href="{{ url_for('nomination_main', id_nomination=n.id) }}">
@@ -66,13 +62,10 @@
                             </ul>
                         </li>
                         <li class="active">
-                            <a href="#artisteMenu"><!--<a href="#artisteMenu" data-toggle="collapse" aria-expanded="false"
-                                class="dropdown-toggle">-->
+                            <a href="{{ url_for('artiste_index') }}">
                                 Artistes
                             </a>
-                            <!--<ul class="collapse list-unstyled" id="artisteMenu">-->
                             <ul class="list-unstyled" id="artisteMenu">
-                            <li><a href="{{ url_for('artiste_index') }}">Index des artistes</a></li>
                                 {% if last_artistes %}
                                     {% for n in last_artistes %}
                                         <li><a href="{{ url_for('artiste_main', id_artiste=n.id) }}">{{n.prenom}} {{n.nom}}</a></li>
@@ -81,14 +74,10 @@
                             </ul>
                         </li>
                         <li class="active">
-                            <a href="#galerieMenu">
-                                <!-- <a href="#galerieMenu" data-toggle="collapse" aria-expanded="false"
-                                class="dropdown-toggle">-->
+                            <a href="{{ url_for('galerie_index') }}">
                                 Galeries
                             </a>
                             <ul class="list-unstyled" id="galerieMenu">
-                                <!-- <ul class="collapse list-unstyled" id="galerieMenu">-->
-                                <li><a href="{{ url_for('galerie_index') }}">Index des galeries</a></li>
                                 {% if last_galeries %}
                                     {% for n in last_galeries %}
                                         <li><a href="{{ url_for('galerie_main', id_galerie=n.id) }}">{{n.nom}}</a></li>
@@ -97,14 +86,10 @@
                             </ul>
                         </li>
                         <li class="active">
-                            <a href="#themeMenu">
-                                <!-- <a href="#themeMenu" data-toggle="collapse" aria-expanded="false"
-                                class="dropdown-toggle">-->
+                            <a href="{{ url_for('theme_index') }}">
                                 Thèmes
                             </a>
                             <ul class="list-unstyled" id="themeMenu">
-                            <!-- <ul class="collapse list-unstyled" id="themeMenu"> -->
-                                <li><a href="{{ url_for('theme_index') }}">Index des thèmes</a></li>
                                 {% if last_themes %}
                                     {% for n in last_themes %}
                                         <li><a href="{{ url_for('theme_main', id_theme=n.id) }}">{{n.nom}}</a></li>
@@ -113,14 +98,10 @@
                             </ul>
                         </li>
                         <li class="active">
-                            <a href="#villeMenu">
-                                <!--<a href="#villeMenu" data-toggle="collapse" aria-expanded="false"
-                                class="dropdown-toggle">-->
+                            <a href="{{ url_for('ville_index') }}">
                                 Villes
                             </a>
                             <ul class="list-unstyled" id="villeMenu">
-                                <!-- <ul class="collapse list-unstyled" id="villeMenu"> -->
-                                <li><a href="{{ url_for('ville_index') }}">Index des villes</a></li>
                                 {% if last_villes %}
                                     {% for n in last_villes %}
                                         <li><a href="{{ url_for('ville_main', id_ville=n.id) }}">{{n.nom}} ({{n.pays}})</a></li>
@@ -128,7 +109,7 @@
                                 {% endif %}
                             </ul>
                         </li>
-                        <li class="active">
+                        <li class="active" id="sidebarAbout">
                             <a href="{{ url_for('about') }}">
                                 À propos
                             </a>
@@ -154,14 +135,6 @@
                 var sidebar = document.querySelector("#sidebar");
                 var main = document.querySelector(".row");
                 var hero = document.querySelector(".hero");
-
-                function sidebarTest() {
-                    console.log(sidebar.innerHTML);
-                };
-
-                function mainTest() {
-                    console.log(main.innerHTML);
-                };
 
                 function collapse() {
                     if (sidebar.getAttribute("style") == "width: 0px;") {

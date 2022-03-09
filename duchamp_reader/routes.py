@@ -2,13 +2,13 @@ from flask import render_template, url_for, request, flash, redirect
 from flask_login import current_user, login_user, logout_user
 import folium
 
-from .app import app
+from .app import app, db
 from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
 from .constantes import PERPAGE, cartes, statics
 from .constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 
-# ----- ROUTES GÉNÉRALISTES ----- #
+# ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
 def accueil():
     """Route utilisée pour la page d'accueil
@@ -18,7 +18,6 @@ def accueil():
     return render_template("pages/accueil.html", artistes=artistes,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
-
 
 # IL FAUDRA LA SUPPRIMER CELLE LÀ
 @app.route("/hi")
@@ -37,7 +36,36 @@ def about():
 
 @app.route("/recherche", methods=["GET", "POST"])
 def recherche():
-    pass # RAJOUTER LA FONCTION PLUS TARD
+    """Route pour la recherche en plein texte
+
+    :return:
+    """
+    motclef = request.args.get("keyword", None)
+    page = request.args.get("page", 1)
+    if isinstance(page, str) and page.isdigit():
+        page = int(page)
+    else:
+        page = 1
+    results = []
+    titre = "Recherche"
+    if motclef:
+        results = Nomination.query.filter(Nomination.id.like("%{}%".format(motclef)))\
+                  or Artiste.query.filter(db.or_(Artiste.nom.like("%{}%".format(motclef)),\
+                                                 Artiste.prenom.like("%{}%".format(motclef))))\
+                  or Galerie.query.filter(Galerie.nom.like("%{}%".format(motclef)))\
+                  or Ville.query.filter(Galerie.nom.like("%{}%".format(motclef)))\
+                  or Theme.query.filter(Theme.nom.like("%{}%".format(motclef)))
+        results = results.paginate(page=page, per_page=PERPAGE)
+    print(results)
+    """
+    return render_template(
+        "pages/recherche_results.html",
+        results=results,
+        titre=titre,
+        keyword=motclef
+    )
+    """
+
 
 
 # ----- ROUTES ARTISTE ----- #
@@ -239,58 +267,62 @@ def ville_main(id_ville):
 
     # jointures et génération de données pour les popups
     ville = Ville.query.get(id_ville)
-    ville_artiste_naissance = Artiste.query.join(Ville, Artiste.id_ville_naissance == Ville.id).all()
-    ville_artiste_residence = Artiste.query.join(Ville, Artiste.id_ville_residence == Ville.id)
+    ville_artiste_naissance = Artiste.query.join(Ville, Artiste.id_ville_naissance == Ville.id)\
+        .filter(Ville.id == id_ville).all()
+    ville_artiste_residence = Artiste.query.join(Ville, Artiste.id_ville_residence == Ville.id)\
+        .filter(Ville.id == id_ville).all()
     ville_galerie = RelationLocalisation.query.join(Ville, RelationLocalisation.id_ville == Ville.id)\
-        .join(Galerie, RelationLocalisation.id_galerie == Galerie.id)
-    # AVEC TOUTES CES REQUÊTES, JE VEUX POUVOIR GÉNÉRER DES MARQUEURS, POUR CHAQUE VILLE, AVEC TOUS LES
-    # ARTISTES QUI Y VIVENT, QUI Y SONT NÉ.E.S ET TOUTES LES GALERIES QU'ON Y TROUVE
+        .join(Galerie, RelationLocalisation.id_galerie == Galerie.id).filter(Ville.id == id_ville).all()
 
-    # gérer du html à afficher en popup sur la carte
-    texte = str(ville.nom)
-    html = """
-        <h2>{{ville.nom}}</h2>
-        {% if ville_artiste_naissance %}
-            <p>Dans cette ville est né.e</p>
-            <ul>
-                {% for artiste in ville_artiste_naissance %}
-                    <li>{{artiste.prenom}} {{artiste.nom}}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        {% if ville_artiste_residence %}
-            <p>Dans cette ville habite(nt)</p>
-            <ul>
-                {% for artiste in ville_artiste_residence %}
-                    <li>{{artiste.prenom}} {{artiste.nom}}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        {% if ville_galerie %}
-            <p>Dans cette ville se trouve(nt) la/les galeries suivante(s):</p>
-            <ul>
-                {% for rel_galerie in ville_galerie %}
-                    <li>{{rel_galerie.galerie.nom}}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+    # création du css et du texte d'un popup qui donnera des informations sur chaque ville
+    css = """
+        @font-face {
+          font-family: 'Mels';
+          src: url('static/fonts/Mels-Regular.otf'), url('static/fonts/Mels-Italic.otf') format('opentype');
+          font-weight: normal;
+          font-style: normal;
+        }
+        
+        * {
+          font-family: "Mels", "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+          color: #bd148b;
+          background-color: #ffb0ff;
+        }
     """
+    html = f"<head><meta charset='UTF-8'/><style type='text/css'>{css}</style><h2>" + ville.nom + "</h2>"
+    if ville_artiste_naissance:
+        html += "<p>Dans cette ville est né.e :</p><ul>"
+        for artiste in ville_artiste_naissance:
+            html += f"<li>{artiste.prenom} {artiste.nom}</li>"
+        html += "</ul>"
+    if ville_artiste_residence:
+        html += "<p>Dans cette ville habite(nt) :</p><ul>"
+        for artiste in ville_artiste_residence:
+            html += f"<li>{artiste.prenom} {artiste.nom}</li>"
+        html += "</ul>"
+    if ville_galerie:
+        html += "<p>Dans cette ville se trouve(nt) la/les galeries suivante(s) :</p><ul>"
+        for rel in ville_galerie:
+            html += f"<li>{rel.galerie.nom}</li>"
+        html += "</ul>"
 
-    # créer une carte intégrée à la page
+    # transformation du popup en élément iframe
+    iframe = folium.element.IFrame(html=html, width=500, height=300)
+    popup = folium.Popup(iframe, max_width=2650)
+
+    # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
+    # appelée lorsque l'on va sur la page de la ville
     carte = folium.Map(location=[ville.latitude, ville.longitude], tiles='Stamen Toner')
     popups = folium.CircleMarker(
         location=[ville.latitude, ville.longitude],
-        popup=texte,
+        popup=popup,
         radius=1000,
         color="purple",
         fill_color="plum",
         fill_opacity=100
     ).add_to(carte)
-    #map_figure = map.get_root()
-    #map_figure.header._children["bootstrap"] = folium.element.CssLink("static/css/bootstrap.css")
-
     carte.save(f"{cartes}/ville{id_ville}.html")
-    # maphtml = f"partials/map/ville{id_ville}.html"
+
     return render_template("pages/ville_main.html", ville=ville, carte=carte,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)

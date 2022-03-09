@@ -29,7 +29,7 @@
  * .navbar + .hero : ajout d'une règle pour que le hero soit pas mangé par le navbar
  * .col iframe : création d'une règle pour les cartes embedded
  * .wrapper : création de règles pour le sidebar
- * #sidebar : création de règles pour le sidebar
+ * #sidebar : création de règles pour le sidebar (avec plein d'autres règles en dessous)
  * a[data-toggle="collapse"] : création de règles pour le sidebar
  * .dropdown-toggle::after : création de règles pour le sidebar
  * .navbar .checkbox : création de règles pour un menu burger
@@ -11431,9 +11431,17 @@ a[data-toggle="collapse"] {
   transform: translateY(-50%);
 }
 
+#sidebar .active {
+  margin-top: 13px;
+}
+
 #sidebar .active > a {
   font-weight: bold;
   color: var(--custom-blue-bg);
+}
+
+#sidebarAccueil {
+  margin-bottom: 15px;
 }
 
 #sidebarFermer {
