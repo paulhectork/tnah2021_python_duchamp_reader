@@ -13,7 +13,9 @@
     * --bs-body-color pour définir une nv couleur de texte
     * --bs-body-bg pour définir une nouvelle couleur de fond
     * --bs-hlink-text: définition d'une couleur d'hyperliens
+ * /navbar: ajout d'une règle height: 70px
  * .navbar-light .navbar-brand:hover, .navbar-light .navbar-brand:focus : changement de color pour couleur du texte hovered
+ * /bg-light : changement de background-color
  * a : modification d'une couleur de texte pour les hyperliens
  * a:hover : modification de la couleur de texte pour les hyperliens
  * .form-inline : ajout d'une nouvelle règle pour cette classe pour aligner le formulaire de recherche
@@ -26,6 +28,14 @@
  * .navbar + * : ajout d'une règle pour que les éléments soient pas mangés par le navbar
  * .navbar + .hero : ajout d'une règle pour que le hero soit pas mangé par le navbar
  * .col iframe : création d'une règle pour les cartes embedded
+ * .wrapper : création de règles pour le sidebar
+ * #sidebar : création de règles pour le sidebar
+ * a[data-toggle="collapse"] : création de règles pour le sidebar
+ * .dropdown-toggle::after : création de règles pour le sidebar
+ * .navbar .checkbox : création de règles pour un menu burger
+ * .navbar .hamburger-lines etc : création de règles pour un menu burger
+
+
 
 /* definition d'une nouvelle police à utiliser */
 @font-face {
@@ -34,7 +44,6 @@
     font-weight: normal;
     font-style: normal;
 }
-
 
 :root {
   --bs-blue: #0d6efd;
@@ -574,8 +583,10 @@ progress {
 
 .hero {
   background-position: top center;
-  padding:10vh;
   background-image: url('../images/2021duchamp_cornaro5_bg.jpg');
+  padding:10vh;
+  padding-left: 20px;
+  transition: margin-left .5s;
 }
 
 .display-5 {
@@ -715,6 +726,7 @@ progress {
   margin-top: calc(-1 * var(--bs-gutter-y));
   margin-right: calc(-0.5 * var(--bs-gutter-x));
   margin-left: calc(-0.5 * var(--bs-gutter-x));
+  transition: .5s !important;
 }
 .row > * {
   flex-shrink: 0;
@@ -4084,14 +4096,11 @@ textarea.form-control-lg {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   clear: both;
+  height: 70px !important;
 }
 
 .navbar + * {
   margin-top: 70px;
-}
-
-.navbar + .hero {
-  margin-top: 55px;
 }
 
 .navbar > .container,
@@ -7898,7 +7907,8 @@ textarea.form-control-lg {
 
 .bg-light {
   --bs-bg-opacity: 1;
-  background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;
+  background-color: var(--bs-white);
+  /* background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important; */
 }
 
 .bg-dark {
@@ -11345,5 +11355,158 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+
+/* sidebar menu - bootstrap
+.wrapper {
+  display: flex;
+  width: 100%;
+}
+
+#sidebar {
+  min-width: 250px;
+  max-width: 250px;
+  min-height: 100vh;
+}
+
+#sidebar.active {
+  margin-left: -250px;
+}
+
+a[data-toggle="collapse"] {
+  position: relative;
+}
+
+.dropdown-toggle::after {
+  !!! display: block; !!!
+  position: absolute;
+  top: 50%;
+  !!! right: 20px; !!!
+  transform: translateY(-50%);
+}
+
+@media (max-width: 768px) {
+  #sidebar {
+    margin-left: -250px;
+  }
+  #sidebar.active {
+    margin-left: 0;
+  }
+}
+*/
+
+/* sidebar custom*/
+.wrapper {
+  background-color: var(--bs-white);
+  margin-top: 70px;
+  display: flex;
+  width: 100%;
+  padding-top: 10px;
+}
+
+#sidebar {
+  height: 100%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  overflow-x: hidden;
+  transition: 0.5s;
+}
+
+#sidebar * {
+  color: var(--custom-plum);
+}
+
+#sidebar a:hover{
+  color: var(--custom-light-pink);
+}
+
+a[data-toggle="collapse"] {
+  position: relative;
+}
+
+.dropdown-toggle::after {
+  position: absolute;
+  *top: 50%;
+  transform: translateY(-50%);
+}
+
+#sidebar .active > a {
+  font-weight: bold;
+  color: var(--custom-blue-bg);
+}
+
+#sidebarFermer {
+  font-weight: bold;
+  color: var(--custom-blue-bg);
+}
+
+@media (max-width: 768px) {
+  #sidebar {
+    margin-left: -250px;
+  }
+  #sidebar.active {
+    margin-left: 0;
+  }
+}
+
+/* hamburger */
+.navbar .checkbox {
+  position: absolute;
+  display: block;
+  height: 32px;
+  width: 32px;
+  top: 20px;
+  left: 20px;
+  z-index: 5;
+  opacity: 0;
+  cursor: pointer;
+}
+.navbar .hamburger-lines {
+  display: block;
+  height: 26px;
+  width: 32px;
+  top: 17px;
+  left: 20px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.navbar .hamburger-lines .line {
+  display: block;
+  height: 4px;
+  width: 100%;
+  border-radius: 10px;
+  background-color: var(--custom-blue-bg);
+}
+
+.navbar .hamburger-lines .line1:hover {
+  background-color: var(--custom-light-pink);
+}
+
+.navbar .hamburger-lines .line2:hover {
+  background-color: var(--custom-light-pink);
+}
+
+.navbar .hamburger-lines .line3:hover {
+  background-color: var(--custom-light-pink);
+}
+
+.navbar .hamburger-lines .line1 {
+  transform-origin: 0% 0%;
+  transition: transform 0.4s ease-in-out;
+}
+
+.navbar .hamburger-lines .line2 {
+  transition: transform 0.2s ease-in-out;
+}
+
+.navbar .hamburger-lines .line3 {
+  transform-origin: 0% 100%;
+  transition: transform 0.4s ease-in-out;
+}
+
 
 /*# sourceMappingURL=bootstrap.css.map */
