@@ -9,10 +9,11 @@ class Artiste(db.Model):
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, nullable=False)
     prenom = db.Column(db.Text, nullable=False)
-    annee_naissance = db.Column(db.Integer) #format YYYY
-    genre = db.Column(db.String(1)) # H : homme, F : femme, A : autre/non-binaire
+    annee_naissance = db.Column(db.Integer) # format YYYY
+    genre = db.Column(db.String(1))  # H : homme, F : femme, A : autre/non-binaire
     id_ville_naissance = db.Column(db.Integer, db.ForeignKey("ville.id"))
     id_ville_residence = db.Column(db.Integer, db.ForeignKey("ville.id"))
+    classname = db.Column(db.Text, nullable=False, default="artiste")
 
     authorship = db.relationship("AuthorshipArtiste", back_populates="artiste")
     represent = db.relationship("RelationRepresente", back_populates="artiste")
@@ -211,6 +212,7 @@ class Nomination(db.Model):
     laureat = db.Column(db.Boolean, nullable=False, default=0) # 1 si lauréat, 0 si non
     id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"), nullable=False)
     id_theme = db.Column(db.Integer, db.ForeignKey("theme.id"), nullable=False)
+    classname = db.Column(db.Text, nullable=False, default="nomination")
 
     authorship = db.relationship("AuthorshipNomination", back_populates="nomination")
     artiste = db.relationship("Artiste", back_populates="nomination")
@@ -368,6 +370,7 @@ class Galerie(db.Model):
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, unique=True, nullable=False)
     url = db.Column(db.Text, unique=True)
+    classname = db.Column(db.Text, nullable=False, default="galerie")
 
     authorship = db.relationship("AuthorshipGalerie", back_populates="galerie")
     represent = db.relationship("RelationRepresente", back_populates="galerie")
@@ -465,6 +468,7 @@ class Ville(db.Model):
     latitude = db.Column(db.Float)  # je mets nullable=True pour que ça fonctionne avec l'ajout d'artiste
     longitude = db.Column(db.Float)  # je mets nullable=True pour que ça fonctionne avec l'ajout d'artiste
     pays = db.Column(db.Text)
+    classname = db.Column(db.Text, nullable=False, default="ville")
 
     authorship = db.relationship("AuthorshipVille", back_populates="ville")
     localisation = db.relationship("RelationLocalisation", back_populates="ville")
@@ -579,7 +583,7 @@ class Ville(db.Model):
 
     @hybrid.hybrid_property
     def full(self):
-        """Cette fonction permet de concaténer nom de la ville et nom du pays.
+        """Cette propriété permet de concaténer nom de la ville et nom du pays.
 
         :return: Nom de la ville avec nom du pays entre parenthèses
         :rtype: str
@@ -591,6 +595,7 @@ class Theme(db.Model):
     __tablename__ = "theme"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     nom = db.Column(db.Text, nullable=False)
+    classname = db.Column(db.Text, nullable=False, default="theme")
 
     authorship = db.relationship("AuthorshipTheme", back_populates="theme")
     nomination = db.relationship("Nomination", back_populates="theme")

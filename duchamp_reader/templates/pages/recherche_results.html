@@ -6,11 +6,23 @@
     {% include "partials/recherche.html" %}
     <h1>{{titre}}</h1>
 
-    {% if results_artiste %}
-        <p>Il y a résultats à votre recherche :</p>
+    <!-- afficher les résultats sur toutes les tables -->
+    {% if results %}
+        <p>Il y a {{results.total}} résultats à votre recherche :</p>
         <ul>
-            {% for result in results_artiste.items %}
-                <li>{{result.prenom}} {{result.nom}}</li>
+            {% for result in results.items %}
+                {% if result.classname == "artiste" %}
+                    <li><a href="{{ url_for('artiste_main', id_artiste=result.id) }}">{{result.data}}</a></li>
+                {% elif result.classname == "nomination" %}
+                    <li><a href="{{ url_for('nomination_main', id_nomination=result.id) }}">
+                        {% if result.data == 1 %}Lauréat.e {% else %}Nominé.e {% endif %}: {{result.id}}</a></li>
+                {% elif result.classname == "galerie" %}
+                    <li><a href="{{ url_for('galerie_main', id_galerie=result.id) }}">{{result.data}}</a></li>
+                {% elif result.classname == "galerie" %}
+                    <li><a href="{{ url_for('theme_main', id_theme=theme.id) }}">{{result.data}}</a></li>
+                {% elif result.classname == "data" %}
+                    <li><a href="{{ url_for('ville_main', id_ville=ville.id) }}">{{result.data}}</a></li>
+                {% endif %}
             {% endfor %}
         </ul>
     {% else %}

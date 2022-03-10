@@ -15,14 +15,11 @@ app = Flask(
 app.config['SECRET_KEY'] = SECRET_KEY
 # configurer la base de données
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
-# On initie l'extension
+# initier l'extension de la bdd
 db = SQLAlchemy(app)
 
 # configurer la gestion d'utilisateur-rice-s
 login = LoginManager(app)
-
-# éviter les imports circulaires
-from .routes import * # importer les routes utilisées par l'application
 
 # ----- PEUPLER LA BDD ----- #
 # vérifier si la bdd est déjà créé ; sinon, la créer et peupler
@@ -50,3 +47,8 @@ def nettoyage():
 
 
 atexit.register(nettoyage)
+
+
+# ----- EVITER LES IMPORTS CIRCULAIRES ET AUTRES ----- #
+from .routes import *  # importer les routes utilisées par l'application
+

@@ -1,6 +1,5 @@
 from flask import render_template, url_for, request, flash, redirect
 from flask_login import current_user, login_user, logout_user
-from sqlalchemy import func
 import folium
 
 from .app import app, db
@@ -41,18 +40,19 @@ def recherche():
 
     :return:
     """
-    # initialisation de la recherche: pagination et définition des variables pour stocker les résultats
+    # initialisation de la recherche: pagination et définition du titree
     keyword = request.args.get("keyword", None)
     page = request.args.get("page", 1)
     if isinstance(page, str) and page.isdigit():
         page = int(page)
     else:
         page = 1
+    """
     results_nomination = []
     results_artiste = []
     results_galerie = []
     results_theme = []
-    results_ville = []
+    results_ville = []"""
     titre = f"Résultats pour la recherche : {keyword}"
 
     if keyword:
@@ -72,32 +72,29 @@ def recherche():
             or keyword == "nominé.e.s":
             keyword = 0
         # requête sur toutes les tables
-        results_nomination = Nomination.query.filter(Nomination.id.like(f"%{keyword}%"))
-        results_nomination = results_nomination.with_entities(Nomination.laureat)
-        results_artiste = Artiste.query.filter(db.or_(Artiste.nom.like(f"%{keyword}%"), Artiste.prenom.like(f"%{keyword}%")))
-        results_artiste = results_artiste.with_entities(Artiste.full)
-        results_galerie = Galerie.query.filter(Galerie.nom.like(f"%{keyword}%"))
-        results_galerie = results_galerie.with_entities(Galerie.nom)
-        results_ville = Ville.query.filter(Galerie.nom.like(f"%{keyword}%"))
-        results_ville = results_ville.with_entities(Ville.full)
-        results_theme = Theme.query.filter(Theme.nom.like(f"%{keyword}%"))
-        results_theme = results_theme.with_entities(Theme.nom)
+        results_nomination = Nomination.query.filter(Nomination.id.like(f"%{keyword}%")) \
+            .with_entities(Nomination.classname, Nomination.id, Nomination.laureat.label("data"))
 
-    results = results_nomination.union(results_artiste, results_galerie, results_theme, results_ville)
-    print(results.paginate(page=page, per_page=PERPAGE))
+        results_artiste = Artiste.query.filter(db.or_(Artiste.nom.like(f"%{keyword}%"),
+                                                      Artiste.prenom.like(f"%{keyword}%"))) \
+            .with_entities(Artiste.classname, Artiste.id, Artiste.full.label("data"))
+        results_galerie = Galerie.query.filter(Galerie.nom.like(f"%{keyword}%")) \
+            .with_entities(Galerie.classname, Galerie.id, Galerie.nom.label("data"))
+        results_ville = Ville.query.filter(Galerie.nom.like(f"%{keyword}%")) \
+            .with_entities(Ville.classname, Ville.id, Ville.full.label("data"))
+        results_theme = Theme.query.filter(Theme.nom.like(f"%{keyword}%")) \
+            .with_entities(Theme.classname, Theme.id, Theme.nom.label("data"))
+
+        results = results_nomination.union(results_artiste, results_galerie, results_theme, results_ville)\
+            #.paginate(page=page, per_page=PERPAGE)
+        for r in results:
+            for r2 in r:
+                print(r2)
     return render_template(
-        "pages/recherche_results.html",
-        results_nomination=results_nomination,
-        results_artiste=results_artiste,
-        results_galerie=results_galerie,
-        results_theme=results_theme,
-        results_ville=results_ville,
-        titre=titre,
-        keyword=keyword,
-        last_nominations = last_nominations, last_artistes = last_artistes, last_galeries = last_galeries,
-        last_themes = last_themes, last_villes = last_villes
+        "pages/recherche_results.html", results=results, titre=titre, keyword=keyword,
+        last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+        last_themes=last_themes, last_villes=last_villes
     )
-
 
 
 # ----- ROUTES ARTISTE ----- #
