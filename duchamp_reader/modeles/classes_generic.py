@@ -1,8 +1,9 @@
+from sqlalchemy.ext import hybrid
+
 from ..app import db
 from ..regex import *
 
-
-# les autres tables
+# les tables génériques
 class Artiste(db.Model):
     __tablename__ = "artiste"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
@@ -194,6 +195,14 @@ class Artiste(db.Model):
         except Exception as error:
             return False, [str(error)]
 
+    @hybrid.hybrid_property
+    def full(self):
+        """Cette fonction permet de concaténer prénom et nom pour retourner un nom complet.
+
+        :return: Nom complet
+        :rtype: str
+        """
+        return self.prenom + " " + self.nom
 
 class Nomination(db.Model):
     __tablename__ = "nomination"
@@ -567,6 +576,15 @@ class Ville(db.Model):
             return True, nv_ville
         except Exception as error:
             return False, [str(error)]
+
+    @hybrid.hybrid_property
+    def full(self):
+        """Cette fonction permet de concaténer nom de la ville et nom du pays.
+
+        :return: Nom de la ville avec nom du pays entre parenthèses
+        :rtype: str
+        """
+        return self.nom + " (" + self.pays + ")"
 
 
 class Theme(db.Model):

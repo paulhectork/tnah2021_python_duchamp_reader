@@ -1,0 +1,20 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| {{titre}}{% endblock %}
+
+{% block corps %}
+    {% include "partials/recherche.html" %}
+    <h1>{{titre}}</h1>
+
+    {% if results_artiste %}
+        <p>Il y a résultats à votre recherche :</p>
+        <ul>
+            {% for result in results_artiste.items %}
+                <li>{{result.prenom}} {{result.nom}}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Votre recherche n'a pas retourné de résultat.</p>
+    {% endif %}
+
+{% endblock %}

@@ -1,5 +1,6 @@
 from flask import render_template, url_for, request, flash, redirect
 from flask_login import current_user, login_user, logout_user
+from sqlalchemy import func
 import folium
 
 from .app import app, db
@@ -40,31 +41,62 @@ def recherche():
 
     :return:
     """
-    motclef = request.args.get("keyword", None)
+    # initialisation de la recherche: pagination et définition des variables pour stocker les résultats
+    keyword = request.args.get("keyword", None)
     page = request.args.get("page", 1)
     if isinstance(page, str) and page.isdigit():
         page = int(page)
     else:
         page = 1
-    results = []
-    titre = "Recherche"
-    if motclef:
-        results = Nomination.query.filter(Nomination.id.like("%{}%".format(motclef)))\
-                  or Artiste.query.filter(db.or_(Artiste.nom.like("%{}%".format(motclef)),\
-                                                 Artiste.prenom.like("%{}%".format(motclef))))\
-                  or Galerie.query.filter(Galerie.nom.like("%{}%".format(motclef)))\
-                  or Ville.query.filter(Galerie.nom.like("%{}%".format(motclef)))\
-                  or Theme.query.filter(Theme.nom.like("%{}%".format(motclef)))
-        results = results.paginate(page=page, per_page=PERPAGE)
-    print(results)
-    """
+    results_nomination = []
+    results_artiste = []
+    results_galerie = []
+    results_theme = []
+    results_ville = []
+    titre = f"Résultats pour la recherche : {keyword}"
+
+    if keyword:
+        # traduction de la requête pour pouvoir rechercher les nominé.e.s ou lauréat.e.s
+        if keyword == "lauréat" \
+            or keyword == "lauréate" \
+            or keyword == "lauréat.e" \
+            or keyword == "lauréats" \
+            or keyword == "nominées" \
+            or keyword == "lauréat.e.s":
+            keyword = 1
+        elif keyword == "nominé" \
+            or keyword == "nominée" \
+            or keyword == "nominé.e" \
+            or keyword == "nominés" \
+            or keyword == "nominées" \
+            or keyword == "nominé.e.s":
+            keyword = 0
+        # requête sur toutes les tables
+        results_nomination = Nomination.query.filter(Nomination.id.like(f"%{keyword}%"))
+        results_nomination = results_nomination.with_entities(Nomination.laureat)
+        results_artiste = Artiste.query.filter(db.or_(Artiste.nom.like(f"%{keyword}%"), Artiste.prenom.like(f"%{keyword}%")))
+        results_artiste = results_artiste.with_entities(Artiste.full)
+        results_galerie = Galerie.query.filter(Galerie.nom.like(f"%{keyword}%"))
+        results_galerie = results_galerie.with_entities(Galerie.nom)
+        results_ville = Ville.query.filter(Galerie.nom.like(f"%{keyword}%"))
+        results_ville = results_ville.with_entities(Ville.full)
+        results_theme = Theme.query.filter(Theme.nom.like(f"%{keyword}%"))
+        results_theme = results_theme.with_entities(Theme.nom)
+
+    results = results_nomination.union(results_artiste, results_galerie, results_theme, results_ville)
+    print(results.paginate(page=page, per_page=PERPAGE))
     return render_template(
         "pages/recherche_results.html",
-        results=results,
+        results_nomination=results_nomination,
+        results_artiste=results_artiste,
+        results_galerie=results_galerie,
+        results_theme=results_theme,
+        results_ville=results_ville,
         titre=titre,
-        keyword=motclef
+        keyword=keyword,
+        last_nominations = last_nominations, last_artistes = last_artistes, last_galeries = last_galeries,
+        last_themes = last_themes, last_villes = last_villes
     )
-    """
 
 
 
