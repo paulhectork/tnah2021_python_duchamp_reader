@@ -198,7 +198,7 @@ class Artiste(db.Model):
 
     @hybrid.hybrid_property
     def full(self):
-        """Cette fonction permet de concaténer prénom et nom pour retourner un nom complet.
+        """Cette propriété permet de concaténer prénom et nom pour retourner un nom complet.
 
         :return: Nom complet
         :rtype: str

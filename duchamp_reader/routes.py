@@ -36,60 +36,49 @@ def about():
 
 @app.route("/recherche", methods=["GET", "POST"])
 def recherche():
-    """Route pour la recherche en plein texte
+    """Route pour faire une recherche rapide sur toutes les tables
 
     :return:
     """
-    # initialisation de la recherche: pagination et définition du titree
+    # initialisation de la recherche: pagination, définition du titre, initialisation des variables
     keyword = request.args.get("keyword", None)
     page = request.args.get("page", 1)
     if isinstance(page, str) and page.isdigit():
         page = int(page)
     else:
         page = 1
-    """
-    results_nomination = []
     results_artiste = []
     results_galerie = []
     results_theme = []
-    results_ville = []"""
+    results_ville = []
+    results = None
     titre = f"Résultats pour la recherche : {keyword}"
 
     if keyword:
-        # traduction de la requête pour pouvoir rechercher les nominé.e.s ou lauréat.e.s
-        if keyword == "lauréat" \
-            or keyword == "lauréate" \
-            or keyword == "lauréat.e" \
-            or keyword == "lauréats" \
-            or keyword == "nominées" \
-            or keyword == "lauréat.e.s":
-            keyword = 1
-        elif keyword == "nominé" \
-            or keyword == "nominée" \
-            or keyword == "nominé.e" \
-            or keyword == "nominés" \
-            or keyword == "nominées" \
-            or keyword == "nominé.e.s":
-            keyword = 0
-        # requête sur toutes les tables
-        results_nomination = Nomination.query.filter(Nomination.id.like(f"%{keyword}%")) \
-            .with_entities(Nomination.classname, Nomination.id, Nomination.laureat.label("data"))
-
+        # requête sur toutes les tables SAUF LA TABLE NOMINATION parce qu'il n'y a rien de bien intéressant
         results_artiste = Artiste.query.filter(db.or_(Artiste.nom.like(f"%{keyword}%"),
                                                       Artiste.prenom.like(f"%{keyword}%"))) \
             .with_entities(Artiste.classname, Artiste.id, Artiste.full.label("data"))
         results_galerie = Galerie.query.filter(Galerie.nom.like(f"%{keyword}%")) \
             .with_entities(Galerie.classname, Galerie.id, Galerie.nom.label("data"))
-        results_ville = Ville.query.filter(Galerie.nom.like(f"%{keyword}%")) \
+        results_ville = Ville.query.filter(db.or_(Ville.nom.like(f"%{keyword}%"),
+                                                      Ville.pays.like(f"%{keyword}%"))) \
             .with_entities(Ville.classname, Ville.id, Ville.full.label("data"))
         results_theme = Theme.query.filter(Theme.nom.like(f"%{keyword}%")) \
             .with_entities(Theme.classname, Theme.id, Theme.nom.label("data"))
 
-        results = results_nomination.union(results_artiste, results_galerie, results_theme, results_ville)\
-            #.paginate(page=page, per_page=PERPAGE)
-        for r in results:
-            for r2 in r:
-                print(r2)
+        results = results_artiste.union(results_galerie, results_ville, results_theme)\
+            .paginate(page=page, per_page=PERPAGE)
+
+        # en SQL, UNION permet d'empiler des requêtes avec le même nombre de colonnes et les mêmes
+        # noms de colonnes. c'est pour ça qu'on utilise ".with_entities()", pour sélectionner les colonnes
+        # à conserver et ".label()" pour renommer les colonnes. la requête au dessus équivaut à:
+        #   SELECT nomination.id, nomination.annee AS data, nomination.classname
+	    #   FROM nomination
+        #   UNION
+        #   SELECT artiste.id, artiste.nom AS data, artiste.classname
+	    #   FROM artiste
+
     return render_template(
         "pages/recherche_results.html", results=results, titre=titre, keyword=keyword,
         last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,

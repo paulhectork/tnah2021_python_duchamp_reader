@@ -8,23 +8,68 @@
 
     <!-- afficher les résultats sur toutes les tables -->
     {% if results %}
+
+        <!-- corps de la page -->
         <p>Il y a {{results.total}} résultats à votre recherche :</p>
         <ul>
             {% for result in results.items %}
                 {% if result.classname == "artiste" %}
                     <li><a href="{{ url_for('artiste_main', id_artiste=result.id) }}">{{result.data}}</a></li>
                 {% elif result.classname == "nomination" %}
-                    <li><a href="{{ url_for('nomination_main', id_nomination=result.id) }}">
-                        {% if result.data == 1 %}Lauréat.e {% else %}Nominé.e {% endif %}: {{result.id}}</a></li>
                 {% elif result.classname == "galerie" %}
                     <li><a href="{{ url_for('galerie_main', id_galerie=result.id) }}">{{result.data}}</a></li>
                 {% elif result.classname == "galerie" %}
-                    <li><a href="{{ url_for('theme_main', id_theme=theme.id) }}">{{result.data}}</a></li>
-                {% elif result.classname == "data" %}
-                    <li><a href="{{ url_for('ville_main', id_ville=ville.id) }}">{{result.data}}</a></li>
+                    <li><a href="{{ url_for('theme_main', id_theme=result.id) }}">{{result.data}}</a></li>
+                {% elif result.classname == "ville" %}
+                    <li><a href="{{ url_for('ville_main', id_ville=result.id) }}">{{result.data}}</a></li>
                 {% endif %}
             {% endfor %}
         </ul>
+
+        <!-- pagination -->
+        <nav aria-label="research-pagination">
+            <ul class="pagination">
+                {% if results.has_prev %}
+                    <li class="page-item">
+                {% else%}
+                    <li class="page-item disabled">
+                {% endif %}
+                        <a class="page-link" href="{{url_for('recherche', keyword=keyword, page=results.prev_num)}}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                            <span class="sr-only">précédente</span>
+                        </a>
+                    </li>
+                {% for page in results.iter_pages() %}
+                    {% if page %}
+                        {% if page != results.page %} <!-- si la page n'est pas la page courante -->
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('recherche', keyword=keyword, page=page)}}">
+                                {{page}}
+                            </a>
+                        </li>
+                        {% else %} <!-- la page courante -->
+                            <li class="page-item active disabled">
+                                <a class="page-link"><b style="color: var(--custom-light-pink)">{{page}}</b></a>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link">...</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                {% if results.has_next %}
+                    <li class="page-item">
+                {% else %}
+                    <li class="page-item disabled">
+                {% endif %}
+                    <a class="page-link" href="{{url_for('recherche', keyword=keyword, page=results.next_num)}}" aria-label="Next">
+                        <span class="sr-only">suivante</span>
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
     {% else %}
         <p>Votre recherche n'a pas retourné de résultat.</p>
     {% endif %}

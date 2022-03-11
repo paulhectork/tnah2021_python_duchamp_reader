@@ -17,11 +17,11 @@ app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 # initier l'extension de la bdd
 db = SQLAlchemy(app)
-
 # configurer la gestion d'utilisateur-rice-s
 login = LoginManager(app)
 
-# ----- PEUPLER LA BDD ----- #
+
+# ----- PEUPLER LA BDD ET CONFIGURER L'INDEX ----- #
 # vérifier si la bdd est déjà créé ; sinon, la créer et peupler
 from .populate import *
 db_create()

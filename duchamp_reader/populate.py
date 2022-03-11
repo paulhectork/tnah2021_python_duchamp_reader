@@ -5,10 +5,14 @@ from .modeles.classes_generic import *
 from .modeles.classes_relationships import RelationRepresente, RelationLocalisation
 
 def db_create():
+    """Fonction d'initalisation permettant de créer la base de donnéres
+    """
     if not database_exists('sqlite:///db.sqlite'):
         db.create_all()
 
 def db_populate_galerie():
+    """Fonction d'initialisation permettant de peupler la table Galerie
+    """
     if not Galerie.query.get(1):
         Galerie.galerie_new_init("In-Situ Fabienne Leclerq", "http://insituparis.fr")
         Galerie.galerie_new_init("The Third Line", "https://www.thethirdline.com")
@@ -51,6 +55,8 @@ def db_populate_galerie():
         Galerie.galerie_new_init("Document", "https://documentspace.com/")
 
 def db_populate_ville():
+    """Fonction d'initialisation permettant de peupler la table Ville
+    """
     if not Ville.query.get(1):
         Ville.ville_new_init("Alfortville", 48.80516, 2.41971, "France")
         Ville.ville_new_init("Aurillac", 44.92854, 2.44331, "France")
@@ -97,6 +103,8 @@ def db_populate_ville():
         Ville.ville_new_init("Zuoz", 46.60129, 9.96080, "Suisse")
 
 def db_populate_theme():
+    """Fonction d'initialisation permettant de peupler la table Theme
+    """
     if not Theme.query.get(1):
         Theme.theme_new_init("mondialisation - migrations - décolonialisme")
         Theme.theme_new_init("féminisme - identité de genre")
@@ -106,6 +114,8 @@ def db_populate_theme():
         Theme.theme_new_init("abstraction - formalisme")
 
 def db_populate_artiste():
+    """Fonction d'initialisation permettant de peupler la table Artiste
+    """
     if not Artiste.query.get(1):
         Artiste.artiste_new_init("Hadjithomas", "Joanna", 1969, "F", 5, 5)
         Artiste.artiste_new_init("Bajevic", "Maja", 1967, "F", 38, 33)
@@ -129,6 +139,8 @@ def db_populate_artiste():
         Artiste.artiste_new_init("Creuzet", "Julian", 1986, "M", 26, 17)
 
 def db_populate_nomination():
+    """Fonction d'initialisation permettant de peupler la table Nomination
+    """
     if not Nomination.query.get(1):
         Nomination.nomination_new_init(2017, True, 1, 1)
         Nomination.nomination_new_init(2017, False, 2, 5)
@@ -152,6 +164,8 @@ def db_populate_nomination():
         Nomination.nomination_new_init(2021, False, 20, 1)
 
 def db_populate_relation_represente():
+    """Fonction d'initialisation permettant de peupler la table Represente
+    """
     if not RelationRepresente.query.get(1):
         RelationRepresente.represente_new_init(1, 1)
         RelationRepresente.represente_new_init(1, 2)
@@ -198,6 +212,8 @@ def db_populate_relation_represente():
         RelationRepresente.represente_new_init(20, 39)
 
 def db_populate_relation_localisation():
+    """Fonction d'initialisation permettant de peupler la table Localisation
+    """
     if not RelationLocalisation.query.get(1):
         RelationLocalisation.localisation_new_init(1, 33)
         RelationLocalisation.localisation_new_init(2, 15)
