@@ -8,6 +8,7 @@ from .modeles.classes_relationships import *
 from .constantes import PERPAGE, cartes, statics
 from .constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 
+
 # ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
 def accueil():
@@ -110,8 +111,16 @@ def artiste_index():
 
 
 @app.route("/artiste/<int:id_artiste>")
-def artiste_main():
+def artiste_main(id_artiste):
     """page détaillée sur un.e artiste"""
+
+    # requêtes; la requête principale est sur Nomination: c'est la table qui fait la jointure entre toutes les données
+    nomination = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id == id_artiste)\
+            .join(Theme, Nomination.id_theme == Theme.id)
+    galerie = RelationRepresente.query.join(Artiste, RelationRepresente.id_artiste == Artiste.id == id_artiste)\
+        .join(Galerie, RelationRepresente.id_galerie == Galerie.id)
+
+    # CE QUE JE VOUDRAIS FAIRE: GÉNÉRER UNE CARTE QUI MONTRE LA VILLE D'ORIGINE ET DE RESIDENCE DE L'ARTISTE
 
 
 @app.route("/artiste/add", methods=["GET", "POST"])
@@ -138,8 +147,8 @@ def artiste_ajout():
             return render_template("pages/artiste_ajout.html") # artiste_ajout : fichier html contenant le formulaire d'ajout d'artiste
     else:
         return render_template("pages/artiste_ajout.html",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                               last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                               last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES NOMINATION ----- #
@@ -161,16 +170,24 @@ def nomination_index():
     nominations = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id)\
         .join(Theme, Nomination.id_theme == Theme.id)\
         .order_by(Nomination.id.desc()).paginate(page=page, per_page=PERPAGE)
-    return render_template \
-        ("pages/nomination_index.html", titre=titre, nominations=nominations,
+    return render_template("pages/nomination_index.html", titre=titre, nominations=nominations,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/nomination/<int:id_nomination>")
-def nomination_main():
-    """page détaillée sur une nomination
-    PEUT-ÊTRE QU'IL FAUDRA REMPLACER ÇA VERS UN RENVOI À ARTISTE_MAIN ?"""
+def nomination_main(id_nomination):
+    """Fonction renvoyant à la page détaillée sur un.e artiste. Fonctionne de la même
+    manière que "artiste_main()"
+    """
+
+    # EN FAIT IL VA PROBABLEMENT FALLOIR SUPPRIMER CETTE FONCTION ET FAIRE LES RENVOIS
+    # URL_FOR() PAS À nomination_main() MAIS À artiste_main()
+
+    return render_template("artiste_main", id_artiste=id_nomination,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
+
 
 @app.route("/nomination.add", methods=["GET", "POST"])
 def nomination_ajout():
@@ -178,8 +195,8 @@ def nomination_ajout():
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
         return redirect("/login",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                        last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                        last_themes=last_themes, last_villes=last_villes)
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Nomination.nomination_new(
@@ -195,12 +212,12 @@ def nomination_ajout():
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
             return render_template("pages/nomination_ajout.html",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                                   last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                                   last_themes=last_themes, last_villes=last_villes)
     else:
         return render_template("pages/nomination_ajout.html",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                               last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                               last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES GALERIE ----- #
@@ -223,10 +240,12 @@ def galerie_index():
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
 
+
 @app.route("/galerie/<int:id_galerie>")
-def galerie_main():
+def galerie_main(id_galerie):
     """fonction pour afficher la page principale d'une galerie
     ESSAYER D'INTÉGRER DE LA CARTOGRAPHIE DANS CETTE PAGE"""
+
 
 @app.route("/galerie/add", methods=["POST", "GET"])
 def galerie_ajout():
@@ -234,8 +253,8 @@ def galerie_ajout():
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
         return redirect("/login",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                        last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                        last_themes=last_themes, last_villes=last_villes)
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Galerie.galerie_new(
@@ -244,17 +263,17 @@ def galerie_ajout():
         if succes is True:
             flash("Vous avez rajouté une nouvelle galerie à la base de données", "success")
             return redirect("/artiste",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                            last_themes=last_themes, last_villes=last_villes)
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
             return render_template("pages/galerie_ajout.html",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                                   last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                                   last_themes=last_themes, last_villes=last_villes)
     else:
         return render_template("pages/galerie_ajout.html",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                               last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                               last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES VILLE ----- #
@@ -280,9 +299,12 @@ def ville_index():
 
 @app.route("/ville/<int:id_ville>")
 def ville_main(id_ville):
-    """fonction pour la création de ville.
-    essayer d'ajouter de la géolocalisation"""
+    """Fonction permettant d'afficher les détails sur une ville, ainsi qu'une carte avec un
+    "popup" qui liste toutes les données liées à la ville.
 
+    :return: objet render_template renvoyant à la page html "ville_main.html"
+    :rtype: render_template object
+    """
     # jointures et génération de données pour les popups
     ville = Ville.query.get(id_ville)
     ville_artiste_naissance = Artiste.query.join(Ville, Artiste.id_ville_naissance == Ville.id)\
@@ -352,8 +374,8 @@ def ville_ajout():
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
         return redirect("/login",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                        last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                        last_themes=last_themes, last_villes=last_villes)
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Ville.ville_new(
@@ -363,17 +385,17 @@ def ville_ajout():
         if succes is True:
             flash("Vous avez rajouté une nouvelle ville à la base de données", "success")
             return redirect("/ville",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                            last_themes=last_themes, last_villes=last_villes)
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
             return render_template("pages/ville_ajout.html",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                                   last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                                   last_themes=last_themes, last_villes=last_villes)
     else:
         return render_template("pages/ville_ajout.html",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+                               last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                               last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES THEME ----- #
@@ -400,6 +422,7 @@ def theme_index():
 @app.route("/theme/<int:id_theme>")
 def theme_main():
     """fonction pour afficher la page principale d'un thème"""
+
 
 @app.route("/theme/add", methods=["POST", "GET"])
 def theme_add():
