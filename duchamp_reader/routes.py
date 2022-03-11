@@ -68,7 +68,7 @@ def recherche():
             .with_entities(Theme.classname, Theme.id, Theme.nom.label("data"))
 
         results = results_artiste.union(results_galerie, results_ville, results_theme)\
-            .paginate(page=page, per_page=PERPAGE)
+            .order_by(Artiste.id.asc()).paginate(page=page, per_page=PERPAGE)
 
         # en SQL, UNION permet d'empiler des requêtes avec le même nombre de colonnes et les mêmes
         # noms de colonnes. c'est pour ça qu'on utilise ".with_entities()", pour sélectionner les colonnes
