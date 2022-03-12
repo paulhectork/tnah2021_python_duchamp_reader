@@ -10,7 +10,7 @@ class Artiste(db.Model):
     nom = db.Column(db.Text, nullable=False)
     prenom = db.Column(db.Text, nullable=False)
     annee_naissance = db.Column(db.Integer) # format YYYY
-    genre = db.Column(db.String(1))  # H : homme, F : femme, A : autre/non-binaire
+    genre = db.Column(db.String(1))  # M : homme, F : femme, A : autre/non-binaire
     id_ville_naissance = db.Column(db.Integer, db.ForeignKey("ville.id"))
     id_ville_residence = db.Column(db.Integer, db.ForeignKey("ville.id"))
     classname = db.Column(db.Text, nullable=False, default="artiste")
@@ -22,6 +22,15 @@ class Artiste(db.Model):
     ville_residence = db.relationship("Ville", foreign_keys=[id_ville_residence],
                                       backref="artiste_ville_residence", uselist=False)
     nomination = db.relationship("Nomination", back_populates="artiste", uselist=False)
+
+    @hybrid.hybrid_property
+    def full(self):
+        """Cette propriété permet de concaténer prénom et nom pour retourner un nom complet.
+
+        :return: Nom complet
+        :rtype: str
+        """
+        return self.prenom + " " + self.nom
 
     @staticmethod
     def artiste_new(nom, prenom, annee_naissance, genre, ville_naissance, ville_residence):
@@ -195,15 +204,6 @@ class Artiste(db.Model):
             return True, nv_artiste
         except Exception as error:
             return False, [str(error)]
-
-    @hybrid.hybrid_property
-    def full(self):
-        """Cette propriété permet de concaténer prénom et nom pour retourner un nom complet.
-
-        :return: Nom complet
-        :rtype: str
-        """
-        return self.prenom + " " + self.nom
 
 class Nomination(db.Model):
     __tablename__ = "nomination"

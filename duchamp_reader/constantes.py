@@ -11,3 +11,18 @@ if SECRET_KEY == "clé secrète par défaut mais franchement faudrait la changer
     warn("Pour des raisons de sécurité, veuillez changer le secret par défaut", Warning)
 
 PERPAGE = 4
+
+css = """
+    @font-face {
+        font-family: 'Mels';
+        src: url('static/fonts/Mels-Regular.otf'), url('static/fonts/Mels-Italic.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+    }
+        
+    * {
+        font-family: "Mels", "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        color: #bd148b;
+        background-color: #ffb0ff;
+    }
+"""

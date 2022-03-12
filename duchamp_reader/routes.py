@@ -5,7 +5,7 @@ import folium
 from .app import app, db
 from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
-from .constantes import PERPAGE, cartes, statics
+from .constantes import PERPAGE, cartes, statics, css
 from .constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 
 
@@ -58,14 +58,14 @@ def recherche():
     if keyword:
         # requête sur toutes les tables SAUF LA TABLE NOMINATION parce qu'il n'y a rien de bien intéressant
         results_artiste = Artiste.query.filter(db.or_(Artiste.nom.like(f"%{keyword}%"),
-                                                      Artiste.prenom.like(f"%{keyword}%"))) \
+                                                      Artiste.prenom.like(f"%{keyword}%")))\
             .with_entities(Artiste.classname, Artiste.id, Artiste.full.label("data"))
-        results_galerie = Galerie.query.filter(Galerie.nom.like(f"%{keyword}%")) \
+        results_galerie = Galerie.query.filter(Galerie.nom.like(f"%{keyword}%"))\
             .with_entities(Galerie.classname, Galerie.id, Galerie.nom.label("data"))
         results_ville = Ville.query.filter(db.or_(Ville.nom.like(f"%{keyword}%"),
-                                                      Ville.pays.like(f"%{keyword}%"))) \
+                                                      Ville.pays.like(f"%{keyword}%")))\
             .with_entities(Ville.classname, Ville.id, Ville.full.label("data"))
-        results_theme = Theme.query.filter(Theme.nom.like(f"%{keyword}%")) \
+        results_theme = Theme.query.filter(Theme.nom.like(f"%{keyword}%"))\
             .with_entities(Theme.classname, Theme.id, Theme.nom.label("data"))
 
         results = results_artiste.union(results_galerie, results_ville, results_theme)\
@@ -115,12 +115,51 @@ def artiste_main(id_artiste):
     """page détaillée sur un.e artiste"""
 
     # requêtes; la requête principale est sur Nomination: c'est la table qui fait la jointure entre toutes les données
-    nomination = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id == id_artiste)\
-            .join(Theme, Nomination.id_theme == Theme.id)
-    galerie = RelationRepresente.query.join(Artiste, RelationRepresente.id_artiste == Artiste.id == id_artiste)\
-        .join(Galerie, RelationRepresente.id_galerie == Galerie.id)
+    nomination = Nomination.query.filter(Nomination.id_artiste == id_artiste)\
+        .join(Theme, Nomination.id_theme == Theme.id).first()
+    represente = RelationRepresente.query.filter(RelationRepresente.id_artiste == id_artiste).all()
+    nominations_all = Nomination.query.filter(Nomination.annee == nomination.annee).all()
+
+    # génération dynamique des cartes
+    # définition de la longitude et de la latitude
+    longitude = (nomination.artiste.ville_naissance.longitude + nomination.artiste.ville_residence.longitude) / 2
+    latitude = (nomination.artiste.ville_naissance.latitude + nomination.artiste.ville_residence.latitude) / 2
+
+    # création du texte d'un popup qui donnera des informations sur chaque ville
+    html_residence = f"<html>{nomination.artiste.ville_residence.nom} \
+                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                        <body><p>{nomination.artiste.ville_residence.nom}</p></body>\
+                     </html>"
+    html_naissance = f"<html>{nomination.artiste.ville_naissance.nom} \
+                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                        <body><p>{nomination.artiste.ville_naissance.nom}</p></body>\
+                     </html>"
+
+    """
+    # transformation du popup en élément iframe
+    iframe = folium.element.IFrame(html=html, width=500, height=300)
+    popup = folium.Popup(iframe, max_width=2650)
+
+    # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
+    # appelée lorsque l'on va sur la page de la ville
+    carte = folium.Map(location=[ville.latitude, ville.longitude], tiles='Stamen Toner')
+    popups = folium.CircleMarker(
+        location=[ville.latitude, ville.longitude],
+        popup=popup,
+        radius=1000,
+        color="purple",
+        fill_color="plum",
+        fill_opacity=100
+    ).add_to(carte)
+    carte.save(f"{cartes}/ville{id_ville}.html")
+    """
 
     # CE QUE JE VOUDRAIS FAIRE: GÉNÉRER UNE CARTE QUI MONTRE LA VILLE D'ORIGINE ET DE RESIDENCE DE L'ARTISTE
+    # POUR CE FAIRE: CENTRER LA CARTE SUR (LONGITUDE VILLE1 - LONGITUDE VILLE2 / 2) ET PAREIL POUR LA LATITUDE
+    return render_template("pages/artiste_main.html", nomination=nomination,
+                           represente=represente, nominations_all=nominations_all,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/artiste/add", methods=["GET", "POST"])
@@ -314,22 +353,8 @@ def ville_main(id_ville):
     ville_galerie = RelationLocalisation.query.join(Ville, RelationLocalisation.id_ville == Ville.id)\
         .join(Galerie, RelationLocalisation.id_galerie == Galerie.id).filter(Ville.id == id_ville).all()
 
-    # création du css et du texte d'un popup qui donnera des informations sur chaque ville
-    css = """
-        @font-face {
-          font-family: 'Mels';
-          src: url('static/fonts/Mels-Regular.otf'), url('static/fonts/Mels-Italic.otf') format('opentype');
-          font-weight: normal;
-          font-style: normal;
-        }
-        
-        * {
-          font-family: "Mels", "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-          color: #bd148b;
-          background-color: #ffb0ff;
-        }
-    """
-    html = f"<head><meta charset='UTF-8'/><style type='text/css'>{css}</style><h2>" + ville.nom + "</h2>"
+    # création du texte d'un popup qui donnera des informations sur chaque ville
+    html = f"<head><meta charset='UTF-8'/><style type='text/css'>{css}</style></meta></head><h2>{ville.nom}</h2>"
     if ville_artiste_naissance:
         html += "<p>Dans cette ville est né.e :</p><ul>"
         for artiste in ville_artiste_naissance:

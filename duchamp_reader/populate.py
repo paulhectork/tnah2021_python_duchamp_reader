@@ -78,7 +78,7 @@ def db_populate_ville():
         Ville.ville_new_init("Francfort-sur-le-Main", 50.11064, 8.68209, "Allemagne")
         Ville.ville_new_init("Genève", 46.20176, 6.14660, "Suisse")
         Ville.ville_new_init("Grenoble", 45.18756, 5.73578, "France")
-        Ville.ville_new_init("Hamilton", 32.29561, -64.78270, "Canada")
+        Ville.ville_new_init("Hamilton", 43.25011, -79.84963, "Canada")
         Ville.ville_new_init("Ho Chi Minh-City", 10.77155, 106.69838, "Vietnam")
         Ville.ville_new_init("Johannesburg", -26.20500, 28.04972, "France")
         Ville.ville_new_init("Karlsruhe", 49.00687, 8.40342, "Allemagne")

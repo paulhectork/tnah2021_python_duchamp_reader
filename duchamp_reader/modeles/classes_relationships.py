@@ -58,7 +58,7 @@ class RelationRepresente(db.Model):
     __tablename__ = "relation_represente"
     id = db.Column(db.Integer, unique=True, nullable=False, autoincrement=True, primary_key=True)
     id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"))
-    id_galerie =  db.Column(db.Integer, db.ForeignKey("galerie.id"))
+    id_galerie = db.Column(db.Integer, db.ForeignKey("galerie.id"))
     artiste = db.relationship("Artiste", back_populates="represent")
     galerie = db.relationship("Galerie", back_populates="represent")
 
