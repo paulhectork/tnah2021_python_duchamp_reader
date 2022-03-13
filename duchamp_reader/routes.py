@@ -112,8 +112,14 @@ def artiste_index():
 
 @app.route("/artiste/<int:id_artiste>")
 def artiste_main(id_artiste):
-    """page détaillée sur un.e artiste"""
+    """Page détaillée sur un.e artiste. Pour chaque artiste, des informations biographiques et
+    sur leur nomination sont données. En plus, la page comporte une carte générée dynamiquement
+    avec un point pour le lieu de naissance et un pour le lieu de résidence. Le zoom de la carte
+    est généré dynamiquement, de même que la taille des popups.
 
+    :return: objet render_template() renvoyant vers la page détaillée d'un.e artiste.
+    :rtype: objet render_template()
+    """
     # requêtes; la requête principale est sur Nomination: c'est la table qui fait la jointure entre toutes les données
     nomination = Nomination.query.filter(Nomination.id_artiste == id_artiste)\
         .join(Theme, Nomination.id_theme == Theme.id).first()
@@ -132,8 +138,28 @@ def artiste_main(id_artiste):
     longlist.append(nomination.artiste.ville_residence.longitude)
     latlist.append(nomination.artiste.ville_naissance.latitude)
     latlist.append(nomination.artiste.ville_residence.latitude)
-    sw = [min(latlist), min(longlist)]
-    ne = [max(latlist), max(longlist)]
+    diflat = max(latlist) - min(latlist)
+    diflong = max(longlist) - min(longlist)
+    avglat = (max(latlist) + min(latlist)) / 2
+    avglong = (max(longlist) + min(longlist)) / 2
+    # définir les dimensions extrêmes de la carte
+    if diflong > diflat:
+        # si la largeur est plus grande que la longueur, longueur = 0.8 * largeur;
+        # on centre la carte sur la longueur moyenne
+        minlat = avglat - diflong * 0.8
+        maxlat = avglat + diflong * 0.8
+        sw = [minlat, min(longlist)]
+        ne = [maxlat, max(longlist)]
+    else:
+        # si la longueur est plus grande que la largeur, largeur = 1.25 * longueur;
+        # on centre la carte sur la largeur moyenne
+        minlong = avglong - diflat * 1.25
+        maxlong = avglong + diflat * 1.25
+        sw = [min(latlist), minlong]
+        ne = [max(latlist), maxlong]
+    print(nomination.artiste.nom)
+    print(diflat)
+    print(diflong)
 
     # création du texte d'un popup qui donnera des informations sur chaque ville
     html_residence = f"<html> \
@@ -162,25 +188,95 @@ def artiste_main(id_artiste):
     popup_naissance = folium.Popup(iframe_naissance)
 
     # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
-    # appelée lorsque l'on va sur la page de l'artiste
+    # appelée lorsque l'on va sur la page de l'artiste ; la taille des popups dépend de la distance entre eux
     carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
-    carte.fit_bounds([sw, ne], padding=(20, 20))
-    popups_residence = folium.CircleMarker(
-        location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
-        popup=popup_residence,
-        radius=10000,
-        color="purple",
-        fill_color="plum",
-        fill_opacity=0.6
-    ).add_to(carte)
-    popups_naissance = folium.CircleMarker(
-        location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
-        popup=popup_naissance,
-        radius=10000,
-        color="plum",
-        fill_color="purple",
-        fill_opacity=0.6
-    ).add_to(carte)
+    if diflat > 1 or diflong > 1:
+        carte.fit_bounds([sw, ne])
+    if diflat > 50 or diflong > 50:
+        popups_residence = folium.CircleMarker(
+            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+            popup=popup_residence,
+            radius=300000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+        popups_naissance = folium.CircleMarker(
+            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+            popup=popup_naissance,
+            radius=300000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+    elif diflat > 30 or diflong > 30:
+        popups_residence = folium.CircleMarker(
+            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+            popup=popup_residence,
+            radius=200000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+        popups_naissance = folium.CircleMarker(
+            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+            popup=popup_naissance,
+            radius=200000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+    elif diflat > 5 or diflong > 5:
+        popups_residence = folium.CircleMarker(
+            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+            popup=popup_residence,
+            radius=50000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+        popups_naissance = folium.CircleMarker(
+            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+            popup=popup_naissance,
+            radius=50000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+    elif diflat > 1 or diflong > 1:
+        popups_residence = folium.CircleMarker(
+            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+            popup=popup_residence,
+            radius=10000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+        popups_naissance = folium.CircleMarker(
+            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+            popup=popup_naissance,
+            radius=10000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+    else:
+        popups_residence = folium.CircleMarker(
+            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+            popup=popup_residence,
+            radius=2000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+        popups_naissance = folium.CircleMarker(
+            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+            popup=popup_naissance,
+            radius=2000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
     carte.save(f"{cartes}/artiste{id_artiste}.html")
 
     # return
@@ -219,6 +315,8 @@ def artiste_ajout():
 
 
 # ----- ROUTES NOMINATION ----- #
+# il n'y a pas de route "nomination_main()" puisque  la page principale d'une nomination est la même
+# que la page d'un.e artiste
 @app.route("/nomination")
 def nomination_index():
     """Fonction permettant d'afficher un index de toutes les nominations figurant dans la base de données
@@ -238,20 +336,6 @@ def nomination_index():
         .join(Theme, Nomination.id_theme == Theme.id)\
         .order_by(Nomination.id.desc()).paginate(page=page, per_page=PERPAGE)
     return render_template("pages/nomination_index.html", titre=titre, nominations=nominations,
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
-
-
-@app.route("/nomination/<int:id_nomination>")
-def nomination_main(id_nomination):
-    """Fonction renvoyant à la page détaillée sur un.e artiste. Fonctionne de la même
-    manière que "artiste_main()"
-    """
-
-    # EN FAIT IL VA PROBABLEMENT FALLOIR SUPPRIMER CETTE FONCTION ET FAIRE LES RENVOIS
-    # URL_FOR() PAS À nomination_main() MAIS À artiste_main()
-
-    return render_template("artiste_main", id_artiste=id_nomination,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
 

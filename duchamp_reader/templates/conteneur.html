@@ -54,7 +54,7 @@
                             <ul class="list-unstyled" id="nominationMenu">
                                 {% if last_nominations %}
                                     {% for n in last_nominations %}
-                                        <li><a href="{{ url_for('nomination_main', id_nomination=n.id) }}">
+                                        <li><a href="{{ url_for('artiste_main', id_artiste=n.id_artiste) }}">
                                         {% if n.laureat == 1 %}Lauréat : {% else %}Nominé.e : {% endif %}
                                         {{n.artiste.prenom}} {{n.artiste.nom}}</a></li>
                                     {% endfor %}

@@ -16,7 +16,7 @@
             {% for nomination in nominations.items %} <!-- afficher les noms des artistes sur la page actuelle -->
                 <li>
                     {% if nomination.laureat == 1 %}Lauréat.e {% else %}Nominé.e {% endif %}:
-                    <a href="{{url_for('nomination_main', id_nomination=nomination.id)}}">
+                    <a href="{{url_for('artiste_main', id_artiste=nomination.id_artiste)}}">
                         {{nomination.artiste.prenom}} {{nomination.artiste.nom}}
                     </a>
                 </li>
