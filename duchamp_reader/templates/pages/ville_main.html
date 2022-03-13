@@ -12,7 +12,7 @@
             <dt>Longitude</dt><dd>{{ville.longitude}}</dd>
         </dl>
         {% if carte %}
-            <iframe src="{{url_for('carte', id=ville.id)}}"></iframe>
+            <iframe class="iframeville" src="{{url_for('carte_ville', id=ville.id)}}"></iframe>
         {% endif %}
     {% else %}
         <p>La base de données est en cours de constitution</p>

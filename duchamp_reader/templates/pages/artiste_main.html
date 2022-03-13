@@ -69,7 +69,7 @@
 
         <!-- cartes -->
         {% if carte %}
-            <iframe src="{{url_for('carte', id=ville.id)}}"></iframe>
+            <iframe class="iframeartiste" src="{{url_for('carte_artiste', id=nomination.id_artiste)}}"></iframe>
         {% endif %}
 
     {% else %}

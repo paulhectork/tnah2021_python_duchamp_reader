@@ -121,43 +121,71 @@ def artiste_main(id_artiste):
     nominations_all = Nomination.query.filter(Nomination.annee == nomination.annee).all()
 
     # génération dynamique des cartes
-    # définition de la longitude et de la latitude
+    # définition des coordonnées de la carte: zone sur laquelle centrer
     longitude = (nomination.artiste.ville_naissance.longitude + nomination.artiste.ville_residence.longitude) / 2
     latitude = (nomination.artiste.ville_naissance.latitude + nomination.artiste.ville_residence.latitude) / 2
 
-    # création du texte d'un popup qui donnera des informations sur chaque ville
-    html_residence = f"<html>{nomination.artiste.ville_residence.nom} \
-                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
-                        <body><p>{nomination.artiste.ville_residence.nom}</p></body>\
-                     </html>"
-    html_naissance = f"<html>{nomination.artiste.ville_naissance.nom} \
-                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
-                        <body><p>{nomination.artiste.ville_naissance.nom}</p></body>\
-                     </html>"
+    # définition des coordonnées de la carte: extrêmes nord-ouest et sud-est qui doivent être contenus dans chaque carte
+    longlist = []
+    latlist = []
+    longlist.append(nomination.artiste.ville_naissance.longitude)
+    longlist.append(nomination.artiste.ville_residence.longitude)
+    latlist.append(nomination.artiste.ville_naissance.latitude)
+    latlist.append(nomination.artiste.ville_residence.latitude)
+    sw = [min(latlist), min(longlist)]
+    ne = [max(latlist), max(longlist)]
 
-    """
-    # transformation du popup en élément iframe
-    iframe = folium.element.IFrame(html=html, width=500, height=300)
-    popup = folium.Popup(iframe, max_width=2650)
+    # création du texte d'un popup qui donnera des informations sur chaque ville
+    html_residence = f"<html> \
+                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                        <body> \
+                            <p style='position:absolute; top:50%; left:50%; \
+                                -ms-transform:translate(-50%, -50%); \
+                                transform: translate(-50%, -50%); \
+                                text-align: center;'>\
+                                Ville de résidence : {nomination.artiste.ville_residence.nom}\
+                            </p></body>\
+                     </html>"
+    html_naissance = f"<html> \
+                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                        <body> \
+                            <p style='position:absolute; top:50%; left:50%; \
+                                -ms-transform:translate(-50%, -50%); \
+                                transform: translate(-50%, -50%); \
+                                text-align: center;'>\
+                                Ville de naissance : {nomination.artiste.ville_naissance.nom} \
+                            </p></body>\
+                     </html>"
+    iframe_residence = folium.element.IFrame(html=html_residence, width="300px", height="100px")
+    iframe_naissance = folium.element.IFrame(html=html_naissance, width="300px", height="100px")
+    popup_residence = folium.Popup(iframe_residence)
+    popup_naissance = folium.Popup(iframe_naissance)
 
     # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
-    # appelée lorsque l'on va sur la page de la ville
-    carte = folium.Map(location=[ville.latitude, ville.longitude], tiles='Stamen Toner')
-    popups = folium.CircleMarker(
-        location=[ville.latitude, ville.longitude],
-        popup=popup,
-        radius=1000,
+    # appelée lorsque l'on va sur la page de l'artiste
+    carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
+    carte.fit_bounds([sw, ne], padding=(20, 20))
+    popups_residence = folium.CircleMarker(
+        location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+        popup=popup_residence,
+        radius=10000,
         color="purple",
         fill_color="plum",
-        fill_opacity=100
+        fill_opacity=0.6
     ).add_to(carte)
-    carte.save(f"{cartes}/ville{id_ville}.html")
-    """
+    popups_naissance = folium.CircleMarker(
+        location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+        popup=popup_naissance,
+        radius=10000,
+        color="plum",
+        fill_color="purple",
+        fill_opacity=0.6
+    ).add_to(carte)
+    carte.save(f"{cartes}/artiste{id_artiste}.html")
 
-    # CE QUE JE VOUDRAIS FAIRE: GÉNÉRER UNE CARTE QUI MONTRE LA VILLE D'ORIGINE ET DE RESIDENCE DE L'ARTISTE
-    # POUR CE FAIRE: CENTRER LA CARTE SUR (LONGITUDE VILLE1 - LONGITUDE VILLE2 / 2) ET PAREIL POUR LA LATITUDE
+    # return
     return render_template("pages/artiste_main.html", nomination=nomination,
-                           represente=represente, nominations_all=nominations_all,
+                           represente=represente, nominations_all=nominations_all, carte=carte,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
 
@@ -455,9 +483,20 @@ def theme_add():
 
 
 # ----- ROUTES CARTES ----- #
-@app.route("/carte/<int:id>")
-def carte(id):
+@app.route("/carte_ville/<int:id>")
+def carte_ville(id):
     return render_template(f"partials/maps/ville{id}.html")
+
+
+@app.route("/carte_artiste/<int:id>")
+def carte_artiste(id):
+    return render_template(f"partials/maps/artiste{id}.html")
+
+
+@app.route("/carte_galerie/<int:id>")
+def carte_galerie(id):
+    return render_template(f"partials/maps/galerie{id}.html")
+
 
 """
 @app.route("/sidebar")
