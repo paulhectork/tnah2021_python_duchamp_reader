@@ -1,7 +1,7 @@
 {% extends "conteneur.html" %}
 
 {% block titre %}
-    {% if ville %}| {{nomination.artiste.full}} {% endif %}
+    {% if nomination %}| {{nomination.artiste.full}} {% endif %}
 {% endblock %}
 
 <!-- {% if nomination.artiste.genre == "F" %}{% elif nomination.artiste.genre == "A" %}{% else %}{% endif %} -->
@@ -21,8 +21,8 @@
                 {% endif %}
 
                 <!-- année de nomination et autres nominé.e.s -->
-                prix Marcel Duchamp en {{nomination.annee}}.
-                {% if nominations_all|length > 1 %}La même année ont été nominé.e.s :</p>
+                prix Marcel Duchamp en {{nomination.annee}}. Son travail portait sur le thème : <a href="{{ url_for('theme_main', id_theme=nomination.id_theme) }}">
+                    {{nomination.theme.nom}}</a>. {% if nominations_all|length > 1 %}La même année ont été nominé.e.s :</p>
                     <ul>
                         {% for n in nominations_all %}
                             {% if n.artiste.full != nomination.artiste.full %}

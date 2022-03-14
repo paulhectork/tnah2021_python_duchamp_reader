@@ -157,9 +157,18 @@ def artiste_main(id_artiste):
         maxlong = avglong + diflat * 1.25
         sw = [min(latlist), minlong]
         ne = [max(latlist), maxlong]
-    print(nomination.artiste.nom)
-    print(diflat)
-    print(diflong)
+
+    # définition de la taille des marqueurs, qui varie selon leur distance sur la carte
+    if diflat > 50 or diflong > 50:
+        radius = 300000
+    elif diflat > 30 or diflong > 30:
+        radius = 200000
+    elif diflat > 5 or diflong > 5:
+        radius = 50000
+    elif diflat > 1 or diflong > 1:
+        radius = 10000
+    else:
+        radius = 2000
 
     # création du texte d'un popup qui donnera des informations sur chaque ville
     html_residence = f"<html> \
@@ -192,91 +201,22 @@ def artiste_main(id_artiste):
     carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
     if diflat > 1 or diflong > 1:
         carte.fit_bounds([sw, ne])
-    if diflat > 50 or diflong > 50:
-        popups_residence = folium.CircleMarker(
-            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
-            popup=popup_residence,
-            radius=300000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-        popups_naissance = folium.CircleMarker(
-            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
-            popup=popup_naissance,
-            radius=300000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-    elif diflat > 30 or diflong > 30:
-        popups_residence = folium.CircleMarker(
-            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
-            popup=popup_residence,
-            radius=200000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-        popups_naissance = folium.CircleMarker(
-            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
-            popup=popup_naissance,
-            radius=200000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-    elif diflat > 5 or diflong > 5:
-        popups_residence = folium.CircleMarker(
-            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
-            popup=popup_residence,
-            radius=50000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-        popups_naissance = folium.CircleMarker(
-            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
-            popup=popup_naissance,
-            radius=50000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-    elif diflat > 1 or diflong > 1:
-        popups_residence = folium.CircleMarker(
-            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
-            popup=popup_residence,
-            radius=10000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-        popups_naissance = folium.CircleMarker(
-            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
-            popup=popup_naissance,
-            radius=10000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-    else:
-        popups_residence = folium.CircleMarker(
-            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
-            popup=popup_residence,
-            radius=2000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-        popups_naissance = folium.CircleMarker(
-            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
-            popup=popup_naissance,
-            radius=2000,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
+    popups_residence = folium.CircleMarker(
+        location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+        popup=popup_residence,
+        radius=radius,
+        color="purple",
+        fill_color="plum",
+        fill_opacity=0.6
+    ).add_to(carte)
+    popups_naissance = folium.CircleMarker(
+        location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+        popup=popup_naissance,
+        radius=radius,
+        color="purple",
+        fill_color="plum",
+        fill_opacity=0.6
+    ).add_to(carte)
     carte.save(f"{cartes}/artiste{id_artiste}.html")
 
     # return
@@ -394,8 +334,107 @@ def galerie_index():
 
 @app.route("/galerie/<int:id_galerie>")
 def galerie_main(id_galerie):
-    """fonction pour afficher la page principale d'une galerie
-    ESSAYER D'INTÉGRER DE LA CARTOGRAPHIE DANS CETTE PAGE"""
+    """Page détaillée sur une galerie. Pour chaque galerie est donnée la liste des artistes représenté.e.s,
+    et des villes où elle se trouve, ainsi qu'un lien vers le site web de la galerie. En plus, la page comporte
+    une carte générée dynamiquement avec un point par ville où se trouve la galerie. Le zoom de la carte
+    est généré dynamiquement, de même que la taille des popups.
+
+    :return: objet render_template() renvoyant vers la page détaillée d'une galerie.
+    :rtype: objet render_template()
+    """
+    # requêtes
+    galerie = Galerie.query.filter(Galerie.id == id_galerie).first()
+    print(galerie.nom)
+    for r in galerie.represent:
+        print(r.artiste.full)
+    for r in galerie.localisation:
+        print(r.ville.nom)
+
+    # génération dynamique des cartes
+    # définition des coordonnées de la carte: zone sur laquelle centrer
+    nboucles = 0  # nombre de boucles, pour calculer la longitude et latitude moyenne
+    longitude = 0  # longitude moyenne des différents points sur la carte
+    latitude = 0  # latitude moyenne des différents points sur la carte
+    longlist = []  # liste des longitudes des différents points sur la carte
+    latlist = []  # liste des latitudes des différents points sur la carte
+    for r in galerie.localisation:
+        nboucles += 1
+        longitude += r.ville.longitude
+        latitude += r.ville.latitude
+        longlist.append(r.ville.longitude)
+        latlist.append(r.ville.latitude)
+    longitude = longitude / nboucles
+    latitude = latitude / nboucles
+    diflat = max(latlist) - min(latlist)
+    diflong = max(longlist) - min(longlist)
+    avglat = (max(latlist) + min(latlist)) / 2
+    avglong = (max(longlist) + min(longlist)) / 2
+
+    # définir les dimensions extrêmes de la carte
+    if diflong > diflat:
+        # si la largeur est plus grande que la longueur, longueur = 0.8 * largeur;
+        # on centre la carte sur la longueur moyenne
+        minlat = avglat - diflong * 0.8
+        maxlat = avglat + diflong * 0.8
+        sw = [minlat, min(longlist)]
+        ne = [maxlat, max(longlist)]
+    else:
+        # si la longueur est plus grande que la largeur, largeur = 1.25 * longueur;
+        # on centre la carte sur la largeur moyenne
+        minlong = avglong - diflat * 1.25
+        maxlong = avglong + diflat * 1.25
+        sw = [min(latlist), minlong]
+        ne = [max(latlist), maxlong]
+
+    # définition de la taille des marqueurs, qui varie selon leur distance sur la carte
+    if diflat > 50 or diflong > 50:
+        radius = 300000
+    elif diflat > 30 or diflong > 30:
+        radius = 200000
+    elif diflat > 5 or diflong > 5:
+        radius = 50000
+    elif diflat > 1 or diflong > 1:
+        radius = 10000
+    else:
+        radius = 2000
+
+    # génération de la carte intégrée à la page; la carte est sauvegardée dans un dossier et
+    # appelée lorsque l'on va sur la page de l'artiste
+    carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
+    if diflat > 1 or diflong > 1:
+        carte.fit_bounds([sw, ne])
+
+    # génération des popups à ajouter à la carte: 1 popup / ville où est située une galerie;
+    # la taille des popups dépend de la distance entre eux sur la carte
+    for r in galerie.localisation:
+        html = f"<html> \
+                    <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                        <body> \
+                            <p style='position:absolute; top:50%; left:50%; \
+                                -ms-transform:translate(-50%, -50%); \
+                                transform: translate(-50%, -50%); \
+                                text-align: center;'>\
+                                La galerie {galerie.nom} se trouve à : {r.ville.nom}\
+                            </p></body>\
+                </html>"
+        iframe = folium.element.IFrame(html=html, width="300px", height="100px")
+        popup_galerie = folium.Popup(iframe)
+        popups_galerie = folium.CircleMarker(
+            location=[r.ville.latitude, r.ville.longitude],
+            popup=popup_galerie,
+            radius=radius,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+
+    # sauvegarder la carte
+    carte.save(f"{cartes}/galerie{id_galerie}.html")
+
+    # return
+    return render_template("pages/galerie_main.html", galerie=galerie, carte=carte,
+                           last_nominations=last_nominations, last_artistes=last_artistes,
+                           last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/galerie/add", methods=["POST", "GET"])
@@ -557,8 +596,15 @@ def theme_index():
 
 
 @app.route("/theme/<int:id_theme>")
-def theme_main():
+def theme_main(id_theme):
     """fonction pour afficher la page principale d'un thème"""
+    # la requête principale est faite sur la table Nomination: c'est elle qui contient les renvois
+    # vers les tables Artiste et Thème
+    nomi_theme = Nomination.query.filter(Nomination.id_theme == id_theme).all()
+    arti_theme = Artiste.query.filter(Artiste.nomination.id_theme == id_theme).all()
+    return render_template("pages/theme_main.html", nomi_theme=nomi_theme, arti_theme=arti_theme,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/theme/add", methods=["POST", "GET"])

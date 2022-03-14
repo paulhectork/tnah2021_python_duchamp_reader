@@ -1,0 +1,59 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}
+    {% if galerie %}| {{galerie.nom}} {% endif %}
+{% endblock %}
+
+{% block corps %}
+    {% if galerie %}
+        <h1>{{galerie.nom}}</h1>
+
+        <!-- corps du texte -->
+        <h2>À propos</h2>
+
+        <!-- artistes représenté.e.s -->
+        <p>La galerie {{galerie.nom}}
+            {% if galerie.represent|length > 1 %} représente les artistes
+                <ul>
+                    {% for r in galerie.represent %}
+                        <li><a href="{{ url_for('artiste_main', id_artiste=r.id_artiste) }}">{{r.artiste.full}}</a></li>
+                    {% endfor %}
+                </ul>
+            {% elif galerie.represent|length == 1 %}
+                représente l'artiste
+                {% for r in galerie.represent %}
+                    <a href="{{ url_for('artiste_main', id_artiste=r.id_artiste) }}">{{r.artiste.full}}</a>.
+                {% endfor %}
+            {% else %} ne représente pas d'artistes.
+            {% endif %}
+        </p>
+
+        <!-- localisation -->
+        <p>
+            {% if galerie.localisation|length > 1 %}Elle a des antennes à
+                <ul>
+                    {% for r in galerie.localisation %}
+                        <li><a href="{{ url_for('ville_main', id_ville = r.id_ville)}}">{{r.ville.nom}} ({{r.ville.pays}})</a></li>
+                    {% endfor %}
+                </ul>
+            {% elif galerie.localisation|length == 1 %}Elle est située à
+                    {% for r in galerie.localisation %}
+                        <a href="{{ url_for('ville_main', id_ville = r.id_ville) }}">{{r.ville.nom}} ({{r.ville.pays}})</a>.
+                    {% endfor %}
+            {% else %}Elle n'a pas d'antenne physique.
+            {% endif %}
+        </p>
+
+        <!-- url -->
+        <p>Son site internet se trouve à <a href="{{galerie.url}}">cette adresse</a>.</p>
+
+        <!-- cartes -->
+        {% if carte %}
+            <iframe class="iframegalerie" src="{{ url_for('carte_galerie', id=galerie.id) }}"></iframe>
+        {% endif %}
+
+    {% else %}
+        <p>La base de données est en cours de constitution</p>
+    {% endif %}
+    <p><a href="{{url_for('accueil')}}">Accueil</a></p>
+{% endblock %}
