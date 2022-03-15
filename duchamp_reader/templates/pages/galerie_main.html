@@ -30,7 +30,7 @@
 
         <!-- localisation -->
         <p>
-            {% if galerie.localisation|length > 1 %}Elle a des antennes à
+            {% if galerie.localisation|length > 1 %}Elle a des antennes à :
                 <ul>
                     {% for r in galerie.localisation %}
                         <li><a href="{{ url_for('ville_main', id_ville = r.id_ville)}}">{{r.ville.nom}} ({{r.ville.pays}})</a></li>
@@ -55,5 +55,10 @@
     {% else %}
         <p>La base de données est en cours de constitution</p>
     {% endif %}
-    <p><a href="{{url_for('accueil')}}">Accueil</a></p>
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('galerie_index')}}">Index des galeries</a>
+    </div>
 {% endblock %}

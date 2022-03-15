@@ -75,5 +75,11 @@
     {% else %}
         <p>La base de données est en cours de constitution</p>
     {% endif %}
-    <p><a href="{{url_for('accueil')}}">Accueil</a></p>
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('artiste_index')}}">Index des artistes</a>
+    </div>
+
 {% endblock %}

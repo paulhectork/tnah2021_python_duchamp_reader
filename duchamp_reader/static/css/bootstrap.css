@@ -36,6 +36,7 @@
  * .dropdown-toggle::after : création de règles pour le sidebar
  * .navbar .checkbox : création de règles pour un menu burger
  * .navbar .hamburger-lines etc : création de règles pour un menu burger
+ * .basdepage : création de règles pour les boutons de renvois en bas de page
 
 
 
@@ -123,6 +124,7 @@
 
 body {
   margin: 0;
+  margin-bottom: 50px !important;
   font-family: var(--bs-body-font-family);
   font-size: var(--bs-body-font-size);
   font-weight: var(--bs-body-font-weight);
@@ -11531,5 +11533,34 @@ a[data-toggle="collapse"] {
   transition: transform 0.4s ease-in-out;
 }
 
+/* bas de page */
+.basdepage {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--bs-white);
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 5px;
+  /*
+  height: 45px;
+  padding: 5px;
+  position: sticky;
+  bottom: 0px;
+  width: 100%;*/
+}
+
+.basdepage .btn {
+  color: var(--bs-white);
+  background-color: var(--custom-light-pink);
+  border-color: var(--custom-plum);
+}
+
+.basdepage .btn:hover {
+  color: var(--bs-white);
+  background-color: var(--custom-plum);
+  border-color: var(--custom-plum);
+}
 
 /*# sourceMappingURL=bootstrap.css.map */

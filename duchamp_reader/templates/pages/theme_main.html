@@ -1,27 +1,27 @@
 {% extends "conteneur.html" %}
 
 {% block titre %}
-    {% if nomi_theme %}| {{nomi_theme[0].theme.nom}} {% endif %}
+    {% if theme %}| {{theme.nom}} {% endif %}
 {% endblock %}
 
 {% block corps %}
-    {% if nomi_theme %}
-        <h1>{{nomi_theme[0].theme.nom}}</h1>
+    {% if theme %}
+        <h1>{{theme.nom}}</h1>
 
         <!-- corps du texte -->
         <h2>À propos</h2>
 
         <!-- artistes travaillant avec ce thème -->
         <p>Ce thème
-            {% if arti_theme.nomination.artiste|length > 1 %} a été traité par les artistes
+            {% if theme.nomination|length > 1 %} a été traité par les artistes :
                 <ul>
-                    {% for t in arti_theme %}
-                        <li><a href="{{ url_for('artiste_main', id_artiste=t.id_artiste) }}">{{t.full}}</a> en {{t.nomination.annee}}</li>
+                    {% for t in theme.nomination %}
+                        <li><a href="{{ url_for('artiste_main', id_artiste=t.id_artiste) }}">{{t.artiste.full}}</a> (en {{t.annee}})</li>
                     {% endfor %}
                 </ul>
-            {% elif nomi_theme.artiste|length == 1 %}
+            {% elif theme.nomination|length == 1 %}
                 a été traité par l'artiste
-                {% for t in nomi_theme.artiste %}
+                {% for t in theme.nomination %}
                     <a href="{{ url_for('artiste_main', id_artiste=t.id_artiste) }}">{{t.artiste.full}}</a> en {{t.annee}}.
                 {% endfor %}
             {% else %} n'a été traité par aucun.e artiste.
@@ -31,5 +31,11 @@
     {% else %}
         <p>La base de données est en cours de constitution</p>
     {% endif %}
-    <p><a href="{{url_for('accueil')}}">Accueil</a></p>
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('theme_index')}}">Index des thèmes</a>
+    </div>
+
 {% endblock %}

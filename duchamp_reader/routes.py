@@ -496,25 +496,31 @@ def ville_main(id_ville):
     :rtype: render_template object
     """
     # jointures et génération de données pour les popups
-    ville = Ville.query.get(id_ville)
-    ville_artiste_naissance = Artiste.query.join(Ville, Artiste.id_ville_naissance == Ville.id)\
+    """ville_artiste_naissance = Artiste.query.join(Ville, Artiste.id_ville_naissance == Ville.id)\
         .filter(Ville.id == id_ville).all()
     ville_artiste_residence = Artiste.query.join(Ville, Artiste.id_ville_residence == Ville.id)\
-        .filter(Ville.id == id_ville).all()
-    ville_galerie = RelationLocalisation.query.join(Ville, RelationLocalisation.id_ville == Ville.id)\
-        .join(Galerie, RelationLocalisation.id_galerie == Galerie.id).filter(Ville.id == id_ville).all()
+        .filter(Ville.id == id_ville).all()"""
+    ville_artiste_naissance = Artiste.query.filter(Artiste.id_ville_naissance == id_ville).all()
+    ville_artiste_residence = Artiste.query.filter(Artiste.id_ville_residence == id_ville).all()
+    ville_galerie = RelationLocalisation.query.filter(RelationLocalisation.id_ville == id_ville).all()
+    if ville_artiste_naissance:
+        ville = ville_artiste_naissance[0].ville_naissance
+    elif ville_artiste_residence:
+        ville = ville_artiste_residence[0].ville_residence
+    else:
+        ville = ville_galerie[0].ville
 
     # création du texte d'un popup qui donnera des informations sur chaque ville
     html = f"<head><meta charset='UTF-8'/><style type='text/css'>{css}</style></meta></head><h2>{ville.nom}</h2>"
     if ville_artiste_naissance:
         html += "<p>Dans cette ville est né.e :</p><ul>"
         for artiste in ville_artiste_naissance:
-            html += f"<li>{artiste.prenom} {artiste.nom}</li>"
+            html += f"<li>{artiste.full}</li>"
         html += "</ul>"
     if ville_artiste_residence:
         html += "<p>Dans cette ville habite(nt) :</p><ul>"
         for artiste in ville_artiste_residence:
-            html += f"<li>{artiste.prenom} {artiste.nom}</li>"
+            html += f"<li>{artiste.full}</li>"
         html += "</ul>"
     if ville_galerie:
         html += "<p>Dans cette ville se trouve(nt) la/les galeries suivante(s) :</p><ul>"
@@ -598,11 +604,8 @@ def theme_index():
 @app.route("/theme/<int:id_theme>")
 def theme_main(id_theme):
     """fonction pour afficher la page principale d'un thème"""
-    # la requête principale est faite sur la table Nomination: c'est elle qui contient les renvois
-    # vers les tables Artiste et Thème
-    nomi_theme = Nomination.query.filter(Nomination.id_theme == id_theme).all()
-    arti_theme = Artiste.query.filter(Artiste.nomination.id_theme == id_theme).all()
-    return render_template("pages/theme_main.html", nomi_theme=nomi_theme, arti_theme=arti_theme,
+    theme = Theme.query.filter(Theme.id == id_theme).first()
+    return render_template("pages/theme_main.html", theme=theme,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
 
