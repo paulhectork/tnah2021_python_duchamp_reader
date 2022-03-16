@@ -13,7 +13,7 @@ class User(UserMixin, db.Model):
     ---------
     :id: la clé primaire identifiant l'utilisateur.ice dans la base de données, générée automatiquement (data type : integer, obligatoire)
     :nom: le nom de l'utilisateur.ice (data type : text, obligatoire)
-    :login: le login utilisé par l'utilisateur.ice (data type : text, longueur max : 45 caractères, obligatoire)
+    :login: le login/nom d'utilisateur.ice utilisé par l'utilisateur.ice (data type : text, longueur max : 45 caractères, obligatoire)
     :email: l'adresse mail utilisée par l'utilisateur.ice (data type : text, obligatoire)
     :password: le mot de passe utilisé par l'utilisateur.ice (data type : text, longueur max : 100, obligatoire)
 
@@ -62,16 +62,16 @@ class User(UserMixin, db.Model):
         va bien, créer un nouvel utilisateur, l'ajouter à la base de données et renvoyer les données
         de l'utilisateur.
 
-        :param login:
-        :param email:
-        :param nom:
-        :param mdp:
+        :param login: nom utilisé par l'utilisateur.ice
+        :param email: email de l'utilisateur.ice
+        :param nom: nom civil de l'utilisateur.ice
+        :param mdp: mot de pase de l'utilisateur.ice
         :return: nouveau compte d'utilisateur.ice si 'True' ; liste d'erreurs si 'False'
-        :rtype: objet User is 'True' ; list si 'False'
+        :rtype: objet User si 'True' ; list si 'False'
         """
         erreurs = []
         if not login:
-            erreurs.append("Veuillez fournir un login")
+            erreurs.append("Veuillez fournir un nom d'utilisateur.ice")
         if not email:
             erreurs.append("Veuillez fournir un email")
         if not nom:
@@ -79,10 +79,20 @@ class User(UserMixin, db.Model):
         if not mdp:
             erreurs.append("Veuillez fournir un mot de passe")
 
-        # vérifier que le mot de passe réponde à quelques consignes de sécurité
+        # vérifier les données sont valides
+        nom = clean_string(nom)
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append(
+                "Votre nom doit correspondre à l'expression: \
+                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
+                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne)"
+            )
         emailregex = re.search(regexmail, email)
         if not emailregex:
             erreurs.append("Veuillez fournir un email valide")
+        # les mots de passe doivent contenir 8 caractères dont un chiffre au moins
         mdp2 = ""
         for character in mdp:
             mdp2 += character
@@ -97,10 +107,10 @@ class User(UserMixin, db.Model):
         elif len(mdp) > 8 and not any(chiffre in mdp2 for chiffre in chiffres):
             erreurs.append("Votre mot de passe doit contenir au moins un chiffre !")
 
-        # vérifier que l'email et le login sont ne sont pas déjà utilisés
+        # vérifier que l'email et le login ne sont pas déjà utilisés
         db_login_check = User.query.filter(User.login == login).count()
         if db_login_check > 0:
-            erreurs.append("Ce login est déjà utilisé ; veuillez en choisir un autre")
+            erreurs.append("Ce nom d'utilisateur.ice est déjà utilisé ; veuillez en choisir un autre")
         db_email_check = User.query.filter(User.email == email).count()
         if db_email_check > 0:
             erreurs.append("Cette adresse mail est déjà utilisée. Veuillez en choisir une autre")

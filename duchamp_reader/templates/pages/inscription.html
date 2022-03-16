@@ -1,0 +1,77 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| Inscription{% endblock %}
+
+{% block corps %}
+    <h1>Inscription</h1>
+
+    <!-- corps du texte -->
+    <p>Pour créer un compte, veuillez remplir le formulaire et cliquer sur "Inscription".</p>
+    <form class="form" method="POST" action="{{ url_for('inscription') }}">
+
+        <!-- login -->
+        <div class="form-group row">
+            <label for="register-login" class="col-sm-2 col-form-label">Login</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="register-login" name="login" placeholder="Nom d'utilisateur.ice (ex: dale-cooper, laurapalmer)"/>
+            </div>
+        </div>
+
+        <!-- nom -->
+        <div class="form-group row">
+            <label for="register-nom" class="col-sm-2 col-form-label">Nom</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="register-nom" name="nom" placeholder="Nom (ex: Claire Fontaine, Groucho Marx, Audrey Horne)"/>
+            </div>
+        </div>
+
+        <!-- email -->
+        <div class="form-group row">
+            <label for="register-email" class="col-sm-2 col-form-label">Adresse mail</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="register-email" name="email" placeholder="Adresse mail (ex: gordon-cole@example.com)"/>
+            </div>
+        </div>
+
+        <!-- mdp -->
+        <div class="form-group row">
+            <label for="register-mdp" class="col-sm-2 col-form-label">Mot de passe</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="register-mdp" name="mdp" placeholder="Mot de passe (au moins 8 caractères dont 1 chiffre)"/>
+            </div>
+        </div>
+
+        <!-- sumbit -->
+        <div> <button type="submit" class="btn btn-primary">Inscription</button></div>
+    </form>
+
+    <!-- flash d'erreur -->
+    {% with messages = get_flashed_messages(category_filter=['error']) %}
+        {% if messages %}
+            <p>Les erreurs suivantes ont été rencontrées :</p>
+            {% for m in messages %}
+                <li>{{m}}</li>
+            {% endfor %}
+            <!--
+            <p>Les erreurs suivantes ont été rencontrées :</p>
+            {% for d in donnees %}
+                <li>{{d}}</li>
+            {% endfor %}
+            -->
+        {% endif %}
+    {% endwith %}
+
+    <!-- flash de tout va bien -->
+    {% with messages = get_flashed_messages(category_filter=['success']) %}
+        {% if messages %}
+            {% for m in messages %}
+                <p>{{m}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+    </div>
+{% endblock %}

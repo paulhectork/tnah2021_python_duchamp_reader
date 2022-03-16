@@ -5,6 +5,7 @@ import folium
 from .app import app, db
 from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
+from .modeles.classes_users import *
 from .constantes import PERPAGE, cartes, statics, css
 from .constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 
@@ -20,13 +21,6 @@ def accueil():
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
 
-# IL FAUDRA LA SUPPRIMER CELLE LÀ
-@app.route("/hi")
-def hi():
-    return render_template("pages/hi.html",
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
-
 
 @app.route("/about")
 def about():
@@ -37,9 +31,11 @@ def about():
 
 @app.route("/recherche", methods=["GET", "POST"])
 def recherche():
-    """Route pour faire une recherche rapide sur toutes les tables
+    """Route pour faire une recherche rapide sur toutes les tables.
 
-    :return:
+    :return: objet render_template avec la liste de tous les résultats et une pagination. Pour chaque
+    résultat, un renvoi vers la page détaillée de ce résultat est possible.
+    :rtype: objet render_template
     """
     # initialisation de la recherche: pagination, définition du titre, initialisation des variables
     keyword = request.args.get("keyword", None)
@@ -80,11 +76,42 @@ def recherche():
         #   SELECT artiste.id, artiste.nom AS data, artiste.classname
 	    #   FROM artiste
 
+    # return
     return render_template(
         "pages/recherche_results.html", results=results, titre=titre, keyword=keyword,
         last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-        last_themes=last_themes, last_villes=last_villes
-    )
+        last_themes=last_themes, last_villes=last_villes)
+
+
+# ----- ROUTES USER ----- #
+@app.route("/inscription", methods=["GET", "POST"])
+def inscription():
+    """Route pour se créer un compte sur le site web.
+    :return:
+    """
+    # si le formulaire d'inscription est envoyé, créer un nv compte d'utilisateur.ice
+    if request.method == "POST":
+        statut, donnees = User.usr_new(
+            nom=request.form.get("nom", None),
+            login=request.form.get("login", None),
+            email=request.form.get("email", None),
+            mdp=request.form.get("mdp", None)
+        )
+        if statut is True:
+            flash("Compte créé. Vous pouvez à présent vous connecter", "success")
+            return redirect("/")
+        else:
+            err = "<p>Les erreurs suivantes ont été rencontrées :</p>"
+            for d in donnees:
+                err += f"<li>{d}</li>"
+            flash(err, "error")
+            return render_template("pages/inscription.html",
+                                   last_nominations=last_nominations, last_artistes=last_artistes,
+                                   last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+    else:
+        return render_template("pages/inscription.html",
+                               last_nominations=last_nominations, last_artistes=last_artistes,
+                               last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES ARTISTE ----- #
@@ -618,28 +645,17 @@ def theme_add():
 # ----- ROUTES CARTES ----- #
 @app.route("/carte_ville/<int:id>")
 def carte_ville(id):
+    """Route permettant d'appeler une carte à intégrer dans un iframe dans une page HTML"""
     return render_template(f"partials/maps/ville{id}.html")
 
 
 @app.route("/carte_artiste/<int:id>")
 def carte_artiste(id):
+    """Route permettant d'appeler une carte à intégrer dans un iframe dans une page HTML"""
     return render_template(f"partials/maps/artiste{id}.html")
 
 
 @app.route("/carte_galerie/<int:id>")
 def carte_galerie(id):
+    """Route permettant d'appeler une carte à intégrer dans un iframe dans une page HTML"""
     return render_template(f"partials/maps/galerie{id}.html")
-
-
-"""
-@app.route("/sidebar")
-def sidebar():
-    last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(5).all()
-    last_nominations = artistes = Artiste.query.join(Nomination, Artiste.id == Nomination.id_artiste) \
-        .order_by(Artiste.id.desc()).limit(5).all
-    last_galeries = Galerie.query.order_by(Galerie.id.desc()).limit(5).all()
-    last_villes = Ville.query.order_by(Ville.id.desc()).limit(5).all()
-    last_themes = Theme.query.order_by(Theme.id.desc()).limit(5).all()
-    return render_template("partials/sidebar.html", last_nominations=last_nominations, last_artistes=last_artistes,
-                           last_galeries=last_galeries, last_villes=last_villes, last_themes=last_themes)
-"""
