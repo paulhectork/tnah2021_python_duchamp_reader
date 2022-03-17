@@ -87,7 +87,9 @@ def recherche():
 @app.route("/inscription", methods=["GET", "POST"])
 def inscription():
     """Route pour se créer un compte sur le site web.
-    :return:
+    :return: Si il n'y a pas d'erreurs dans la création du compte, redirection vers la page
+             d'accueil avec un message de succès. Sinon, render_template de la page d'inscription
+             avec un message d'erreur.
     """
     # si le formulaire d'inscription est envoyé, créer un nv compte d'utilisateur.ice
     if request.method == "POST":
@@ -101,11 +103,10 @@ def inscription():
             flash("Compte créé. Vous pouvez à présent vous connecter", "success")
             return redirect("/")
         else:
-            err = "<p>Les erreurs suivantes ont été rencontrées :</p>"
-            for d in donnees:
-                err += f"<li>{d}</li>"
-            flash(err, "error")
-            return render_template("pages/inscription.html",
+            # afficher un message d'erreur sur la page
+            donnees = "~".join(d for d in donnees)
+            flash(str(donnees), "error")
+            return render_template("pages/inscription.html", donnees=donnees,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
                                    last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
     else:
@@ -113,6 +114,55 @@ def inscription():
                                last_nominations=last_nominations, last_artistes=last_artistes,
                                last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
+
+@app.route("/connexion", methods=["POST", "GET"])
+def connexion():
+    """Route pour se connecter au site web
+    :return: Si l'utilisateurice est déjà connecté.e, render_template vers la page de connexion
+             avec un message indiquant qu'iel est déjà connecté.e. Si iel se connecte avec les bons
+             identifiants, redirection vers la page d'acceuil avec un message de succès. Si iel se
+             connecte avec les mauvais identifiants, render_template vers la page de connexion avec un
+             message d'erreur.
+    """
+    # si l'utilisateurice est déjà conecté.e
+    if current_user.is_authenticated is True:
+        flash("Vous êtes déjà connecté.e. Veuillez vous déconnecter pour changer de compte.", "success")
+        return render_template("pages/connexion.html",
+                               last_nominations=last_nominations, last_artistes=last_artistes,
+                               last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+    # si l'utilisateurice envoie un formulaire de connexion
+    if request.method == "POST":
+        user = User.usr_connexion(
+            login=request.form.get("login", None),
+            mdp=request.form.get("mdp", None)
+        )
+        # si les identifiants sont corrects, connecter l'utilisateurice
+        if user:
+            flash("Connexion effectuée", "success")
+            login_user(user)
+            return redirect("/")
+        else:
+            flash("Login ou mot de passe incorrects", "error")
+            return render_template("pages/connexion.html",
+                                   last_nominations=last_nominations, last_artistes=last_artistes,
+                                   last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+    return render_template("pages/connexion.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes,
+                           last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+
+@app.route("/deconnexion", methods=["POST", "GET"])
+def deconnexion():
+    """Fonction pour déconnecter un.e utilisateurice
+
+    :return: déconnexion et redirection vers la page d'accueil
+    """
+    if current_user.is_authenticated is True:
+        logout_user()
+        flash("Vous êtes déconnecté.e", "success")
+        return redirect("/")
 
 # ----- ROUTES ARTISTE ----- #
 @app.route("/artiste")

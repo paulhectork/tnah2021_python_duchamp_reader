@@ -46,32 +46,30 @@
     </form>
 
     <!-- flash d'erreur -->
-    {% with messages = get_flashed_messages(category_filter=['error']) %}
+    {% with messages = get_flashed_messages(category_filter=["error"]) %}
         {% if messages %}
-            <p>Les erreurs suivantes ont été rencontrées :</p>
-            {% for m in messages %}
-                <li>{{m}}</li>
-            {% endfor %}
-            <!--
-            <p>Les erreurs suivantes ont été rencontrées :</p>
-            {% for d in donnees %}
-                <li>{{d}}</li>
-            {% endfor %}
-            -->
+            <div class="alert-danger">
+                    <p>Des erreurs ont eu lieu à la création de votre compte : </p>
+                    {% set list = donnees.split("~") %}
+                    {% for l in list %}
+                        <li>{{l}}</li>
+                    {% endfor %}
+            </div>
         {% endif %}
     {% endwith %}
 
-    <!-- flash de tout va bien -->
-    {% with messages = get_flashed_messages(category_filter=['success']) %}
+    <!-- flash d'info si l'utilisateurice est connecté.e -->
+    {% with messages = get_flashed_messages(category_filter=["success"]) %}
         {% if messages %}
-            {% for m in messages %}
-                <p>{{m}}</p>
-            {% endfor %}
+            <div class="alert-success">
+                <p>{{ messages }}</p>
+            </div>
         {% endif %}
     {% endwith %}
 
     <!-- footer -->
     <div class="basdepage">
         <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a href="{{ url_for('connexion') }}" class="btn">Connexion</a>
     </div>
 {% endblock %}

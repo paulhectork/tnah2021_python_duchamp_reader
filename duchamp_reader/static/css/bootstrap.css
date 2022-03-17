@@ -25,8 +25,7 @@
  * .btn-primary:hover : modification de background-color
  * .btn-outline-info : modification des couleurs
  * .btn-outline-info:hover : modification des couleurs
- * .navbar + * : ajout d'une règle pour que les éléments soient pas mangés par le navbar
- * .navbar + .hero : ajout d'une règle pour que le hero soit pas mangé par le navbar
+ * .navbar + .container > * : ajout d'une règle pour que les éléments soient pas mangés par le navbar
  * .col iframeartiste : création d'une règle pour les cartes embedded
  * .col iframeville : création d'une règle pour les cartes embedded
  * .col iframegalerie : création d'une règle pour les cartes embedded
@@ -37,6 +36,10 @@
  * .navbar .checkbox : création de règles pour un menu burger
  * .navbar .hamburger-lines etc : création de règles pour un menu burger
  * .basdepage : création de règles pour les boutons de renvois en bas de page
+ * .alert-success: modification des règles de messages de tout va bien
+ * .alert-danger: modification des règles de message d'erreur
+ * .alert-danger li : création d'une règle pour listes dans messages d'erreur
+ * .form-group : ajout de marges entre les barres du formulaires
 
 
 
@@ -108,6 +111,8 @@
   --custom-light-pink: #ffb0ff;
   --custom-dark-pink: #ff99ed;
   --custom-plum: #bd148b;
+  --custom-darkgreen: #2e7d6b;
+  --custom-burgundy: #7c0b43;
 }
 
 *,
@@ -2229,6 +2234,11 @@ progress {
   }
 }
 
+.form-group {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
 .form-label {
   margin-bottom: 0.5rem;
 }
@@ -4113,9 +4123,10 @@ textarea.form-control-lg {
   height: 70px !important;
 }
 
-.navbar + * {
+.navbar + .container > * {
   margin-top: 70px;
 }
+
 
 .navbar > .container,
 .navbar > .container-fluid,
@@ -5034,9 +5045,15 @@ textarea.form-control-lg {
 }
 
 .alert-success {
-  color: #0f5132;
-  background-color: #d1e7dd;
+  /*color: #0f5132;
+  background-color: #d1e7dd;*/
   border-color: #badbcc;
+  /* nv règles */
+  color: var(--bs-white) !important;
+  background-color: var(--custom-dark-pink);
+  border-radius: 8px !important;
+  margin-top: 20px !important;
+  padding: 10px !important;
 }
 .alert-success .alert-link {
   color: #0c4128;
@@ -5055,15 +5072,25 @@ textarea.form-control-lg {
   color: #664d03;
   background-color: #fff3cd;
   border-color: #ffecb5;
+  border-radius: 8px;
 }
 .alert-warning .alert-link {
   color: #523e02;
 }
 
 .alert-danger {
-  color: #842029;
-  background-color: #f8d7da;
+  /*color: #842029;
+  background-color: #f8d7da;*/
   border-color: #f5c2c7;
+  /*nv règles*/
+  color: var(--bs-white) !important;
+  background-color: var(--custom-burgundy) !important;
+  border-radius: 8px !important;
+  margin-top: 20px !important;
+  padding: 5px !important;
+}
+.alert-danger li {
+  margin-left: 20px;
 }
 .alert-danger .alert-link {
   color: #6a1a21;
@@ -11562,5 +11589,6 @@ a[data-toggle="collapse"] {
   background-color: var(--custom-plum);
   border-color: var(--custom-plum);
 }
+
 
 /*# sourceMappingURL=bootstrap.css.map */
