@@ -49,7 +49,13 @@
 
         <!-- cartes -->
         {% if carte %}
-            <iframe class="iframegalerie" src="{{ url_for('carte_galerie', id=galerie.id) }}"></iframe>
+            <h2>
+                Carte indiquant
+                {% if galerie.localisation|length > 1 %}les villes où se trouve {{galerie.nom}}
+                {% elif galerie.localisation|length == 1 %}la ville où se trouve {{galerie.nom}}
+                {% endif %}
+            </h2>
+            <iframe class="iframe" src="{{ url_for('carte_galerie', id=galerie.id) }}"></iframe>
         {% endif %}
 
     {% else %}

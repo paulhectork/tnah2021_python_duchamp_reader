@@ -164,6 +164,7 @@ def deconnexion():
         flash("Vous êtes déconnecté.e", "success")
         return redirect("/")
 
+
 # ----- ROUTES ARTISTE ----- #
 @app.route("/artiste")
 def artiste_index():

@@ -66,10 +66,114 @@
                 </ul>
             {% else %} la galerie {% for r in represente %}<a href="{{ url_for('galerie_main', id_galerie=r.id_galerie) }}">{{r.galerie.nom}}</a>{% endfor %}.
             {% endif %}
+        </p>
+
+        <!-- carousel d'images -->
+        {% if nomination.annee == 2021 and nomination.id_artiste != 18 %}
+            <h2>Vues de l'installation</h2>
+            <div id="slider">
+                <!-- boutons -->
+                <div class="slideshowbtn">
+                    <button id="prev" class="btn" onclick="nextSlide()">image précédente</button>
+                    <button id="pause" class="btn">pause</button>
+                    <button id="next" class="btn">image suivante</button>
+                </div>
+
+                <!-- Julian Creuzet -->
+                {% if nomination.id_artiste == 20 %}
+                    <div class="slides">
+                        <img src="../static/images/2021duchamp_creuzet1.jpg" class="shown"/>
+                        <img src="../static/images/2021duchamp_creuzet2.jpg" class="slide"/>
+                        <img src="../static/images/2021duchamp_creuzet3.jpg" class="slide"/>
+                    </div>
+                {% endif %}
+
+                <!-- Isabelle Cornaro <3 -->
+                {% if nomination.id_artiste == 19 %}
+                    <div class="slides">
+                        <img src="../static/images/2021duchamp_cornaro1.jpg" class="shown"/>
+                        <img src="../static/images/2021duchamp_cornaro2.jpg" class="slide"/>
+                        <img src="../static/images/2021duchamp_cornaro3.jpg" class="slide"/>
+                        <img src="../static/images/2021duchamp_cornaro4.jpg" class="slide"/>
+                        <img src="../static/images/2021duchamp_cornaro5.jpg" class="slide"/>
+                    </div>
+                {% endif %}
+
+                <!-- Lili Reynaud Dewar -->
+                {% if nomination.id_artiste == 17 %}
+                    <div class="slides">
+                        <img src="../static/images/2021duchamp_reynauddewar1.jpg" class="shown"/>
+                        <img src="../static/images/2021duchamp_reynauddewar2.jpg" class="slide"/>
+                    </div>
+                {% endif %}
+
+                <!-- javascript -->
+                <script type="text/javascript">
+                    var slides = document.querySelectorAll('.slides img');
+                    var currentSlide = 0;
+                    var slideInterval = setInterval(nextSlide,3500);
+                    var playing = true;
+                    var pausebtn = document.querySelector('#pause');
+                    var prevbtn = document.querySelector('#prev');
+                    var nextbtn = document.querySelector('#next');
+
+                    //slide automatique
+                    function nextSlide() {
+                      slides[currentSlide].className = 'slide';
+                      currentSlide = (currentSlide+1)%slides.length;
+                      slides[currentSlide].className = 'shown';
+                    };
+
+                    //pause et play
+                    function pauseSlideshow() {
+                      pausebtn.innerHTML = 'reprendre';
+                      playing = false;
+                      clearInterval(slideInterval);
+                    };
+                    function playSlideshow() {
+                      pausebtn.innerHTML = 'pause';
+                      playing = true;
+                      slideInterval = setInterval(nextSlide,3500);
+                    };
+
+                    //slide précédente et suivante
+                    function prevSlide() {
+                      toSlide(currentSlide-1);
+                    };
+                    function nextSlide() {
+                      toSlide(currentSlide+1);
+                    };
+                    function toSlide(n) {
+                      slides[currentSlide].className = 'slide';
+                      currentSlide = (n+slides.length)%slides.length;
+                      slides[currentSlide].className = 'shown';
+                    };
+
+                    //action des bouttons
+                    pausebtn.onclick = function() {
+                      if(playing) {
+                        pauseSlideshow();
+                      } else {
+                        playSlideshow();
+                      }
+                    };
+                    prevbtn.onclick = function() {
+                      pauseSlideshow()
+                      prevSlide();
+                    };
+                    nextbtn.onclick = function() {
+                      pauseSlideshow()
+                      nextSlide();
+                    }
+                </script>
+
+            </div>
+        {% endif %}
 
         <!-- cartes -->
         {% if carte %}
-            <iframe class="iframeartiste" src="{{url_for('carte_artiste', id=nomination.id_artiste)}}"></iframe>
+            <h2>Carte indiquant le lieu de naissance et de résidence de {{nomination.artiste.full}}</h2>
+            <iframe class="iframe" src="{{url_for('carte_artiste', id=nomination.id_artiste)}}"></iframe>
         {% endif %}
 
     {% else %}
