@@ -37,7 +37,14 @@
         <div class="form-group row">
             <label for="register-mdp" class="col-sm-2 col-form-label">Mot de passe</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control" id="register-mdp" name="mdp" placeholder="Mot de passe (au moins 8 caractères dont 1 chiffre)"/>
+                <input type="password" class="form-control" id="register-mdp" name="mdp" placeholder="Mot de passe (au moins 8 caractères dont 1 chiffre)"/>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="register-mdp-check" class="col-sm-2 col-form-label">Vérifier le mot de passe</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control" id="register-mdp-check" name="mdpcheck" placeholder="Réécrire votre mot de passe"/>
             </div>
         </div>
 
@@ -49,7 +56,7 @@
     {% with messages = get_flashed_messages(category_filter=["error"]) %}
         {% if messages %}
             <div class="alert-danger">
-                    <p>Des erreurs ont eu lieu à la création de votre compte : </p>
+                    <p>Une ou plusieurs erreurs ont eu lieu à la création de votre compte : </p>
                     {% set list = donnees.split("~") %}
                     {% for l in list %}
                         <li>{{l}}</li>

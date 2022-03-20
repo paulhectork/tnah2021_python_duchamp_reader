@@ -91,24 +91,36 @@ def inscription():
              d'accueil avec un message de succès. Sinon, render_template de la page d'inscription
              avec un message d'erreur.
     """
+
     # si le formulaire d'inscription est envoyé, créer un nv compte d'utilisateur.ice
     if request.method == "POST":
-        statut, donnees = User.usr_new(
-            nom=request.form.get("nom", None),
-            login=request.form.get("login", None),
-            email=request.form.get("email", None),
-            mdp=request.form.get("mdp", None)
-        )
-        if statut is True:
-            flash("Compte créé. Vous pouvez à présent vous connecter", "success")
-            return redirect("/")
-        else:
-            # afficher un message d'erreur sur la page
-            donnees = "~".join(d for d in donnees)
-            flash(str(donnees), "error")
+        mdp = request.form.get("mdp", None)
+        mdpcheck = request.form.get("mdpcheck", None)
+
+        # si la vérification du mot de passe échoue, ne pas ajouter l'utilisateur.ice
+        if mdp != mdpcheck:
+            donnees = "Erreur de vérification de votre mot de passe"
+            flash(donnees, "error")
             return render_template("pages/inscription.html", donnees=donnees,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
                                    last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+        else:
+            statut, donnees = User.usr_new(
+                nom=request.form.get("nom", None),
+                login=request.form.get("login", None),
+                email=request.form.get("email", None),
+                mdp=request.form.get("mdp", None)
+            )
+            if statut is True:
+                flash("Compte créé. Vous pouvez à présent vous connecter", "success")
+                return redirect("/")
+            else:
+                # afficher un message d'erreur sur la page
+                donnees = "~".join(d for d in donnees)
+                flash(str(donnees), "error")
+                return render_template("pages/inscription.html", donnees=donnees,
+                                       last_nominations=last_nominations, last_artistes=last_artistes,
+                                       last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
     else:
         return render_template("pages/inscription.html",
                                last_nominations=last_nominations, last_artistes=last_artistes,
@@ -155,7 +167,7 @@ def connexion():
 
 @app.route("/deconnexion", methods=["POST", "GET"])
 def deconnexion():
-    """Fonction pour déconnecter un.e utilisateurice
+    """Fonction pour déconnecter un.e utilisateurice.
 
     :return: déconnexion et redirection vers la page d'accueil
     """
@@ -305,12 +317,22 @@ def artiste_main(id_artiste):
 
 
 @app.route("/artiste/add", methods=["GET", "POST"])
-def artiste_ajout():
+def artiste_add():
+
+    # les requêtes constantes sont relancées pour éviter une SQLAlchemy ProgrammingError
+    last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(3).all()
+    last_nominations = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id) \
+        .order_by(Nomination.id.desc()).limit(3).all()
+    last_galeries = Galerie.query.order_by(Galerie.id.desc()).limit(3).all()
+    last_villes = Ville.query.order_by(Ville.id.desc()).limit(3).all()
+    last_themes = Theme.query.order_by(Theme.id.desc()).limit(3).all()
+
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
-        flash("Veuillez vous connecter pour rajouter des données", "error") #syntaxe de flash: flash("message", "category"): "flash("To contribute, log in or sign in", "info")"
-        return redirect("/login")
-    # si il.elle est connecté.e et si un formulaire est envoyé avec POST
+        flash("Veuillez vous connecter pour rajouter des données", "error")
+        return redirect("/connexion")
+
+    # si iel est connecté.e et si un formulaire est envoyé avec POST
     if request.method == "POST":
         succes, donnees = Artiste.artiste_new(
             nom=request.form.get("nom", None),
@@ -321,15 +343,20 @@ def artiste_ajout():
             ville_residence=request.form.get("ville_residence", None)
         )
         if succes is True:
-            flash("Vous avez ajouté un.e nouvel.le artiste à la base de données", "success")
-            return redirect("/artiste") # url de redirection, on peut changer
+            flash("Vous avez ajouté un.e nouvel.le artiste à la base de données.", "success")
+            return redirect("/artiste/add")
         else:
-            flash("Error: " + " + ".join(donnees), "error") # data c'est quoi ?? je l'ai trouvé dans le devoir StoneAdvisor
-            return render_template("pages/artiste_ajout.html") # artiste_ajout : fichier html contenant le formulaire d'ajout d'artiste
-    else:
-        return render_template("pages/artiste_ajout.html",
-                               last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                               last_themes=last_themes, last_villes=last_villes)
+            # afficher un message d'erreur sur la page
+            donnees = "~".join(d for d in donnees)
+            flash(donnees, "error")
+            return render_template("pages/artiste_add.html", donnees=donnees,
+                                   last_nominations=last_nominations, last_artistes=last_artistes,
+                                   last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+    # return
+    return render_template("pages/artiste_add.html",
+                           last_nominations=last_nominations, last_artistes=last_artistes,
+                           last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES NOMINATION ----- #

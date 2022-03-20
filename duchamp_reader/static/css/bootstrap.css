@@ -41,7 +41,10 @@
  * .alert-danger: modification des règles de message d'erreur
  * .alert-danger li : création d'une règle pour listes dans messages d'erreur
  * .form-group : ajout de marges entre les barres du formulaire
-
+ * .slider et après: ajout de règles pour un carousel
+ * .form-control : changement de color
+ * .form-control:focus : changement de color
+ * .form-select : changement de color
 
 
 
@@ -2272,7 +2275,8 @@ progress {
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
-  color: #212529;
+  color: var(--custom-plum);
+  /*color: #212529;*/
   background-color: #fff;
   background-clip: padding-box;
   border: 1px solid #ced4da;
@@ -2294,7 +2298,8 @@ progress {
   cursor: pointer;
 }
 .form-control:focus {
-  color: #212529;
+  color: var(--custom-blue-bg);
+  /*color: #212529;*/
   background-color: #fff;
   border-color: #86b7fe;
   outline: 0;
@@ -2488,7 +2493,8 @@ textarea.form-control-lg {
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
-  color: #212529;
+  color: var(--custom-plum);
+  /*color: #212529;*/
   background-color: #fff;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
@@ -11512,18 +11518,18 @@ a[data-toggle="collapse"] {
 }
 
 .navbar .hamburger-lines .line2 {
-  -webkit-transition: transform 0.2s ease-in-out;
-  -moz-transition: transform 0.2s ease-in-out;
-  -o-transition: transform 0.2s ease-in-out;
-  transition: transform 0.2s ease-in-out;
+  -webkit-transition: transform 0.2s;
+  -moz-transition: transform 0.2s;
+  -o-transition: transform 0.2s;
+  transition: transform 0.2s;
 }
 
 .navbar .hamburger-lines .line3 {
   transform-origin: 0% 100%;
-  -webkit-transition: transform 0.4s ease-in-out;
-  -moz-transition: transform 0.4s ease-in-out;
-  -o-transition: transform 0.4s ease-in-out;
-  transition: transform 0.4s ease-in-out;
+  -webkit-transition: transform 0.4s;
+  -moz-transition: transform 0.4s;
+  -o-transition: transform 0.4s;
+  transition: transform 0.4s;
 }
 
 /* bas de page */
@@ -11536,12 +11542,6 @@ a[data-toggle="collapse"] {
   bottom: 0;
   left: 0;
   padding: 5px;
-  /*
-  height: 45px;
-  padding: 5px;
-  position: sticky;
-  bottom: 0px;
-  width: 100%;*/
 }
 
 .basdepage .btn {
@@ -11578,10 +11578,6 @@ a[data-toggle="collapse"] {
   max-height: 70vh;
   opacity: 0;
   z-index: 1;
-  -webkit-transition: opacity 2s;
-  -moz-transition: opacity 2s;
-  -o-transition: opacity 2s;
-  transition: opacity 2s;
 }
 
 .shown {

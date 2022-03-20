@@ -1,0 +1,97 @@
+
+{% extends "conteneur.html" %}
+
+{% block titre %}| Nouvel.le artiste{% endblock %}
+
+{% block corps %}
+    <h1>Ajouter un.e nouvel.le artiste à la base de données</h1>
+
+    <!-- corps du texte -->
+    <p>Pour ajouter un.e artiste à la base, veuillez remplir le formulaire et cliquer sur "Ajouter".</p>
+    <form class="form" method="POST" action="{{ url_for('artiste_add') }}">
+
+        <!-- nom -->
+        <div class="form-group row">
+            <label for="artiste-nom" class="col-sm-2 col-form-label">Nom de famille</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="artiste-nom" name="nom" placeholder="Nom de famille de l'artiste (ex: Hurley)"/>
+            </div>
+        </div>
+
+        <!-- prenom -->
+        <div class="form-group row">
+            <label for="artiste-prenom" class="col-sm-2 col-form-label">Prénom</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="artiste-prenom" name="prenom" placeholder="Prénom (ex: Nadine)"/>
+            </div>
+        </div>
+
+        <!-- annee naissance -->
+        <div class="form-group row">
+            <label for="artiste-annee-naissance" class="col-sm-2 col-form-label">Année de naissance</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="artiste-annee-naissance" name="annee_naissance" placeholder="Année de naissance au format AAAA (ex: 1945)"/>
+            </div>
+        </div>
+
+        <!-- genre -->
+        <div class="form-group row">
+            <label for="artiste-genre" class="col-sm-2 col-form-label">Genre</label>
+            <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <select type="text" class="form-select" id="artiste-genre" name="genre" aria-expanded="false">
+                    <option value="F">Femme</option>
+                    <option value="M">Homme</option>
+                    <option value="A">Autre / non-binaire</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ville de naissance -->
+        <div class="form-group row">
+            <label for="artiste-ville-naissance" class="col-sm-2 col-form-label">Ville de naissance</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="artiste-ville-naissance" name="ville_naissance" placeholder="Ville de naissance (ex: Buckhorn)"/>
+            </div>
+        </div>
+
+        <!-- ville de résidence -->
+        <div class="form-group row">
+            <label for="artiste-ville-residence" class="col-sm-2 col-form-label">Ville de résidence</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="artiste-ville-residence" name="ville_residence" placeholder="Ville de résidence (ex: Twin Peaks)"/>
+            </div>
+        </div>
+
+        <!-- sumbit -->
+        <div> <button type="submit" class="btn btn-primary">Ajouter</button></div>
+    </form>
+
+    <!-- flash d'erreur -->
+    {% with messages = get_flashed_messages(category_filter=["error"]) %}
+        {% if messages %}
+            <div class="alert-danger">
+                    <p>Une ou plusieurs erreurs ont eu lieu à l'ajout de l'artiste à la base de données :</p>
+                    {% set list = donnees.split("~") %}
+                    {% for l in list %}
+                        <li>{{l}}</li>
+                    {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- flash de tout va bien -->
+    {% with messages = get_flashed_messages(category_filter=["success"]) %}
+        {% if messages %}
+            <div class="alert-success">
+                <p>{{ messages }}</p>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('artiste_index')}}">Index des artistes</a>
+    </div>
+
+{% endblock %}

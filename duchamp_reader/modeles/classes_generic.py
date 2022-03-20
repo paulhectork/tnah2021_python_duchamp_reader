@@ -10,7 +10,7 @@ class Artiste(db.Model):
     nom = db.Column(db.Text, nullable=False)
     prenom = db.Column(db.Text, nullable=False)
     annee_naissance = db.Column(db.Integer) # format YYYY
-    genre = db.Column(db.String(1))  # M : homme, F : femme, A : autre/non-binaire
+    genre = db.Column(db.String(1))  # M : masculin, F : femme, A : autre/non-binaire
     id_ville_naissance = db.Column(db.Integer, db.ForeignKey("ville.id"))
     id_ville_residence = db.Column(db.Integer, db.ForeignKey("ville.id"))
     classname = db.Column(db.Text, nullable=False, default="artiste")
@@ -52,9 +52,9 @@ class Artiste(db.Model):
         # nettoyer les données et vérifier leur validité
         nom = clean_string(nom)
         prenom = clean_string(prenom)
-        # genre = je fais de genre une liste dans le formulaire donc jsp encore
         ville_naissance = clean_string(ville_naissance)
         ville_residence = clean_string(ville_residence)
+        annee_naissance = int(annee_naissance.strip())
         # je fais pas ça à date, vu que date sera un INT
         nomregex = re.search(regexnp, nom)
         if not nomregex:
@@ -75,11 +75,6 @@ class Artiste(db.Model):
             erreurs.append("La date de naissance doit être au format: AAAA")
         if not isinstance(annee_naissance, int):
             erreurs.append("La date de naissance ne doit contenir que des chiffres")
-        genres_autorises = ["A", "F", "M"]
-        if genre not in genres_autorises:
-            erreurs.append(
-                "Veulliez indiquer un genre correct: M pour masculin, F pour féminin, A pour autre ou non-binaire")
-        # avec la ligne au dessus, il n'y a pas besoin de faire if len(genre)>1, ni de vérifier le datatype
         ville_n_regex = re.search(regexnp, ville_naissance)
         if not ville_n_regex:
             erreurs.append(
@@ -109,16 +104,13 @@ class Artiste(db.Model):
         if len(erreurs) > 0:
             return False, erreurs
 
-        # ma politique dans l'ajout de données sur tableA qui implique l'ajout de donnée sur tableB : l'ajout de
-        # données est seult obligatoire quand on ajoute les données sur la table principale (tableA), pas sur la table secondaire (tableB)
+        # ajouter les villes si elles n'existent pas dans la base de données
         db_ville_n_check = Ville.query.filter(Ville.nom == ville_naissance).count()
         if db_ville_n_check == 0:
             nv_ville = Ville(nom=ville_naissance)
             try:
                 db.session.add(nv_ville)
                 db.session.commit()
-                return True, nv_ville  # on est pas obligés de retourner l'objet, mais ça mange pas de pain ; faut-il
-                # mettre un return, ou est-ce que ça risque de baiser tte la fonction ?
             except Exception as error:
                 return False, [str(error)]
         db_ville_r_check = Ville.query.filter(Ville.nom == ville_residence).count()
