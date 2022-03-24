@@ -45,6 +45,7 @@
  * .form-control : changement de color
  * .form-control:focus : changement de color
  * .form-select : changement de color
+ * h2, .h2 : ajout de padding-top et de règles de border-top
 
 
 
@@ -176,6 +177,10 @@ h1, .h1 {
 
 h2, .h2 {
   font-size: calc(1.325rem + 0.9vw);
+  padding-top: 15px;
+  border-top-style: solid;
+  border-top-width: 0.1vh;
+  border-top-color: var(--bs-white);
 }
 @media (min-width: 1200px) {
   h2, .h2 {

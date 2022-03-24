@@ -1,5 +1,6 @@
 import re
 
+regexwkd = "^Q\d+$" # regex vérifiant les ID wikidata
 regexnp = "^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$" # l'expression régulière utilisée pour vérifier la validité des noms propres : majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, tirets et espaces, miniscule en fin de chaîne
 regexnc = "^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])|(\-?\s?))+([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$" # l'expression régulière pour vérifier la validité des noms communs : caractères en minuscules, accentués ou non, séparés ou non par un unique espace ou tiret
 regexmail = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$" # l'expression régulière pour vérifier la validité des mails; source: https://www.emailregex.com/

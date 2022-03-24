@@ -11,6 +11,7 @@ class Artiste(db.Model):
     prenom = db.Column(db.Text, nullable=False)
     annee_naissance = db.Column(db.Integer) # format YYYY
     genre = db.Column(db.String(1))  # M : masculin, F : femme, A : autre/non-binaire
+    id_wikidata = db.Column(db.Text, unique=True)
     id_ville_naissance = db.Column(db.Integer, db.ForeignKey("ville.id"))
     id_ville_residence = db.Column(db.Integer, db.ForeignKey("ville.id"))
     classname = db.Column(db.Text, nullable=False, default="artiste")
@@ -33,7 +34,7 @@ class Artiste(db.Model):
         return self.prenom + " " + self.nom
 
     @staticmethod
-    def artiste_new(nom, prenom, annee_naissance, genre, ville_naissance, ville_residence):
+    def artiste_new(nom, prenom, annee_naissance, genre, ville_naissance, ville_residence, id_wikidata):
         # vérifier que toutes les données ont été fournies
         erreurs = []
         if not nom:
@@ -55,6 +56,8 @@ class Artiste(db.Model):
         ville_naissance = clean_string(ville_naissance)
         ville_residence = clean_string(ville_residence)
         annee_naissance = int(annee_naissance.strip())
+        if id_wikidata:
+            id_wikidata = clean_string(id_wikidata)
         # je fais pas ça à date, vu que date sera un INT
         nomregex = re.search(regexnp, nom)
         if not nomregex:
@@ -91,6 +94,10 @@ class Artiste(db.Model):
                 (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
                 tirets et espaces, miniscule en fin de chaîne)"
             )
+        if id_wikidata:
+            wikiregex = re.search(regexwkd, id_wikidata)
+            if not wikiregex:
+                erreurs.append("Un identifiant wikidata correspond à l'expression: ^Q\d+$ (Q suivi de un ou plusieurs chiffres)")
 
         db_artiste_check = Artiste.query.filter(db.and_(
             Artiste.nom == nom,
@@ -133,6 +140,7 @@ class Artiste(db.Model):
             prenom=prenom,
             genre=genre,
             annee_naissance=annee_naissance,
+            id_wikidata=id_wikidata,
             id_ville_naissance=id_ville_naissance,
             id_ville_residence=id_ville_residence
         )
@@ -146,7 +154,7 @@ class Artiste(db.Model):
 
     # une version allégée de artiste_new() pour ajouter des données au moment de l'initialisation de la base
     @staticmethod
-    def artiste_new_init(nom, prenom, annee_naissance, genre, id_ville_naissance, id_ville_residence):
+    def artiste_new_init(nom, prenom, annee_naissance, genre, id_wikidata, id_ville_naissance, id_ville_residence):
         erreurs = []
         if not nom:
             erreurs.append("Un.e artiste doit avoir un nom")
@@ -177,6 +185,11 @@ class Artiste(db.Model):
         genres_autorises = ["A", "F", "M"]
         if genre not in genres_autorises:
             erreurs.append("Le genre doit être A, F ou M")
+        if id_wikidata:
+            wikiregex = re.search(regexwkd, id_wikidata)
+            if not wikiregex:
+                erreurs.append(
+                    "Un identifiant wikidata correspond à l'expression: ^Q\d+$ (Q suivi de un ou plusieurs chiffres)")
 
         # si tout va bien, on ajoute les données
         if len(erreurs) > 0:
@@ -187,6 +200,7 @@ class Artiste(db.Model):
             prenom=prenom,
             genre=genre,
             annee_naissance=annee_naissance,
+            id_wikidata=id_wikidata,
             id_ville_naissance=id_ville_naissance,
             id_ville_residence=id_ville_residence
         )

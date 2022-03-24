@@ -68,6 +68,9 @@
             {% endif %}
         </p>
 
+        <!-- identifiant wikidata -->
+        <p>{% if nomination.artiste.id_wikidata %}L'identifiant wikidata de l'artiste est : {{nomination.artiste.id_wikidata}}.{% endif %}</p>
+
         <!-- wikipedia -->
         <h2>En savoir plus (via wikipedia)</h2>
         {% if code == "fr" %}

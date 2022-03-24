@@ -117,26 +117,28 @@ def db_populate_artiste():
     """Fonction d'initialisation permettant de peupler la table Artiste
     """
     if not Artiste.query.get(1):
-        Artiste.artiste_new_init("Hadjithomas", "Joanna", 1969, "F", 5, 5)
-        Artiste.artiste_new_init("Bajevic", "Maja", 1967, "F", 38, 33)
-        Artiste.artiste_new_init("Moth", "Charlotte", 1978, "F", 8, 33)
-        Artiste.artiste_new_init("Santoro", "Vittorio", 1962, "M", 42, 42)
-        Artiste.artiste_new_init("Cotigore", "Clément", 1962, "M", 13, 33)
-        Artiste.artiste_new_init("Bourouissa", "Mohamed", 1978, "M", 6, 33)
-        Artiste.artiste_new_init("Tran", "Thu-Van", 1979, "F", 22, 33)
-        Artiste.artiste_new_init("Voignier", "Marie", 1974, "F", 34, 33)
-        Artiste.artiste_new_init("Baudelaire", "Eric", 1973, "M", 36, 33)
-        Artiste.artiste_new_init("Bock", "Katinka", 1976, "F", 18, 4)
-        Artiste.artiste_new_init("Humeau", "Marguerite", 1986, "F", 12, 27)
-        Artiste.artiste_new_init("Tursic", "Ida", 1974, "F", 3, 14)
-        Artiste.artiste_new_init("Kiwanga", "Kapwani", 1978, "F", 21, 33)
-        Artiste.artiste_new_init("Anderson", "Alice", 1972, "F", 1, 27)
-        Artiste.artiste_new_init("Berrada", "Hachim", 1986, "M", 9, 33)
-        Artiste.artiste_new_init("Ramirez", "Enrique", 1979, "M", 37, 37)
-        Artiste.artiste_new_init("Reynaud Dewar", "Lili", 1974, "F", 25, 20)
-        Artiste.artiste_new_init("Charrière", "Julian", 1987, "M", 30, 4)
-        Artiste.artiste_new_init("Cornaro", "Isabelle", 1974, "F", 2, 19)
-        Artiste.artiste_new_init("Creuzet", "Julien", 1986, "M", 26, 17)
+        Artiste.artiste_new_init("Hadjithomas", "Joana", 1969, "F", "Q3179639", 5, 5)
+        Artiste.artiste_new_init("Bajevic", "Maja", 1967, "F", "Q1491703", 38, 33)
+        Artiste.artiste_new_init("Moth", "Charlotte", 1978, "F", "Q23415099", 8, 33)
+        Artiste.artiste_new_init("Santoro", "Vittorio", 1962, "M", "Q1565174", 42, 42)
+        Artiste.artiste_new_init("Cogitore", "Clément", 1962, "M", "Q21055548", 13, 33)
+        Artiste.artiste_new_init("Bourouissa", "Mohamed", 1978, "M", "Q3318456", 6, 33)
+        Artiste.artiste_new_init("Tran", "Thu-Van", 1979, "F", "Q25936115", 22, 33)
+        Artiste.artiste_new_init("Voignier", "Marie", 1974, "F", "Q28777080", 34, 33)
+        Artiste.artiste_new_init("Baudelaire", "Eric", 1973, "M", "Q3590965", 36, 33)
+        Artiste.artiste_new_init("Bock", "Katinka", 1976, "F", "Q19513339", 18, 4)
+        Artiste.artiste_new_init("Humeau", "Marguerite", 1986, "F", "Q25324799", 12, 27)
+        Artiste.artiste_new_init("Tursic", "Ida", 1974, "F", id_wikidata=None,
+                                 id_ville_naissance=3, id_ville_residence=14)
+        Artiste.artiste_new_init("Kiwanga", "Kapwani", 1978, "F", "Q22978214", 21, 33)
+        Artiste.artiste_new_init("Anderson", "Alice", 1972, "F", "Q2646836", 1, 27)
+        Artiste.artiste_new_init("Berrada", "Hicham", 1986, "M", "Q18610848", 9, 33)
+        Artiste.artiste_new_init("Ramirez", "Enrique", 1979, "M", "Q77350250", 37, 37)
+        Artiste.artiste_new_init("Reynaud Dewar", "Lili", 1974, "F", "Q19630875", 25, 20)
+        Artiste.artiste_new_init("Charrière", "Julian", 1987, "M", "Q17305541", 30, 4)
+        Artiste.artiste_new_init("Cornaro", "Isabelle", 1974, "F", "Q55235943", 2, 19)
+        Artiste.artiste_new_init("Creuzet", "Julien", 1986, "M", id_wikidata=None,
+                                 id_ville_naissance=26, id_ville_residence=17)
 
 def db_populate_nomination():
     """Fonction d'initialisation permettant de peupler la table Nomination

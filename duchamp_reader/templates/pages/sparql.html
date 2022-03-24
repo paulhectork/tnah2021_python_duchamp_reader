@@ -1,0 +1,91 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| SPARQL{% endblock %}
+
+{% block corps %}
+    <h1>Lancer une recherche SPARQL sur Wikidata</h1>
+
+    <!-- corps du texte -->
+    <p>Le duchamp_reader gère la construction de requêtes SPARQL sur les artistes et permet
+        de télécharger les résultats. Pour lancer une requête, cocher les champs sur lesquels
+        lancer une requmete et cliquer sur "Rechercher".</p>
+    <form class="form" id="sparqlform" method="POST" action="{{ url_for('sparqling') }}">
+
+        <!-- artiste recherché.e -->
+        <div class="form-group row">
+            <label for="id_wikidata" class="col-sm-2 col-form-label">Artiste</label>
+            <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <select type="text" class="form-select" id="id_wikidata" name="id_wikidata" value="id_wikidata" aria-expanded="false">
+                    {% for a in artistes %}
+                        <option value="{{a.id_wikidata}}">{{a.full}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- url -->
+        <div class="form-check">
+            <label for="url" class="col-sm-2 col-form-label">Adresse du site internet de l'artiste</label>
+            <input class="form-check-input" type="checkbox" name="url" id="url" value="url"/>
+        </div>
+
+        <!-- collections possédant des œuvres de l'artiste -->
+        <div class="form-check">
+            <label for="collection" class="col-sm-2 col-form-label">Collections possédant des oeuvres de l'artiste</label>
+            <input class="form-check-input" type="checkbox" name="collection" id="collection" value="collection"/>
+        </div>
+
+        <!-- isni ID -->
+        <div class="form-check">
+            <label for="id_isni" class="col-sm-2 col-form-label">Identifiant ISNI de l'artiste</label>
+            <input class="form-check-input" type="checkbox" name="id_isni" id="id_isni" value="id_isni"/>
+        </div>
+
+        <!-- viaf ID -->
+        <div class="form-check">
+            <label for="id_viaf" class="col-sm-2 col-form-label">Identifiant VIAF de l'artiste</label>
+            <input class="form-check-input" type="checkbox" name="id_viaf" id="id_viaf" value="id_viaf"/>
+        </div>
+
+        <!-- bnf ID -->
+        <div class="form-check">
+            <label for="id_bnf" class="col-sm-2 col-form-label">Identifiant de l'artiste à la BNF</label>
+            <input class="form-check-input" type="checkbox" name="id_bnf" id="id_bnf" value="id_bnf"/>
+        </div>
+
+        <!-- library of congress ID -->
+        <div class="form-check">
+            <label for="id_congress" class="col-sm-2 col-form-label">Identifiant de l'artiste à la librairie du Congrès américain</label>
+            <input class="form-check-input" type="checkbox" name="id_congress" id="id_congress" value="id_congress"/>
+        </div>
+
+        <!-- artsy ID -->
+        <div class="form-check">
+            <label for="id_artsy" class="col-sm-2 col-form-label">Identifiant Artsy de l'artiste</label>
+            <input class="form-check-input" type="checkbox" name="id_artsy" id="id_artsy" value="id_artsy"/>
+        </div>
+
+        <!-- sumbit -->
+        <div> <button type="submit" class="btn btn-primary">Lancer une requête</button></div>
+    </form>
+
+    <!-- flash d'erreur -->
+    {% with messages = get_flashed_messages(category_filter=["error"]) %}
+        {% if messages %}
+            <div class="alert-danger">
+                    <p>Une ou plusieurs erreurs ont eu lieu à l'ajout de l'artiste à la base de données :</p>
+                    {% set list = donnees.split("~") %}
+                    {% for l in list %}
+                        <li>{{l}}</li>
+                    {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('artiste_index')}}">Index des artistes</a>
+    </div>
+
+{% endblock %}

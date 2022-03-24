@@ -10,7 +10,7 @@ from .modeles.classes_relationships import *
 from .modeles.classes_users import *
 from .constantes import PERPAGE, cartes, statics, css
 from .constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
-
+from .utils.duchamp_sparqler import duchamp_sparqler
 
 # ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
@@ -88,7 +88,8 @@ def recherche():
 # ----- ROUTES USER ----- #
 @app.route("/inscription", methods=["GET", "POST"])
 def inscription():
-    """Route pour se créer un compte sur le site web.
+    """Route pour se créer un compte sur le site web. Si tout va bien, un message de tout va bien
+    s'affiche. Sinon, un message d'erreur indique les erreurs.
     :return: Si il n'y a pas d'erreurs dans la création du compte, redirection vers la page
              d'accueil avec un message de succès. Sinon, render_template de la page d'inscription
              avec un message d'erreur.
@@ -131,7 +132,8 @@ def inscription():
 
 @app.route("/connexion", methods=["POST", "GET"])
 def connexion():
-    """Route pour se connecter au site web
+    """Route pour se connecter au site web.Si tout va bien, un message de tout va bien s'affiche.
+    Sinon, un message d'erreur indique les erreurs.
     :return: Si l'utilisateurice est déjà connecté.e, render_template vers la page de connexion
              avec un message indiquant qu'iel est déjà connecté.e. Si iel se connecte avec les bons
              identifiants, redirection vers la page d'acceuil avec un message de succès. Si iel se
@@ -205,9 +207,12 @@ def artiste_index():
 @app.route("/artiste/<int:id_artiste>")
 def artiste_main(id_artiste):
     """Page détaillée sur un.e artiste. Pour chaque artiste, des informations biographiques et
-    sur leur nomination sont données. En plus, la page comporte une carte générée dynamiquement
-    avec un point pour le lieu de naissance et un pour le lieu de résidence. Le zoom de la carte
-    est généré dynamiquement, de même que la taille des popups.
+    sur leur nomination sont données. La page est enrichie de texte issu de la page wikipedia de l'artiste
+    (si elle existe). Si la page wikipedia n'existe pas, des renvois vers 4 pages wikipedia sont proposés
+    au hasard (il y a tout un système de try...except bien complexe). Enfin, cette fonction génère
+    dynamiquement une carte intégrée à la page. La carte comporte avec un point pour le lieu de
+    naissance et un pour le lieu de résidence. Le zoom de la carte est généré dynamiquement,
+    de même que la taille des popups.
 
     :return: objet render_template() renvoyant vers la page détaillée d'un.e artiste.
     :rtype: objet render_template()
@@ -362,26 +367,26 @@ def artiste_main(id_artiste):
             wikipedia.set_lang("en")
             wikipage = wikipedia.page(nomination.artiste.full, auto_suggest=True)
             if nomination.artiste.nom in wikipage.title:
-                summary = wikipage.summary.replace("\n", "<br/>")
+                summary = wikipage.summary
                 url = wikipage.url
                 if wikipage.section("Biography"):
-                    bio = wikipage.section("Biography").replace("\n", "<br/>")
+                    bio = wikipage.section("Biography")
                 elif wikipage.section("Life and work"):
-                    bio = wikipage.section("Life and work").replace("\n", "<br/>")
+                    bio = wikipage.section("Life and work")
                 elif wikipage.section("Early life"):
-                    formation = wikipage.section("Early life").replace("\n", "<br/>")
+                    formation = wikipage.section("Early life")
                 elif wikipage.section("Education"):
-                    formation = wikipage.section("Education").replace("\n", "<br/>")
+                    formation = wikipage.section("Education")
                 elif wikipage.section("Early life and education"):
-                    formation = wikipage.section("Early life and education").replace("\n", "<br/>")
+                    formation = wikipage.section("Early life and education")
                 elif wikipage.section("Career"):
-                    carriere = wikipage.section("Career").replace("\n", "<br/>")
+                    carriere = wikipage.section("Career")
                 elif wikipage.section("Work"):
-                    travail = wikipage.section("Work").replace("\n", "<br/>")
+                    travail = wikipage.section("Work")
                 elif wikipage.section("Artistic practice"):
-                    oeuvre = wikipage.section("Artistic practice").replace("\n", "<br/>")
+                    oeuvre = wikipage.section("Artistic practice")
                 elif wikipage.section("Art"):
-                    oeuvre = wikipage.section("Art").replace("\n", "<br/>")
+                    oeuvre = wikipage.section("Art")
                 code = "en"
             # si la mauvaise page a été requêtée par erreur, proposer des renvois vers 4 pages au hasard
             else:
@@ -421,6 +426,14 @@ def artiste_main(id_artiste):
 
 @app.route("/artiste/add", methods=["GET", "POST"])
 def artiste_add():
+    """Page servant à ajouter un.e nouvel.le artiste à la base de données. Si les villes de naissance
+    et de résidence n'existent pas, elles sont ajoutées à la table "Ville" à cette occasion. Si tout va
+    bien, un message de tout va bien s'affiche. Sinon, un message d'erreur indique les erreurs.
+
+    :return: redirect vers la page de connexion l'utilisateur.ice n'est pas connecté.e; si il y a une
+    erreur, render_template vers la page "artiste/add" avec les messages d'erreurs; si tout se passe bien,
+    render_template vers la page "artiste/add" avec un message indiquant que la transaction s'est bien déroulée.
+    """
     # les requêtes constantes sont relancées pour éviter une SQLAlchemy ProgrammingError
     last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(3).all()
     last_nominations = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id) \
@@ -821,6 +834,58 @@ def theme_main(id_theme):
 def theme_add():
     """fonction de création d'un nouveau thème"""
 
+
+# ----- ROUTES SPARQL ----- #
+@app.route("/sparql", methods=["POST", "GET"])
+def sparqling():
+    artistes = Artiste.query.order_by(Artiste.id).all()
+
+    # si un formulaire est envoyé avec post, récupérer les données
+    if request.method == "POST":
+        erreurs = []
+        id_wikidata = request.form.get("id_wikidata")  # le seul des "input" dont la "value" importe
+        url = request.form.get("url")
+        collection = request.form.get("collection")
+        id_isni = request.form.get("id_isni")
+        id_viaf = request.form.get("id_viaf")
+        id_bnf = request.form.get("id_bnf")
+        id_congress = request.form.get("id_congress")
+        id_artsy = request.form.get("id_artsy")
+
+        print(f"wiki {id_wikidata}")
+        print(f"url {url}")
+        print(f"collection {collection}")
+        print(f"id_isni {id_isni}")
+        print(f"id_viaf {id_viaf}")
+        print(f"id_bnf {id_bnf}")
+        print(f"id_congress {id_congress}")
+        print(f"id_artsy {id_artsy}")
+        
+        # s'assurer que le formulaire comporte des données
+        if not id_wikidata:
+            erreurs.append("Veuillez indiquer un artiste à requêter.")
+        if not url \
+                and not collection \
+                and not id_isni \
+                and not id_viaf \
+                and not id_bnf \
+                and not id_congress \
+                and not id_artsy:
+            erreurs.append("Veuillez cocher au moins une des cases pour lancer une requête.")
+        
+        # lancer la requête
+        if len(erreurs) == 0:
+            duchamp_sparqler(id_wikidata=id_wikidata, url=url, collection=collection, id_isni=id_isni,
+                             id_viaf=id_viaf, id_bnf=id_bnf, id_congress=id_congress, id_artsy=id_artsy)
+            print(id_wikidata)
+            print(id_congress)
+
+        else:
+            print(erreurs)
+    # return
+    return render_template("pages/sparql.html", artistes=artistes,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
 
 # ----- ROUTES CARTES ----- #
 @app.route("/carte_ville/<int:id>")
