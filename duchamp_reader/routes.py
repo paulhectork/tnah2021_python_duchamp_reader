@@ -1,6 +1,8 @@
 from flask import render_template, url_for, request, flash, redirect
 from flask_login import current_user, login_user, logout_user
 import folium
+import wikipedia
+from wikipedia import WikipediaException, DisambiguationError
 
 from .app import app, db
 from .modeles.classes_generic import *
@@ -309,16 +311,116 @@ def artiste_main(id_artiste):
     ).add_to(carte)
     carte.save(f"{cartes}/artiste{id_artiste}.html")
 
+    # enrichissement de la page avec wikipedia
+    # définition des variables qui serviront à affichier les informations de wikipedia
+    wikidict = {}  # dictionnaire associant à un titre de page une url, pour afficher des pages au hasard si erreur
+    wikipage = None
+    url = ""
+    travail = ""
+    oeuvre = ""
+    summary = ""
+    bio = ""
+    formation = ""
+    carriere = ""
+    # commencer par chercher la page wikipedia en français; si elle existe, récupérer des sections
+    try:
+        wikipedia.set_lang("fr")
+        wikipage = wikipedia.page(nomination.artiste.full, auto_suggest=True)
+        if nomination.artiste.nom in wikipage.title:
+            summary = wikipage.summary
+            url = wikipage.url
+            if wikipage.section("Biographie"):
+                bio = wikipage.section("Biographie")
+            elif wikipage.section("Formation"):
+                formation = wikipage.section("Formation")
+            elif wikipage.section("Carrière"):
+                carriere = wikipage.section("Carrière")
+            elif wikipage.section("Travail"):
+                travail = wikipage.section("Travail")
+            elif wikipage.section("Œuvres"):
+                oeuvre = wikipage.section("Œeuvres")
+            elif wikipage.section("Œuvre"):
+                oeuvre = wikipage.section("Œeuvre")
+            code = "fr"  # code pour savoir quelles données wikipedia sont affichées
+        # si la mauvaise page a été requêtée par erreur, proposer des renvois vers 4 pages au hasard
+        else:
+            wikipedia.set_lang("fr")
+            wikilist = wikipedia.random(pages=4)  # 4 pages au hasard si on ne trouve pas de page pour l'artiste
+            for w in wikilist:
+                try:
+                    wikidict[w] = wikipedia.page(w).url
+                except DisambiguationError as e:
+                    try:
+                        wikidict[e.options[0]] = wikipedia.page(e.options[0].url)
+                    except WikipediaException:
+                        wikidict[e.options[0]] = None
+            code = "no"
+
+    # si la page n'existe pas en français, la chercher en anglais
+    except WikipediaException:
+        try:
+            wikipedia.set_lang("en")
+            wikipage = wikipedia.page(nomination.artiste.full, auto_suggest=True)
+            if nomination.artiste.nom in wikipage.title:
+                summary = wikipage.summary.replace("\n", "<br/>")
+                url = wikipage.url
+                if wikipage.section("Biography"):
+                    bio = wikipage.section("Biography").replace("\n", "<br/>")
+                elif wikipage.section("Life and work"):
+                    bio = wikipage.section("Life and work").replace("\n", "<br/>")
+                elif wikipage.section("Early life"):
+                    formation = wikipage.section("Early life").replace("\n", "<br/>")
+                elif wikipage.section("Education"):
+                    formation = wikipage.section("Education").replace("\n", "<br/>")
+                elif wikipage.section("Early life and education"):
+                    formation = wikipage.section("Early life and education").replace("\n", "<br/>")
+                elif wikipage.section("Career"):
+                    carriere = wikipage.section("Career").replace("\n", "<br/>")
+                elif wikipage.section("Work"):
+                    travail = wikipage.section("Work").replace("\n", "<br/>")
+                elif wikipage.section("Artistic practice"):
+                    oeuvre = wikipage.section("Artistic practice").replace("\n", "<br/>")
+                elif wikipage.section("Art"):
+                    oeuvre = wikipage.section("Art").replace("\n", "<br/>")
+                code = "en"
+            # si la mauvaise page a été requêtée par erreur, proposer des renvois vers 4 pages au hasard
+            else:
+                wikipedia.set_lang("fr")
+                wikilist = wikipedia.random(pages=4)  # 4 pages au hasard si on ne trouve pas de page pour l'artiste
+                for w in wikilist:
+                    try:
+                        wikidict[w] = wikipedia.page(w).url
+                    except DisambiguationError as e:
+                        try:
+                            wikidict[e.options[0]] = wikipedia.page(e.options[0].url)
+                        except WikipediaException:
+                            wikidict[e.options[0]] = None
+                code = "no"
+
+        # si la page n'est trouvée ni en français, ni en anglais, proposer une liste de 4 pages au hasard
+        except WikipediaException:
+            wikipedia.set_lang("fr")
+            wikilist = wikipedia.random(pages=4)  # 4 pages au hasard si on ne trouve pas de page pour l'artiste
+            for w in wikilist:
+                try:
+                    wikidict[w] = wikipedia.page(w).url
+                except DisambiguationError as e:
+                    try:
+                        wikidict[e.options[0]] = wikipedia.page(e.options[0].url)
+                    except Exception:
+                        wikidict[e.options[0]] = None
+            code = "no"
+
     # return
-    return render_template("pages/artiste_main.html", nomination=nomination,
-                           represente=represente, nominations_all=nominations_all, carte=carte,
+    return render_template("pages/artiste_main.html", nomination=nomination, travail=travail, oeuvre=oeuvre,
+                           code=code, summary=summary, bio=bio, formation=formation, carriere=carriere, url=url,
+                           wikidict=wikidict, represente=represente, nominations_all=nominations_all, carte=carte,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/artiste/add", methods=["GET", "POST"])
 def artiste_add():
-
     # les requêtes constantes sont relancées pour éviter une SQLAlchemy ProgrammingError
     last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(3).all()
     last_nominations = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id) \

@@ -68,6 +68,48 @@
             {% endif %}
         </p>
 
+        <!-- wikipedia -->
+        <h2>En savoir plus (via wikipedia)</h2>
+        {% if code == "fr" %}
+            <p>Les informations qui suivent viennent de la page francophone de <a href="{{url}}">{{nomination.artiste.full}}</a>.</p>
+        {% endif %}
+        {% if code == "en" %}
+            <p>Les informations qui suivent viennent de la page anglophone de <a href="{{url}}">{{nomination.artiste.full}}</a>.</p>
+        {% endif %}
+        {% if summary %}
+            <h4>En bref</h4>
+            <p style="white-space:pre-wrap">{{ summary }}</p>
+        {% endif %}
+        {% if bio %}
+            <h4>Biographie</h4>
+            <p style="white-space:pre-wrap">{{ bio }}</p>
+        {% endif %}
+        {% if formation %}
+            <h4>Formation</h4>
+            <p style="white-space:pre-wrap">{{formation}}</p>
+        {% endif %}
+        {% if carriere %}
+            <h4>Carrière</h4>
+            <p style="white-space:pre-wrap">{{carriere}}</p>
+        {% endif %}
+        {% if travail %}
+            <h4>Travail artistique</h4>
+            <p style="white-space:pre-wrap">{{travail}}</p>
+        {% endif %}
+        {% if oeuvre %}
+            <h4>Pratique artistique et oeuvre</h4>
+            <p style="white-space:pre-wrap">{{oeuvre}}</p>
+        {% endif %}
+        {% if code == "no" %}
+            <p>La page wikipedia de cet.te artiste n'a pas été trouvée ! Si vous voulez vous cultiver ou procrastiner, pourquoi ne pas visiter une de ces pages au hasard ?</p>
+            <ul>
+                {% for key, value in wikidict.items() %}
+                    <li><a href="{{value}}">{{key}}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+
         <!-- carousel d'images -->
         {% if nomination.annee == 2021 and nomination.id_artiste != 18 %}
             <h2>Vues de l'installation</h2>

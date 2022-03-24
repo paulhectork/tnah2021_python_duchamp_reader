@@ -122,7 +122,7 @@ def db_populate_artiste():
         Artiste.artiste_new_init("Moth", "Charlotte", 1978, "F", 8, 33)
         Artiste.artiste_new_init("Santoro", "Vittorio", 1962, "M", 42, 42)
         Artiste.artiste_new_init("Cotigore", "Clément", 1962, "M", 13, 33)
-        Artiste.artiste_new_init("Bourouissa", "Mohammed", 1978, "M", 6, 33)
+        Artiste.artiste_new_init("Bourouissa", "Mohamed", 1978, "M", 6, 33)
         Artiste.artiste_new_init("Tran", "Thu-Van", 1979, "F", 22, 33)
         Artiste.artiste_new_init("Voignier", "Marie", 1974, "F", 34, 33)
         Artiste.artiste_new_init("Baudelaire", "Eric", 1973, "M", 36, 33)
@@ -136,7 +136,7 @@ def db_populate_artiste():
         Artiste.artiste_new_init("Reynaud Dewar", "Lili", 1974, "F", 25, 20)
         Artiste.artiste_new_init("Charrière", "Julian", 1987, "M", 30, 4)
         Artiste.artiste_new_init("Cornaro", "Isabelle", 1974, "F", 2, 19)
-        Artiste.artiste_new_init("Creuzet", "Julian", 1986, "M", 26, 17)
+        Artiste.artiste_new_init("Creuzet", "Julien", 1986, "M", 26, 17)
 
 def db_populate_nomination():
     """Fonction d'initialisation permettant de peupler la table Nomination
