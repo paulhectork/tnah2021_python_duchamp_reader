@@ -16,6 +16,7 @@
             <label for="id_wikidata" class="col-sm-2 col-form-label">Artiste</label>
             <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <select type="text" class="form-select" id="id_wikidata" name="id_wikidata" value="id_wikidata" aria-expanded="false">
+                    <option value="None">Sélectionner un.e artiste</option>
                     {% for a in artistes %}
                         <option value="{{a.id_wikidata}}">{{a.full}}</option>
                     {% endfor %}
@@ -33,6 +34,12 @@
         <div class="form-check">
             <label for="collection" class="col-sm-2 col-form-label">Collections possédant des oeuvres de l'artiste</label>
             <input class="form-check-input" type="checkbox" name="collection" id="collection" value="collection"/>
+        </div>
+
+        <!-- urls d'images libres de droit de l'artiste -->
+        <div class="form-check">
+            <label for="img" class="col-sm-2 col-form-label">URL d'images de l'artiste librement réutilisables</label>
+            <input class="form-check-input" type="checkbox" name="collection" id="img" value="img"/>
         </div>
 
         <!-- isni ID -->
@@ -64,6 +71,16 @@
             <label for="id_artsy" class="col-sm-2 col-form-label">Identifiant Artsy de l'artiste</label>
             <input class="form-check-input" type="checkbox" name="id_artsy" id="id_artsy" value="id_artsy"/>
         </div>
+
+        <!-- format d'export -->
+        <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <select type="text" class="form-select" id="export" name="export" value="export" aria-expanded="false">
+                    <option value="None">Sélectionner un format d'export pour les résultats de la requête</option>
+                    <option value="XML">XML</option>
+                    <option value="RDFXML">RDF-XML</option>
+                    <option value="JSON">JSON</option>
+                </select>
+            </div>
 
         <!-- sumbit -->
         <div> <button type="submit" class="btn btn-primary">Lancer une requête</button></div>

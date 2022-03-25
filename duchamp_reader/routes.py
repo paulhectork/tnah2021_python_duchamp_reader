@@ -1,16 +1,15 @@
-from flask import render_template, url_for, request, flash, redirect
+from flask import render_template, request, flash, redirect
 from flask_login import current_user, login_user, logout_user
 import folium
-import wikipedia
-from wikipedia import WikipediaException, DisambiguationError
 
 from .app import app, db
 from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
 from .modeles.classes_users import *
-from .constantes import PERPAGE, cartes, statics, css
-from .constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
+from .utils.constantes import PERPAGE, cartes, statics, css
+from .utils.constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 from .utils.duchamp_sparqler import duchamp_sparqler
+from .utils.wikimaker import wikimaker
 
 # ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
@@ -317,111 +316,16 @@ def artiste_main(id_artiste):
     carte.save(f"{cartes}/artiste{id_artiste}.html")
 
     # enrichissement de la page avec wikipedia
-    # définition des variables qui serviront à affichier les informations de wikipedia
-    wikidict = {}  # dictionnaire associant à un titre de page une url, pour afficher des pages au hasard si erreur
-    wikipage = None
-    url = ""
-    travail = ""
-    oeuvre = ""
-    summary = ""
-    bio = ""
-    formation = ""
-    carriere = ""
-    # commencer par chercher la page wikipedia en français; si elle existe, récupérer des sections
-    try:
-        wikipedia.set_lang("fr")
-        wikipage = wikipedia.page(nomination.artiste.full, auto_suggest=True)
-        if nomination.artiste.nom in wikipage.title:
-            summary = wikipage.summary
-            url = wikipage.url
-            if wikipage.section("Biographie"):
-                bio = wikipage.section("Biographie")
-            elif wikipage.section("Formation"):
-                formation = wikipage.section("Formation")
-            elif wikipage.section("Carrière"):
-                carriere = wikipage.section("Carrière")
-            elif wikipage.section("Travail"):
-                travail = wikipage.section("Travail")
-            elif wikipage.section("Œuvres"):
-                oeuvre = wikipage.section("Œeuvres")
-            elif wikipage.section("Œuvre"):
-                oeuvre = wikipage.section("Œeuvre")
-            code = "fr"  # code pour savoir quelles données wikipedia sont affichées
-        # si la mauvaise page a été requêtée par erreur, proposer des renvois vers 4 pages au hasard
-        else:
-            wikipedia.set_lang("fr")
-            wikilist = wikipedia.random(pages=4)  # 4 pages au hasard si on ne trouve pas de page pour l'artiste
-            for w in wikilist:
-                try:
-                    wikidict[w] = wikipedia.page(w).url
-                except DisambiguationError as e:
-                    try:
-                        wikidict[e.options[0]] = wikipedia.page(e.options[0].url)
-                    except WikipediaException:
-                        wikidict[e.options[0]] = None
-            code = "no"
-
-    # si la page n'existe pas en français, la chercher en anglais
-    except WikipediaException:
-        try:
-            wikipedia.set_lang("en")
-            wikipage = wikipedia.page(nomination.artiste.full, auto_suggest=True)
-            if nomination.artiste.nom in wikipage.title:
-                summary = wikipage.summary
-                url = wikipage.url
-                if wikipage.section("Biography"):
-                    bio = wikipage.section("Biography")
-                elif wikipage.section("Life and work"):
-                    bio = wikipage.section("Life and work")
-                elif wikipage.section("Early life"):
-                    formation = wikipage.section("Early life")
-                elif wikipage.section("Education"):
-                    formation = wikipage.section("Education")
-                elif wikipage.section("Early life and education"):
-                    formation = wikipage.section("Early life and education")
-                elif wikipage.section("Career"):
-                    carriere = wikipage.section("Career")
-                elif wikipage.section("Work"):
-                    travail = wikipage.section("Work")
-                elif wikipage.section("Artistic practice"):
-                    oeuvre = wikipage.section("Artistic practice")
-                elif wikipage.section("Art"):
-                    oeuvre = wikipage.section("Art")
-                code = "en"
-            # si la mauvaise page a été requêtée par erreur, proposer des renvois vers 4 pages au hasard
-            else:
-                wikipedia.set_lang("fr")
-                wikilist = wikipedia.random(pages=4)  # 4 pages au hasard si on ne trouve pas de page pour l'artiste
-                for w in wikilist:
-                    try:
-                        wikidict[w] = wikipedia.page(w).url
-                    except DisambiguationError as e:
-                        try:
-                            wikidict[e.options[0]] = wikipedia.page(e.options[0].url)
-                        except WikipediaException:
-                            wikidict[e.options[0]] = None
-                code = "no"
-
-        # si la page n'est trouvée ni en français, ni en anglais, proposer une liste de 4 pages au hasard
-        except WikipediaException:
-            wikipedia.set_lang("fr")
-            wikilist = wikipedia.random(pages=4)  # 4 pages au hasard si on ne trouve pas de page pour l'artiste
-            for w in wikilist:
-                try:
-                    wikidict[w] = wikipedia.page(w).url
-                except DisambiguationError as e:
-                    try:
-                        wikidict[e.options[0]] = wikipedia.page(e.options[0].url)
-                    except Exception:
-                        wikidict[e.options[0]] = None
-            code = "no"
+    code, summary, bio, formation, carriere, travail, oeuvre, url, wikidict = \
+        wikimaker(full=nomination.artiste.full, nom=nomination.artiste.nom)
 
     # return
-    return render_template("pages/artiste_main.html", nomination=nomination, travail=travail, oeuvre=oeuvre,
-                           code=code, summary=summary, bio=bio, formation=formation, carriere=carriere, url=url,
-                           wikidict=wikidict, represente=represente, nominations_all=nominations_all, carte=carte,
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+    return render_template("pages/artiste_main.html", nomination=nomination, travail=travail,
+                           oeuvre=oeuvre, code=code, summary=summary, bio=bio, formation=formation,
+                           carriere=carriere, url=url, wikidict=wikidict, represente=represente,
+                           nominations_all=nominations_all, carte=carte, last_nominations=last_nominations,
+                           last_artistes=last_artistes, last_galeries=last_galeries, last_themes=last_themes,
+                           last_villes=last_villes)
 
 
 @app.route("/artiste/add", methods=["GET", "POST"])
@@ -838,7 +742,8 @@ def theme_add():
 # ----- ROUTES SPARQL ----- #
 @app.route("/sparql", methods=["POST", "GET"])
 def sparqling():
-    artistes = Artiste.query.order_by(Artiste.id).all()
+    # ne requêter que les artistes ayant un ID wikidata
+    artistes = Artiste.query.filter(Artiste.id_wikidata != "").order_by(Artiste.id).all()
 
     # si un formulaire est envoyé avec post, récupérer les données
     if request.method == "POST":
@@ -846,44 +751,43 @@ def sparqling():
         id_wikidata = request.form.get("id_wikidata")  # le seul des "input" dont la "value" importe
         url = request.form.get("url")
         collection = request.form.get("collection")
+        img = request.form.get("img")
         id_isni = request.form.get("id_isni")
         id_viaf = request.form.get("id_viaf")
         id_bnf = request.form.get("id_bnf")
         id_congress = request.form.get("id_congress")
         id_artsy = request.form.get("id_artsy")
+        export = request.form.get("export")
 
-        print(f"wiki {id_wikidata}")
-        print(f"url {url}")
-        print(f"collection {collection}")
-        print(f"id_isni {id_isni}")
-        print(f"id_viaf {id_viaf}")
-        print(f"id_bnf {id_bnf}")
-        print(f"id_congress {id_congress}")
-        print(f"id_artsy {id_artsy}")
-        
         # s'assurer que le formulaire comporte des données
-        if not id_wikidata:
+        if id_wikidata == "None":
             erreurs.append("Veuillez indiquer un artiste à requêter.")
+        if export == "None":
+            erreurs.append("Veuillez sélectionner un format pour l'export.")
         if not url \
                 and not collection \
+                and not img \
                 and not id_isni \
                 and not id_viaf \
                 and not id_bnf \
                 and not id_congress \
                 and not id_artsy:
             erreurs.append("Veuillez cocher au moins une des cases pour lancer une requête.")
-        
-        # lancer la requête
-        if len(erreurs) == 0:
-            duchamp_sparqler(id_wikidata=id_wikidata, url=url, collection=collection, id_isni=id_isni,
-                             id_viaf=id_viaf, id_bnf=id_bnf, id_congress=id_congress, id_artsy=id_artsy)
-            print(id_wikidata)
-            print(id_congress)
 
+        # stocker le nom de la personne recherchée pour générer les noms de fichiers
+        artiste = Artiste.query.filter(Artiste.id_wikidata == id_wikidata).first()
+        nom = artiste.nom
+
+        # si les données ont été fournies, activer la fonction duchamp_sparqler pour lancer la requête
+        if len(erreurs) == 0:
+            duchamp_sparqler(nom=nom, id_wikidata=id_wikidata, url=url, collection=collection, img=img, id_isni=id_isni,
+                             id_viaf=id_viaf, id_bnf=id_bnf, id_congress=id_congress, id_artsy=id_artsy, export=export)
         else:
             print(erreurs)
+            return erreurs
+
     # return
-    return render_template("pages/sparql.html", artistes=artistes,
+    return render_template("pages/duchamp_sparqler.html", artistes=artistes,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
 

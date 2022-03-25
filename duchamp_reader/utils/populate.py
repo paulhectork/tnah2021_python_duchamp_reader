@@ -1,8 +1,8 @@
 from sqlalchemy_utils.functions import database_exists
 
-from .app import db
-from .modeles.classes_generic import *
-from .modeles.classes_relationships import RelationRepresente, RelationLocalisation
+from ..app import db
+from ..modeles.classes_generic import *
+from ..modeles.classes_relationships import RelationRepresente, RelationLocalisation
 
 def db_create():
     """Fonction d'initalisation permettant de créer la base de donnéres

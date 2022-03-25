@@ -1,7 +1,7 @@
 from sqlalchemy.ext import hybrid
 
 from ..app import db
-from ..regex import *
+from ..utils.regex import *
 
 # les tables génériques
 class Artiste(db.Model):

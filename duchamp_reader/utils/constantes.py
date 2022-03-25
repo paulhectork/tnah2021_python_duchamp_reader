@@ -2,13 +2,15 @@ from warnings import warn
 import os
 
 actual_path = os.path.dirname(os.path.abspath(__file__))
-templates = os.path.join(actual_path, "templates")
-statics = os.path.join(actual_path, "static")
-cartes = os.path.join(actual_path, "templates", "partials", "maps")
+parent = os.path.abspath(os.path.join(actual_path, os.pardir))
+templates = os.path.join(parent, "templates")
+statics = os.path.join(parent, "static")
+cartes = os.path.join(parent, "templates", "partials", "maps")
+uploads = os.path.join(parent, "templates", "uploads")
 
 SECRET_KEY = "clé secrète par défaut mais franchement faudrait la changer par les temps qui courent"
-if SECRET_KEY == "clé secrète par défaut mais franchement faudrait la changer":
-    warn("Pour des raisons de sécurité, veuillez changer le secret par défaut", Warning)
+if SECRET_KEY == "clé secrète par défaut mais franchement faudrait la changer par les temps qui courent":
+    warn("--- c'est un acte de sagesse de changer la clé secrète ---", Warning)
 
 PERPAGE = 4
 

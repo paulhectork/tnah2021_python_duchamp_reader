@@ -17,7 +17,19 @@ def clean_string(chaine):
     :rtype: str
     """
     chaine = str(chaine) # pour être sûr de ne pas se taper des mauvais messages d'erreurs
-    chaine = re.sub("\s{2,}", " ", chaine)
-    chaine = re.sub("-{2,}", "-", chaine)
+    chaine = re.sub(r"\s{2,}", " ", chaine)
+    chaine = re.sub(r"-{2,}", "-", chaine)
     chaine = chaine.strip()
+    return chaine
+
+def newline(chaine):
+    """Fonction pour nettoyer le texte généré automatiquement: remplace plusieurs sauts de ligne
+    par un seul saut de ligne.
+
+    :param: chaine: la chaîne de caractères à nettoyer
+    :type chaine: str
+    :return: la chaîne avec les sauts de lignes normalisés
+    :rtype: str
+    """
+    chaine = re.sub(r"\n{2,}", r"\n\n", chaine)
     return chaine
