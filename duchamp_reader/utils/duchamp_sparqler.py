@@ -10,7 +10,8 @@ from .constantes import uploads
 def duchamp_sparqler(nom, id_wikidata, url, collection, img, id_isni,
                      id_viaf, id_bnf, id_congress, id_artsy, export):
     """Fonction permettant de construire des requêtes Wikidata sur des artistes à l'aide d'un formulaire.
-    Les requêtes sont enregistrées au format choisi par l'utilisateurice (RDFXML, XML ou JSON
+    Les requêtes sont enregistrées au format choisi par l'utilisateurice (RDFXML, XML ou JSON). L'indentation
+    des bouts de requête n'est pas très élégante mais ça permet de sortir la plus jolie feuille sparql possible.
 
     :param nom:
     :param id_wikidata:

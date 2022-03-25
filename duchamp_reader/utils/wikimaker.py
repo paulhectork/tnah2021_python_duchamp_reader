@@ -2,6 +2,17 @@ import wikipedia
 from wikipedia import WikipediaException, DisambiguationError
 
 def wikimaker(full, nom):
+    """Fonction qui, pour le nom d'un.e artiste, permet d'enrichir sa page principale (artiste_main)
+    avec du texte issu de wikipedia. Les différentes parties de la page (résumé, formation, carrière)
+    sont stockées dans des variables pour être transmises à jinja.
+
+    :param full: nom complet de l'artiste
+    :rtype full: str
+    :param nom: nom de famille de l'artiste
+    :rtype nom: str
+    :return: variables contenant du texte à passer à la template jinja
+    :rtype: str
+    """
     # définition des variables qui serviront à affichier les informations de wikipedia
     wikidict = {}  # dictionnaire associant à un titre de page une url, pour afficher des pages au hasard si erreur
     wikipage = None
