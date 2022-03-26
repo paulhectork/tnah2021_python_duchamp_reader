@@ -1,9 +1,10 @@
 import os
 import json
-from SPARQLWrapper import SPARQLWrapper, JSON, XML, RDFXML
 import requests as r
+from datetime import datetime, timezone, timedelta
+from SPARQLWrapper import SPARQLWrapper, JSON, XML, RDFXML
 
-from .regex import clean_string, newline
+from .regex import clean_string, clean_time, newline
 from .constantes import uploads
 
 
@@ -28,7 +29,8 @@ def duchamp_sparqler(nom, id_wikidata, url, collection, img, id_isni,
     """
     err = []  # liste vide pour stocker les erreurs
     if id_wikidata is not None and export is not None:
-
+        now = clean_time(datetime.now(timezone(timedelta(hours=+1))).isoformat())  # l'heure actuelle
+        datadict = {}  # dictionnaire associant varlist a datalist pour afficher les résultats d'une requête en html
         # moduler les requêtes et les variables à inclure dans le SELECT
         queryurl = ""
         querycoll = ""
@@ -83,7 +85,7 @@ WHERE {
   OPTIONAL {
     wd:{ID} wdt:P6379 ?collid .
     ?collid rdfs:label ?colllabel .
-    FILTER (langMatches(lang(?colllabel), "EN"))
+    FILTER (langMatches(lang(?colllabel), "EN-GB"))
   }"""
         if img is not None:
             selectimg = "?img"
@@ -152,6 +154,9 @@ WHERE {
                                  agent="MarcelDuchampBot/1.0 \
                                        (http://127.0.0.1:5000/sparql; marcel_duchamp@duchampreader.com) \
                                        Flask/2.0.2")
+
+        # lancer la requête au format demandé par l'utilisateurice si ce format existe. enregistrer le résultat
+        # de la requête au bon format, ainsi que la requête
         try:
             endpoint.setQuery(query)
             if export == "RDFXML":
@@ -159,30 +164,36 @@ WHERE {
                     endpoint.setReturnFormat(RDFXML)
                     results = endpoint.query()
                     results_conv = results.convert()
-                    with open(os.path.join(uploads, f"sparql_{nom}_{id_wikidata}_out.rdf"), mode="w") as f:
+                    with open(os.path.join(uploads, f"sparql_{nom}_{id_wikidata}_{now}_out.rdf"), mode="w") as f:
                         f.write(results_conv.toprettyxml())
+                    outname = f"sparql_{nom}_{id_wikidata}_{now}_out.rdf"
+
             elif export == "XML":
                 if endpoint.supportsReturnFormat(XML):
                     endpoint.setReturnFormat(XML)
                     results = endpoint.query()
                     results_conv = results.convert()
-                    with open(os.path.join(uploads, f"sparql_{nom}_{id_wikidata}_out.xml"), mode="w") as f:
+                    with open(os.path.join(uploads, f"sparql_{nom}_{id_wikidata}_{now}_out.xml"), mode="w") as f:
                         f.write(results_conv.toprettyxml())
+                    outname = f"sparql_{nom}_{id_wikidata}_{now}_out.xml"
             else:
                 # le format d'export par défaut: JSON (ça marche toujours sur wikidata)
                 endpoint.setReturnFormat(JSON)
                 results = endpoint.query()
                 results_conv = results.convert()
-                with open(os.path.join(uploads, f"sparql_{nom}_{id_wikidata}_out.json"), mode="w") as f:
+                with open(os.path.join(uploads, f"sparql_{nom}_{id_wikidata}_{now}_out.json"), mode="w") as f:
                     json.dump(results_conv, f)
+                outname = f"sparql_{nom}_{id_wikidata}_{now}_out.json"
 
             # enregistrer la requête dans le dossier uploads
-            with open(os.path.join(uploads, f"sparql_{nom}_{id_wikidata}_requete.sparql"), mode="w") as f:
+            with open(os.path.join(uploads, f"sparql_{nom}_{id_wikidata}_{now}_query.sparql"), mode="w") as f:
                 f.write(query)
+            queryname = f"sparql_{nom}_{id_wikidata}_{now}_query.sparql"
 
+        # en cas d'erreur, retourner un message d'erreur. si wikidata renvoie un code 403 (Forbidden), c'est
+        # probablement un problème d'User-Agent
         except Exception as error:
             url = results.geturl()
-            print(url)
             req = r.get(url)
             if req.status_code == 403:
                 err.append("L'accès au SPARQL endpoint a été interdit par Wikidata. Si vous avez accès au code source \
@@ -191,8 +202,29 @@ WHERE {
                 https://meta.wikimedia.org/wiki/User-Agent_policy.")
             else:
                 err.append(error)
+            return err
+
+        # construire un dictionnaire à partir d'une requête json pour afficher les résultats de la requête en HTML
+        if export != "JSON":
+            endpoint.setReturnFormat(JSON)
+            results_json = endpoint.query()
+            results_json = results_json.convert()
+        else:
+            results_json = results_conv
+        datalist = results_json["results"]["bindings"]
+        # itérer sur le JSON pour créer un dictionnaire qui associe à chaque variable recherchée la liste des résultats
+        for d in datalist:
+            for k, v in d.items():
+                try:
+                    if k not in datadict.keys():
+                        datadict[k] = v["value"]
+                    else:
+                        val = datadict[k]
+                        datadict[k] += f", {v['value']}"
+                except Exception:
+                    datadict[k] = "information non disponible"
 
     else:
         err.append("L'identifiant wikidata ou le format d'export n'ont pas été fournis.")
 
-    # enregistrer la requête et permettre le DL par l'utilisateurice -- À FAIRE MTN
+    return outname, queryname, err, datadict

@@ -33,3 +33,16 @@ def newline(chaine):
     """
     chaine = re.sub(r"\n{2,}", r"\n\n", chaine)
     return chaine
+
+
+def clean_time(chaine):
+    """Fonction permettant de nettoyer et abréger un objet datetime au format ISO.
+
+    :param chaine: un objet datetime
+    :type chaine: str
+    :return: objet datetime nettoyé et raccourci
+    :rtype: str
+    """
+    chaine = re.sub(r"\.|:", "-", chaine)# définir l'heure pour nommer les fichiers
+    chaine = re.sub(r"-\d{5,}\+01-00", "", chaine)
+    return chaine

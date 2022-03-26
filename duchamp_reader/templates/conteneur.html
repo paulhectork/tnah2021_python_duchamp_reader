@@ -145,16 +145,36 @@
                 </div>
             </div>
 
-                <!-- flash de tout va bien -->
-                {% with messages = get_flashed_messages(category_filter=['success']) %}
-                    {% if messages %}
-                        <div class="alert-success">
-                            {% for m in messages %}
-                                <p>{{m}}</p>
-                            {% endfor %}
-                        </div>
+            <!-- flash de tout va bien -->
+            {% with messages = get_flashed_messages(category_filter=['success']) %}
+                {% if messages %}
+                <div class="alert-success">
+                    {% for m in messages %}
+                        <p>{{m}}</p>
+                    {% endfor %}
+                    {% if queryname %}
+                        <a class="btn btn-primary" href="{{ url_for('dl', filename=queryname) }}">Télécharger la requête</a>
                     {% endif %}
-                {% endwith %}
+                    {% if outname %}
+                        <a class="btn btn-primary" href="{{ url_for('dl', filename=outname) }}" target="_blank">Télécharger les résultats de la requête</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- flash d'erreur -->
+            {% with messages = get_flashed_messages(category_filter=["error"]) %}
+                {% if messages %}
+                    <div class="alert-danger">
+                            <p>Une ou plusieurs erreurs ont eu lieu :</p>
+                            {% set list = erreurs.split("~") %}
+                            {% for l in list %}
+                                <li>{{l}}</li>
+                            {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"

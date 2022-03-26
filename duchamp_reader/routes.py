@@ -1,12 +1,13 @@
-from flask import render_template, request, flash, redirect
+from flask import render_template, request, flash, redirect, send_file
 from flask_login import current_user, login_user, logout_user
 import folium
+import os
 
 from .app import app, db
 from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
 from .modeles.classes_users import *
-from .utils.constantes import PERPAGE, cartes, statics, css
+from .utils.constantes import PERPAGE, cartes, statics, css, uploads
 from .utils.constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 from .utils.duchamp_sparqler import duchamp_sparqler
 from .utils.wikimaker import wikimaker
@@ -101,9 +102,9 @@ def inscription():
 
         # si la vérification du mot de passe échoue, ne pas ajouter l'utilisateur.ice
         if mdp != mdpcheck:
-            donnees = "Erreur de vérification de votre mot de passe"
-            flash(donnees, "error")
-            return render_template("pages/inscription.html", donnees=donnees,
+            erreurs = "Erreur de vérification de votre mot de passe"
+            flash(erreurs, "error")
+            return render_template("pages/inscription.html", erreurs=erreurs,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
                                    last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
         else:
@@ -118,9 +119,9 @@ def inscription():
                 return redirect("/")
             else:
                 # afficher un message d'erreur sur la page
-                donnees = "~".join(d for d in donnees)
-                flash(str(donnees), "error")
-                return render_template("pages/inscription.html", donnees=donnees,
+                erreurs = "~".join(d for d in donnees)
+                flash(str(erreurs), "error")
+                return render_template("pages/inscription.html", erreurs=erreurs,
                                        last_nominations=last_nominations, last_artistes=last_artistes,
                                        last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
     else:
@@ -366,9 +367,9 @@ def artiste_add():
             return redirect("/artiste/add")
         else:
             # afficher un message d'erreur sur la page
-            donnees = "~".join(d for d in donnees)
-            flash(donnees, "error")
-            return render_template("pages/artiste_add.html", donnees=donnees,
+            erreurs = "~".join(d for d in donnees)
+            flash(erreurs, "error")
+            return render_template("pages/artiste_add.html", erreurs=erreurs,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
                                    last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
@@ -566,9 +567,8 @@ def galerie_ajout():
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login",
-                        last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                        last_themes=last_themes, last_villes=last_villes)
+        return redirect("/login")
+
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Galerie.galerie_new(
@@ -576,9 +576,7 @@ def galerie_ajout():
         )
         if succes is True:
             flash("Vous avez rajouté une nouvelle galerie à la base de données", "success")
-            return redirect("/artiste",
-                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                            last_themes=last_themes, last_villes=last_villes)
+            return redirect("/artiste")
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
             return render_template("pages/galerie_ajout.html",
@@ -620,10 +618,6 @@ def ville_main(id_ville):
     :rtype: render_template object
     """
     # jointures et génération de données pour les popups
-    """ville_artiste_naissance = Artiste.query.join(Ville, Artiste.id_ville_naissance == Ville.id)\
-        .filter(Ville.id == id_ville).all()
-    ville_artiste_residence = Artiste.query.join(Ville, Artiste.id_ville_residence == Ville.id)\
-        .filter(Ville.id == id_ville).all()"""
     ville_artiste_naissance = Artiste.query.filter(Artiste.id_ville_naissance == id_ville).all()
     ville_artiste_residence = Artiste.query.filter(Artiste.id_ville_residence == id_ville).all()
     ville_galerie = RelationLocalisation.query.filter(RelationLocalisation.id_ville == id_ville).all()
@@ -744,10 +738,10 @@ def theme_add():
 def sparqling():
     # ne requêter que les artistes ayant un ID wikidata
     artistes = Artiste.query.filter(Artiste.id_wikidata != "").order_by(Artiste.id).all()
+    erreurs = []
 
     # si un formulaire est envoyé avec post, récupérer les données
     if request.method == "POST":
-        erreurs = []
         id_wikidata = request.form.get("id_wikidata")  # le seul des "input" dont la "value" importe
         url = request.form.get("url")
         collection = request.form.get("collection")
@@ -774,24 +768,51 @@ def sparqling():
                 and not id_artsy:
             erreurs.append("Veuillez cocher au moins une des cases pour lancer une requête.")
 
-        # stocker le nom de la personne recherchée pour générer les noms de fichiers
-        artiste = Artiste.query.filter(Artiste.id_wikidata == id_wikidata).first()
-        nom = artiste.nom
-
         # si les données ont été fournies, activer la fonction duchamp_sparqler pour lancer la requête
         if len(erreurs) == 0:
-            duchamp_sparqler(nom=nom, id_wikidata=id_wikidata, url=url, collection=collection, img=img, id_isni=id_isni,
-                             id_viaf=id_viaf, id_bnf=id_bnf, id_congress=id_congress, id_artsy=id_artsy, export=export)
+            # stocker le nom de la personne recherchée pour générer les noms de fichiers
+            artiste = Artiste.query.filter(Artiste.id_wikidata == id_wikidata).first()
+            nom = artiste.nom
+            outname, queryname, err, datadict = duchamp_sparqler(nom=nom, id_wikidata=id_wikidata, url=url,
+                                                       collection=collection, img=img, id_isni=id_isni,
+                                                       id_viaf=id_viaf, id_bnf=id_bnf, id_congress=id_congress,
+                                                       id_artsy=id_artsy, export=export)
+
+            # si la requête sparql s'est faite sans problèmes, proposer à l'utilisateur.ice de télécharger les fichiers
+            if len(err) == 0:
+                flash("La requête s'est exécutée sans problèmes; vous pouvez télécharger vos fichiers.", "success")
+                return render_template("pages/duchamp_sparqler.html", outname=outname, queryname=queryname,
+                                       erreurs=erreurs, artistes=artistes, last_nominations=last_nominations,
+                                       last_artistes=last_artistes, last_galeries=last_galeries,
+                                       last_themes=last_themes, last_villes=last_villes)
+            else:
+                erreurs.append(err)
+                erreurs = "~".join(str(e) for e in erreurs)
+                erreurs = str(erreurs)
+                flash(erreurs, "error")
+                return render_template("pages/duchamp_sparqler.html",
+                                       erreurs=erreurs, artistes=artistes, last_nominations=last_nominations,
+                                       last_artistes=last_artistes, last_galeries=last_galeries,
+                                       last_themes=last_themes, last_villes=last_villes)
+
         else:
-            print(erreurs)
-            return erreurs
+            erreurs = "~".join(e for e in erreurs)
+            erreurs = str(erreurs)
+            flash(erreurs, "error")
+            return render_template("pages/duchamp_sparqler.html",
+                                   erreurs=erreurs, artistes=artistes, last_nominations=last_nominations,
+                                   last_artistes=last_artistes, last_galeries=last_galeries,
+                                   last_themes=last_themes, last_villes=last_villes)
 
     # return
-    return render_template("pages/duchamp_sparqler.html", artistes=artistes,
-                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                           last_themes=last_themes, last_villes=last_villes)
+    erreurs = "~".join(e for e in erreurs)
+    erreurs = str(erreurs)
+    return render_template("pages/duchamp_sparqler.html", erreurs=erreurs,
+                           artistes=artistes, last_nominations=last_nominations, last_artistes=last_artistes,
+                           last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
-# ----- ROUTES CARTES ----- #
+
+# ----- ROUTES UTILITAIRES ----- #
 @app.route("/carte_ville/<int:id>")
 def carte_ville(id):
     """Route permettant d'appeler une carte à intégrer dans un iframe dans une page HTML"""
@@ -808,3 +829,17 @@ def carte_artiste(id):
 def carte_galerie(id):
     """Route permettant d'appeler une carte à intégrer dans un iframe dans une page HTML"""
     return render_template(f"partials/maps/galerie{id}.html")
+
+@app.route("/download/<filename>")
+def dl(filename):
+    try:
+        return send_file(os.path.join(uploads, filename), as_attachment=True)
+    except Exception as error:
+        # si le fichier n'est plus disponible, faire une redirection
+        artistes = Artiste.query.filter(Artiste.id_wikidata != "").order_by(Artiste.id).all()
+        erreurs = f"Ce fichier n'est plus disponible. Veuillez relancer la requête pour le télécharger\
+                    ~{error}"
+        flash(error, "error")
+        return render_template("pages/duchamp_sparqler.html", erreurs=erreurs, artistes=artistes,
+                               last_nominations=last_nominations, last_artistes=last_artistes,
+                               last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
