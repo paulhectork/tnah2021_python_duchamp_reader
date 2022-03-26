@@ -46,6 +46,7 @@
  * .form-control:focus : changement de color
  * .form-select : changement de color
  * h2, .h2 : ajout de padding-top et de règles de border-top
+ * .img-thumbnail : ajout de règles pour les images
 
 
 
@@ -4702,7 +4703,8 @@ textarea.form-control-lg {
 .card-img,
 .card-img-top,
 .card-img-bottom {
-  width: 100%;
+  margin-top: 10px
+  margin-bottom: 60px !important;
 }
 
 .card-img,
@@ -4715,6 +4717,12 @@ textarea.form-control-lg {
 .card-img-bottom {
   border-bottom-right-radius: calc(0.25rem - 1px);
   border-bottom-left-radius: calc(0.25rem - 1px);
+}
+
+.img-thumbnail {
+  max-width: 100%;
+  max-height: 75vh !important;
+  margin-bottom: 8px;
 }
 
 .card-group > .card {
@@ -11608,6 +11616,30 @@ a[data-toggle="collapse"] {
 .slideshowbtn .btn:hover {
   background-color: var(--custom-plum);
   color: var(--bs-white);
+}
+
+/* formulaire sparql */
+#sparqlform {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+#sparqlform div {
+  width: 40%;
+}
+
+#sparqlform div input {
+  margin: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#sparqlform div label {
+  padding-top: 5;
+  padding-bottom: 5;
+  width: 40%;
 }
 
 /*# sourceMappingURL=bootstrap.css.map */

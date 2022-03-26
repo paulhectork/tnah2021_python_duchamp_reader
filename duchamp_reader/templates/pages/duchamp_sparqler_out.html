@@ -1,0 +1,86 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| résultats pour la requête SPARQL sur {{name}}{% endblock %}
+
+{% block corps %}
+    <h2>Résultats de la requête Wikidata sur {{name}}</h2>
+    <p>Voici les données extraites de Wikidata à propos de {{name}}. Vous pouvez les
+        télécharger au format souhaité. Attention: toutes les données que vous avez
+        demandé n'ont pas nécéssairement été trouvées.
+    </p>
+    <dl>
+        <!-- résultats embarqués dans la page -->
+        {% for k, v in datadict.items() %}
+            {% if k == "labelen" %}
+                <dt><strong>Nom de l'artiste (en anglais)</strong></dt><dd>{{ datadict[k] }}</dd>
+            {% elif k == "url" %}
+                <dt><strong>Lien vers le site internet de l'artiste</strong></dt><dd><a href="{{ datadict[k] }}">{{ datadict[k] }}</a></dd>
+            {% elif k == "img" %}
+                <dt><strong>Images libres de droit de l'artiste</strong></dt>
+                {% set list = datadict[k].split(", ") %}
+                    {% if list|length > 1 %}
+                        <ul>
+                            {% for l in list %}
+                                <li><a href="{{ l }}">{{ l }}</a></li>
+                                <img src="{{ l }}"/>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        {% for l in list %}
+                            <dd><a href="{{ l }}">{{ l }}</a></dd>
+                            <img class="img-thumbnail" src="{{ l }}"/></dd>
+                        {% endfor %}
+                    {% endif %}
+            {% elif k == "collid" %}
+                <dt><strong>Identifiants Wikidata de ces collections et musées</strong></dt>
+                {% set list = datadict[k].split(", ") %}
+                {% if list|length > 1 %}
+                    <ul>
+                        {% for l in list %}
+                            <li><a href="{{ l }}">{{ l }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    {% for l in list %}
+                    <dd><a href="{{ l }}">{{ l }}</a></dd>
+                    {% endfor %}
+                {% endif %}
+            {% elif k == "collname" %}
+                <dt><strong>Collections possédant des oeuvres de {{name}}</strong></dt>
+                {% set list = datadict[k].split(", ") %}
+                {% if list|length > 1 %}
+                        <ul>
+                            {% for l in list %}
+                                <li><a href="{{ l }}">{{ l }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        {% for l in list %}
+                            <dd><a href="{{ l }}">{{ l }}</a></dd>
+                        {% endfor %}
+                {% endif %}
+            {% elif k == "id" %}
+                <dt><strong>Identifiant wikidata </strong></dt><dd>{{ datadict[k] }}</dd>
+            {% elif k == "idisni" %}
+                <dt><strong>Identifiant ISNI</strong></dt><dd>{{ datadict[k] }}</dd>
+            {% elif k == "idviaf" %}
+                <dt><strong>Identifiant VIAF</strong></dt><dd>{{ datadict[k] }}</dd>
+            {% elif k == "idbnf" %}
+                <dt><strong>Identifiant BNF</strong></dt><dd>{{ datadict[k] }}</dd>
+            {% elif k == "idcongress" %}
+                <dt><strong>Identifiant à la librairie du Congrès des États-Unis d'Amérique</strong></dt><dd>{{ datadict[k] }}</dd>
+            {% elif k == "idartsy" %}
+                <dt><strong>Identifiant Artsy</strong></dt><dd>{{ datadict[k] }}</dd>
+            {% endif %}
+        {% endfor %}
+
+        <!-- résultats à télécharger -->
+        {% if queryname %}
+            <a class="btn btn-primary" href="{{ url_for('dl', filename=queryname) }}">Télécharger la requête</a>
+        {% endif %}
+        {% if outname %}
+            <a class="btn btn-primary" href="{{ url_for('dl', filename=outname) }}">Télécharger les résultats de la requête</a>
+        {% endif %}
+
+    </dl>
+{% endblock %}

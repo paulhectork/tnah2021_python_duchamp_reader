@@ -1,6 +1,6 @@
 {% extends "conteneur.html" %}
 
-{% block titre %}| SPARQL{% endblock %}
+{% block titre %}| duchamp_sparqler{% endblock %}
 
 {% block corps %}
     <h1>Lancer une recherche SPARQL sur Wikidata</h1>
@@ -9,8 +9,7 @@
     <p>Le duchamp_reader gère la construction de requêtes SPARQL sur les artistes et permet
         de télécharger les résultats. Pour lancer une requête, cocher les champs sur lesquels
         lancer une requmete et cliquer sur "Rechercher".</p>
-    <form class="form" id="sparqlform" method="POST" action="{{ url_for('sparqling') }}">
-
+    <form class="form" method="POST" action="{{ url_for('sparql') }}">
         <!-- artiste recherché.e -->
         <div class="form-group row">
             <label for="id_wikidata" class="col-sm-2 col-form-label">Artiste</label>
@@ -24,52 +23,54 @@
             </div>
         </div>
 
-        <!-- url -->
-        <div class="form-check">
-            <label for="url" class="col-sm-2 col-form-label">Adresse du site internet de l'artiste</label>
-            <input class="form-check-input" type="checkbox" name="url" id="url" value="url"/>
-        </div>
+        <div id="sparqlform">
+            <!-- url -->
+            <div class="form-check">
+                <label for="url" class="col-sm-2 col-form-label">Adresse du site internet de l'artiste</label>
+                <input class="form-check-input" type="checkbox" name="url" id="url" value="url"/>
+            </div>
 
-        <!-- collections possédant des œuvres de l'artiste -->
-        <div class="form-check">
-            <label for="collection" class="col-sm-2 col-form-label">Collections possédant des oeuvres de l'artiste</label>
-            <input class="form-check-input" type="checkbox" name="collection" id="collection" value="collection"/>
-        </div>
+            <!-- collections possédant des œuvres de l'artiste -->
+            <div class="form-check">
+                <label for="collection" class="col-sm-2 col-form-label">Collections possédant des oeuvres de l'artiste</label>
+                <input class="form-check-input" type="checkbox" name="collection" id="collection" value="collection"/>
+            </div>
 
-        <!-- urls d'images libres de droit de l'artiste -->
-        <div class="form-check">
-            <label for="img" class="col-sm-2 col-form-label">URL d'images de l'artiste librement réutilisables</label>
-            <input class="form-check-input" type="checkbox" name="collection" id="img" value="img"/>
-        </div>
+            <!-- urls d'images libres de droit de l'artiste -->
+            <div class="form-check">
+                <label for="img" class="col-sm-2 col-form-label">URL d'images de l'artiste librement réutilisables</label>
+                <input class="form-check-input" type="checkbox" name="img" id="img" value="img"/>
+            </div>
 
-        <!-- isni ID -->
-        <div class="form-check">
-            <label for="id_isni" class="col-sm-2 col-form-label">Identifiant ISNI de l'artiste</label>
-            <input class="form-check-input" type="checkbox" name="id_isni" id="id_isni" value="id_isni"/>
-        </div>
+            <!-- isni ID -->
+            <div class="form-check">
+                <label for="id_isni" class="col-sm-2 col-form-label">Identifiant ISNI de l'artiste</label>
+                <input class="form-check-input" type="checkbox" name="id_isni" id="id_isni" value="id_isni"/>
+            </div>
 
-        <!-- viaf ID -->
-        <div class="form-check">
-            <label for="id_viaf" class="col-sm-2 col-form-label">Identifiant VIAF de l'artiste</label>
-            <input class="form-check-input" type="checkbox" name="id_viaf" id="id_viaf" value="id_viaf"/>
-        </div>
+            <!-- viaf ID -->
+            <div class="form-check">
+                <label for="id_viaf" class="col-sm-2 col-form-label">Identifiant VIAF de l'artiste</label>
+                <input class="form-check-input" type="checkbox" name="id_viaf" id="id_viaf" value="id_viaf"/>
+            </div>
 
-        <!-- bnf ID -->
-        <div class="form-check">
-            <label for="id_bnf" class="col-sm-2 col-form-label">Identifiant de l'artiste à la BNF</label>
-            <input class="form-check-input" type="checkbox" name="id_bnf" id="id_bnf" value="id_bnf"/>
-        </div>
+            <!-- bnf ID -->
+            <div class="form-check">
+                <label for="id_bnf" class="col-sm-2 col-form-label">Identifiant de l'artiste à la BNF</label>
+                <input class="form-check-input" type="checkbox" name="id_bnf" id="id_bnf" value="id_bnf"/>
+            </div>
 
-        <!-- library of congress ID -->
-        <div class="form-check">
-            <label for="id_congress" class="col-sm-2 col-form-label">Identifiant de l'artiste à la librairie du Congrès américain</label>
-            <input class="form-check-input" type="checkbox" name="id_congress" id="id_congress" value="id_congress"/>
-        </div>
+            <!-- library of congress ID -->
+            <div class="form-check">
+                <label for="id_congress" class="col-sm-2 col-form-label">Identifiant de l'artiste à la librairie du Congrès américain</label>
+                <input class="form-check-input" type="checkbox" name="id_congress" id="id_congress" value="id_congress"/>
+            </div>
 
-        <!-- artsy ID -->
-        <div class="form-check">
-            <label for="id_artsy" class="col-sm-2 col-form-label">Identifiant Artsy de l'artiste</label>
-            <input class="form-check-input" type="checkbox" name="id_artsy" id="id_artsy" value="id_artsy"/>
+            <!-- artsy ID -->
+            <div class="form-check">
+                <label for="id_artsy" class="col-sm-2 col-form-label">Identifiant Artsy de l'artiste</label>
+                <input class="form-check-input" type="checkbox" name="id_artsy" id="id_artsy" value="id_artsy"/>
+            </div>
         </div>
 
         <!-- format d'export -->

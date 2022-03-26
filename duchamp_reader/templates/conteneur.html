@@ -152,12 +152,6 @@
                     {% for m in messages %}
                         <p>{{m}}</p>
                     {% endfor %}
-                    {% if queryname %}
-                        <a class="btn btn-primary" href="{{ url_for('dl', filename=queryname) }}">Télécharger la requête</a>
-                    {% endif %}
-                    {% if outname %}
-                        <a class="btn btn-primary" href="{{ url_for('dl', filename=outname) }}" target="_blank">Télécharger les résultats de la requête</a>
-                    {% endif %}
                 </div>
                 {% endif %}
             {% endwith %}
@@ -166,11 +160,17 @@
             {% with messages = get_flashed_messages(category_filter=["error"]) %}
                 {% if messages %}
                     <div class="alert-danger">
-                            <p>Une ou plusieurs erreurs ont eu lieu :</p>
+                        <p>Une ou plusieurs erreurs ont eu lieu :</p>
+                        {% if erreurs %}
+                            <ul>
                             {% set list = erreurs.split("~") %}
                             {% for l in list %}
                                 <li>{{l}}</li>
                             {% endfor %}
+                            </ul>
+                        {% else %}
+                        <p>{{messages}}</p>
+                        {% endif %}
                     </div>
                 {% endif %}
             {% endwith %}

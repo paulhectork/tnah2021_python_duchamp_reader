@@ -92,7 +92,7 @@ WHERE {
             queryimg = """
   # récupérer les urls des images liées à l'artiste
   OPTIONAL {
-    wd:{?img} wdt:P18 ?img
+    wd:{ID} wdt:P18 ?img
   }"""
         if id_isni is not None:
             selectisni = "?idisni"

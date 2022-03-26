@@ -106,11 +106,13 @@ def wikimaker(full, nom):
             for w in wikilist:
                 try:
                     wikidict[w] = wikipedia.page(w).url
-                except DisambiguationError as e:
+                except WikipediaException as e:
                     try:
+                        # si le nom de page est ambigu ou que l'ID de la page de correspond à rien, choisir la première
+                        # page proposée
                         wikidict[e.options[0]] = wikipedia.page(e.options[0].url)
                     except Exception:
-                        # si rien ne marche, créer une entrée vide dans le dictionnaire
+                        # si VRAIMENT rien ne marche, créer une entrée vide dans le dictionnaire
                         wikidict[None] = None
             code = "no"
 

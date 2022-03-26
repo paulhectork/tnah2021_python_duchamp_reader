@@ -1,6 +1,8 @@
-from flask import render_template, request, flash, redirect, send_file
+from flask import render_template, request, flash, redirect, send_file, url_for
 from flask_login import current_user, login_user, logout_user
+from urllib.parse import quote_plus, unquote_plus
 import folium
+import json
 import os
 
 from .app import app, db
@@ -11,6 +13,15 @@ from .utils.constantes import PERPAGE, cartes, statics, css, uploads
 from .utils.constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 from .utils.duchamp_sparqler import duchamp_sparqler
 from .utils.wikimaker import wikimaker
+
+
+# gesion des flashes d'erreurs:
+# les messages d'erreurs sont renvoyés à l'utilisateurice via jinja à l'aide de règles contenues dans le conteneur
+# si il y a potentiellement plusieurs erreurs, les stocker dans une liste "erreurs". retyper cette liste en str et
+# faire un join avec '~' pour permettre à Jinja d'afficher les erreurs dans un '<ul>' (oui c'est compliqué)
+# et passer la variable "erreurs" au render_template
+# sinon (un seul message d'erreur), flash directement le message d'erreur sans le stocker dans une variable
+
 
 # ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
@@ -51,7 +62,7 @@ def recherche():
     results_theme = []
     results_ville = []
     results = None
-    titre = f"Résultats pour la recherche : {keyword}"
+    titre = f"résultats pour la recherche : {keyword}"
 
     if keyword:
         # requête sur toutes les tables SAUF LA TABLE NOMINATION parce qu'il n'y a rien de bien intéressant
@@ -119,7 +130,7 @@ def inscription():
                 return redirect("/")
             else:
                 # afficher un message d'erreur sur la page
-                erreurs = "~".join(d for d in donnees)
+                erreurs = "~".join(str(d) for d in donnees)
                 flash(str(erreurs), "error")
                 return render_template("pages/inscription.html", erreurs=erreurs,
                                        last_nominations=last_nominations, last_artistes=last_artistes,
@@ -192,7 +203,7 @@ def artiste_index():
     :rtype: objet render_template
     """
     page = request.args.get("page", 1)
-    titre = "Artistes"
+    titre = "index des artistes"
     if isinstance(page, str) and page.isdigit():
         page = int(page)
     else:
@@ -367,7 +378,7 @@ def artiste_add():
             return redirect("/artiste/add")
         else:
             # afficher un message d'erreur sur la page
-            erreurs = "~".join(d for d in donnees)
+            erreurs = "~".join(str(d) for d in donnees)
             flash(erreurs, "error")
             return render_template("pages/artiste_add.html", erreurs=erreurs,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
@@ -446,7 +457,7 @@ def galerie_index():
     :rtype: objet render_template
     """
     page = request.args.get("page", 1)
-    titre = "Galeries"
+    titre = "index des galeries"
     if isinstance(page, str) and page.isdigit():
         page = int(page)
     else:
@@ -598,7 +609,7 @@ def ville_index():
     :rtype: objet render_template
     """
     page = request.args.get("page", 1)
-    titre = "Villes"
+    titre = "index des villes"
     if isinstance(page, str) and page.isdigit():
         page = int(page)
     else:
@@ -708,7 +719,7 @@ def theme_index():
     :rtype: objet render_template
     """
     page = request.args.get("page", 1)
-    titre = "Thèmes"
+    titre = "index des thèmes"
     if isinstance(page, str) and page.isdigit():
         page = int(page)
     else:
@@ -734,8 +745,8 @@ def theme_add():
 
 
 # ----- ROUTES SPARQL ----- #
-@app.route("/sparql", methods=["POST", "GET"])
-def sparqling():
+@app.route("/duchamp_sparqler", methods=["POST", "GET"])
+def sparql():
     # ne requêter que les artistes ayant un ID wikidata
     artistes = Artiste.query.filter(Artiste.id_wikidata != "").order_by(Artiste.id).all()
     erreurs = []
@@ -752,7 +763,6 @@ def sparqling():
         id_congress = request.form.get("id_congress")
         id_artsy = request.form.get("id_artsy")
         export = request.form.get("export")
-
         # s'assurer que le formulaire comporte des données
         if id_wikidata == "None":
             erreurs.append("Veuillez indiquer un artiste à requêter.")
@@ -774,17 +784,21 @@ def sparqling():
             artiste = Artiste.query.filter(Artiste.id_wikidata == id_wikidata).first()
             nom = artiste.nom
             outname, queryname, err, datadict = duchamp_sparqler(nom=nom, id_wikidata=id_wikidata, url=url,
-                                                       collection=collection, img=img, id_isni=id_isni,
-                                                       id_viaf=id_viaf, id_bnf=id_bnf, id_congress=id_congress,
-                                                       id_artsy=id_artsy, export=export)
+                                                                 collection=collection, img=img, id_isni=id_isni,
+                                                                 id_viaf=id_viaf, id_bnf=id_bnf,
+                                                                 id_congress=id_congress, id_artsy=id_artsy,
+                                                                 export=export)
 
-            # si la requête sparql s'est faite sans problèmes, proposer à l'utilisateur.ice de télécharger les fichiers
+            # si la requête sparql s'est faite sans problèmes, traduire les résultats en chaîne de caractères
+            # pour les passer dans l'URL et pouvoir les récupérer dans un dictionnaire ; ensuite, rediriger vers
+            # une page pour télécharger les résultats
             if len(err) == 0:
                 flash("La requête s'est exécutée sans problèmes; vous pouvez télécharger vos fichiers.", "success")
-                return render_template("pages/duchamp_sparqler.html", outname=outname, queryname=queryname,
-                                       erreurs=erreurs, artistes=artistes, last_nominations=last_nominations,
-                                       last_artistes=last_artistes, last_galeries=last_galeries,
-                                       last_themes=last_themes, last_villes=last_villes)
+                querystr = "{\"datadict\": " + str(datadict) + ", " \
+                           + "\"queryname\": " + "\"" + queryname + "\"" + ", "\
+                           + "\"outname\": " + "\"" + outname + "\"" + "}"
+                querystr = quote_plus(querystr)
+                return redirect(url_for("sparql_results", querystr=querystr))
             else:
                 erreurs.append(err)
                 erreurs = "~".join(str(e) for e in erreurs)
@@ -805,11 +819,60 @@ def sparqling():
                                    last_themes=last_themes, last_villes=last_villes)
 
     # return
-    erreurs = "~".join(e for e in erreurs)
-    erreurs = str(erreurs)
+    if len(erreurs) > 0:
+        erreurs = str(erreurs)
+        flash(erreurs, "error")
+    else: erreurs = ""
     return render_template("pages/duchamp_sparqler.html", erreurs=erreurs,
                            artistes=artistes, last_nominations=last_nominations, last_artistes=last_artistes,
                            last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+
+@app.route("/duchamp_sparqler/results/<querystr>")
+def sparql_results(querystr):
+    """Route permettant d'afficher et de télécharger les résultats d'une requête SPARQL.
+
+    :param querystr: requête HTTP encodée qui correspond à un objet JSON contenant les résultats de la requête
+    :return: si une requête a été lancée, render_template vers une page affichant les résultats et permettant
+             de les télécharger. sinon, redirection vers l'accueil avec un message d'erreur.
+    :rtype: render_template si tout va bien, redirect sinon
+    """
+    # si une requête a été lancée, récupérer la requête et la traduire en json
+    if querystr != "":
+        querystr = unquote_plus(querystr)
+        querystr = querystr.replace("'", "\"")
+        querystr = json.loads(querystr)
+        datadict = querystr["datadict"]
+        queryname = querystr["queryname"]
+        outname = querystr["outname"]
+        name = datadict["labelen"]
+        return render_template("pages/duchamp_sparqler_out.html", datadict=datadict, queryname=queryname,
+                               outname=outname, name=name, last_nominations=last_nominations,
+                               last_artistes=last_artistes, last_galeries=last_galeries, last_themes=last_themes,
+                               last_villes=last_villes)
+    # sinon, rediriger vers la page d'accueil avec un message d'erreur
+    else:
+        flash("Vous devez lancer une requête sparql avant de pouvoir récupérer des résultats", "error")
+        return redirect("/")
+
+
+@app.route("/duchamp_sparqler/results")
+def sparql_results_without_req():
+    """Route redirigeant sur la page d'accueil si on arrive à la page des résultats sans avoir lancé de requête."""
+    flash("Vous devez lancer une requête sparql avant de pouvoir récupérer des résultats", "error")
+    return redirect("/")
+
+
+@app.route("/sparql")
+def sparql_redirect():
+    """Route permettant la redirection vers la bonne URL"""
+    return redirect("/duchamp_sparqler")
+
+
+@app.route("/sparql/results")
+def sparql_results_redirect():
+    """Route permettant la redirection vers la bonne URL"""
+    return redirect("/duchamp_sparqler/results")
 
 
 # ----- ROUTES UTILITAIRES ----- #
@@ -836,10 +899,9 @@ def dl(filename):
         return send_file(os.path.join(uploads, filename), as_attachment=True)
     except Exception as error:
         # si le fichier n'est plus disponible, faire une redirection
-        artistes = Artiste.query.filter(Artiste.id_wikidata != "").order_by(Artiste.id).all()
         erreurs = f"Ce fichier n'est plus disponible. Veuillez relancer la requête pour le télécharger\
                     ~{error}"
-        flash(error, "error")
-        return render_template("pages/duchamp_sparqler.html", erreurs=erreurs, artistes=artistes,
+        flash(erreurs, "error")
+        return render_template("pages/duchamp_sparqler_out.html", erreurs=erreurs,
                                last_nominations=last_nominations, last_artistes=last_artistes,
                                last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
