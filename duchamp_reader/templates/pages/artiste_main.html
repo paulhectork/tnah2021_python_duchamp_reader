@@ -220,7 +220,7 @@
         {% endif %}
 
         <!-- cartes -->
-        {% if carte %}
+        {% if carte != "" %}
             <h2>Carte indiquant le lieu de naissance et de résidence de {{nomination.artiste.full}}</h2>
             <iframe class="iframe" src="{{url_for('carte_artiste', id=nomination.id_artiste)}}"></iframe>
         {% endif %}

@@ -13,6 +13,7 @@ from .utils.constantes import PERPAGE, cartes, statics, css, uploads
 from .utils.constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
 from .utils.duchamp_sparqler import duchamp_sparqler
 from .utils.wikimaker import wikimaker
+from .utils.mapdimensions import mapdim
 
 
 # gesion des flashes d'erreurs:
@@ -234,102 +235,73 @@ def artiste_main(id_artiste):
     represente = RelationRepresente.query.filter(RelationRepresente.id_artiste == id_artiste).all()
     nominations_all = Nomination.query.filter(Nomination.annee == nomination.annee).all()
 
-    # génération dynamique des cartes
-    # définition des coordonnées de la carte: zone sur laquelle centrer
-    longitude = (nomination.artiste.ville_naissance.longitude + nomination.artiste.ville_residence.longitude) / 2
-    latitude = (nomination.artiste.ville_naissance.latitude + nomination.artiste.ville_residence.latitude) / 2
-
-    # définition des coordonnées de la carte: extrêmes nord-ouest et sud-est qui doivent être contenus dans chaque carte
-    longlist = []
-    latlist = []
-    longlist.append(nomination.artiste.ville_naissance.longitude)
-    longlist.append(nomination.artiste.ville_residence.longitude)
-    latlist.append(nomination.artiste.ville_naissance.latitude)
-    latlist.append(nomination.artiste.ville_residence.latitude)
-    diflat = max(latlist) - min(latlist)
-    diflong = max(longlist) - min(longlist)
-    avglat = (max(latlist) + min(latlist)) / 2
-    avglong = (max(longlist) + min(longlist)) / 2
-    # définir les dimensions extrêmes de la carte
-    if diflong > diflat:
-        # si la largeur est plus grande que la longueur, longueur = 0.8 * largeur;
-        # on centre la carte sur la longueur moyenne
-        minlat = avglat - diflong * 0.8
-        maxlat = avglat + diflong * 0.8
-        sw = [minlat, min(longlist)]
-        ne = [maxlat, max(longlist)]
-    else:
-        # si la longueur est plus grande que la largeur, largeur = 1.25 * longueur;
-        # on centre la carte sur la largeur moyenne
-        minlong = avglong - diflat * 1.25
-        maxlong = avglong + diflat * 1.25
-        sw = [min(latlist), minlong]
-        ne = [max(latlist), maxlong]
-
-    # définition de la taille des marqueurs, qui varie selon leur distance sur la carte
-    if diflat > 50 or diflong > 50:
-        radius = 300000
-    elif diflat > 30 or diflong > 30:
-        radius = 200000
-    elif diflat > 5 or diflong > 5:
-        radius = 50000
-    elif diflat > 1 or diflong > 1:
-        radius = 10000
-    else:
-        radius = 2000
-
-    # création du texte d'un popup qui donnera des informations sur chaque ville
-    html_residence = f"<html> \
-                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
-                        <body> \
-                            <p style='position:absolute; top:50%; left:50%; \
-                                -ms-transform:translate(-50%, -50%); \
-                                transform: translate(-50%, -50%); \
-                                text-align: center;'>\
-                                Ville de résidence : {nomination.artiste.ville_residence.nom}\
-                            </p></body>\
-                     </html>"
-    html_naissance = f"<html> \
-                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
-                        <body> \
-                            <p style='position:absolute; top:50%; left:50%; \
-                                -ms-transform:translate(-50%, -50%); \
-                                transform: translate(-50%, -50%); \
-                                text-align: center;'>\
-                                Ville de naissance : {nomination.artiste.ville_naissance.nom} \
-                            </p></body>\
-                     </html>"
-    iframe_residence = folium.element.IFrame(html=html_residence, width="300px", height="100px")
-    iframe_naissance = folium.element.IFrame(html=html_naissance, width="300px", height="100px")
-    popup_residence = folium.Popup(iframe_residence)
-    popup_naissance = folium.Popup(iframe_naissance)
-
-    # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
-    # appelée lorsque l'on va sur la page de l'artiste ; la taille des popups dépend de la distance entre eux
-    carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
-    if diflat > 1 or diflong > 1:
-        carte.fit_bounds([sw, ne])
-    popups_residence = folium.CircleMarker(
-        location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
-        popup=popup_residence,
-        radius=radius,
-        color="purple",
-        fill_color="plum",
-        fill_opacity=0.6
-    ).add_to(carte)
-    popups_naissance = folium.CircleMarker(
-        location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
-        popup=popup_naissance,
-        radius=radius,
-        color="purple",
-        fill_color="plum",
-        fill_opacity=0.6
-    ).add_to(carte)
-    carte.save(f"{cartes}/artiste{id_artiste}.html")
-
     # enrichissement de la page avec wikipedia
     code, summary, bio, formation, carriere, travail, oeuvre, url, wikidict = \
         wikimaker(full=nomination.artiste.full, nom=nomination.artiste.nom)
+
+    # génération dynamique des cartes, si il y a des données géolocalisées à afficher
+    # définition des coordonnées de la carte: zone sur laquelle centrer, coordonnées de la carte, taille du popup
+    if nomination.artiste.ville_naissance and nomination.artiste.ville_residence:
+        longitude = (nomination.artiste.ville_naissance.longitude + nomination.artiste.ville_residence.longitude) / 2
+        latitude = (nomination.artiste.ville_naissance.latitude + nomination.artiste.ville_residence.latitude) / 2
+        longlist = []
+        latlist = []
+        longlist.append(nomination.artiste.ville_naissance.longitude)
+        longlist.append(nomination.artiste.ville_residence.longitude)
+        latlist.append(nomination.artiste.ville_naissance.latitude)
+        latlist.append(nomination.artiste.ville_residence.latitude)
+        sw, ne, radius, diflat, diflong = mapdim(longlist=longlist, latlist=latlist)
+
+        # création du texte d'un popup qui donnera des informations sur chaque ville
+        html_residence = f"<html> \
+                            <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                            <body> \
+                                <p style='position:absolute; top:50%; left:50%; \
+                                    -ms-transform:translate(-50%, -50%); \
+                                    transform: translate(-50%, -50%); \
+                                    text-align: center;'>\
+                                    Ville de résidence : {nomination.artiste.ville_residence.nom}\
+                                </p></body>\
+                         </html>"
+        html_naissance = f"<html> \
+                            <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                            <body> \
+                                <p style='position:absolute; top:50%; left:50%; \
+                                    -ms-transform:translate(-50%, -50%); \
+                                    transform: translate(-50%, -50%); \
+                                    text-align: center;'>\
+                                    Ville de naissance : {nomination.artiste.ville_naissance.nom} \
+                                </p></body>\
+                         </html>"
+        iframe_residence = folium.element.IFrame(html=html_residence, width="300px", height="100px")
+        iframe_naissance = folium.element.IFrame(html=html_naissance, width="300px", height="100px")
+        popup_residence = folium.Popup(iframe_residence)
+        popup_naissance = folium.Popup(iframe_naissance)
+
+        # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
+        # appelée lorsque l'on va sur la page de l'artiste ; la taille des popups dépend de la distance entre eux
+        carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
+        if diflat > 1 or diflong > 1:
+            carte.fit_bounds([sw, ne])
+        popups_residence = folium.CircleMarker(
+            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+            popup=popup_residence,
+            radius=radius,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+        popups_naissance = folium.CircleMarker(
+            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+            popup=popup_naissance,
+            radius=radius,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=0.6
+        ).add_to(carte)
+        carte.save(f"{cartes}/artiste{id_artiste}.html")
+    else:
+        carte = ""
 
     # return
     return render_template("pages/artiste_main.html", nomination=nomination, travail=travail,
@@ -416,14 +388,20 @@ def nomination_index():
                            last_themes=last_themes, last_villes=last_villes)
 
 
-@app.route("/nomination.add", methods=["GET", "POST"])
-def nomination_ajout():
-    # si l'utilisateur.ice n'est pas connecté.e
+@app.route("/nomination/add", methods=["GET", "POST"])
+def nomination_add():
+    # les requêtes constantes sont relancées pour éviter une SQLAlchemy ProgrammingError
+    last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(3).all()
+    last_nominations = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id) \
+        .order_by(Nomination.id.desc()).limit(3).all()
+    last_galeries = Galerie.query.order_by(Galerie.id.desc()).limit(3).all()
+    last_villes = Ville.query.order_by(Ville.id.desc()).limit(3).all()
+    last_themes = Theme.query.order_by(Theme.id.desc()).limit(3).all()
+
+    # si l'utilisateur.ice n'est pas connecté.e, le/la rediriger vers la page d'accueil
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login",
-                        last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                        last_themes=last_themes, last_villes=last_villes)
+        return redirect("/login")
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Nomination.nomination_new(
@@ -437,12 +415,15 @@ def nomination_ajout():
             flash("Vous avez rajouté une nouvelle nomination au prix Marcel Duchamp dans la base", "success")
             return redirect("/nomination")
         else:
-            flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
-            return render_template("pages/nomination_ajout.html",
+            # afficher un message d'erreur sur la page
+            erreurs = "~".join(str(d) for d in donnees)
+            print(erreurs)
+            flash(erreurs, "error")
+            return render_template("pages/nomination_add.html",
                                    last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                                    last_themes=last_themes, last_villes=last_villes)
     else:
-        return render_template("pages/nomination_ajout.html",
+        return render_template("pages/nomination_add.html",
                                last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                                last_themes=last_themes, last_villes=last_villes)
 
@@ -487,7 +468,7 @@ def galerie_main(id_galerie):
         print(r.ville.nom)
 
     # génération dynamique des cartes
-    # définition des coordonnées de la carte: zone sur laquelle centrer
+    # définition des coordonnées de la carte: zone sur laquelle centrée, bordures, dimension des popups
     nboucles = 0  # nombre de boucles, pour calculer la longitude et latitude moyenne
     longitude = 0  # longitude moyenne des différents points sur la carte
     latitude = 0  # latitude moyenne des différents points sur la carte
@@ -501,38 +482,7 @@ def galerie_main(id_galerie):
         latlist.append(r.ville.latitude)
     longitude = longitude / nboucles
     latitude = latitude / nboucles
-    diflat = max(latlist) - min(latlist)
-    diflong = max(longlist) - min(longlist)
-    avglat = (max(latlist) + min(latlist)) / 2
-    avglong = (max(longlist) + min(longlist)) / 2
-
-    # définir les dimensions extrêmes de la carte
-    if diflong > diflat:
-        # si la largeur est plus grande que la longueur, longueur = 0.8 * largeur;
-        # on centre la carte sur la longueur moyenne
-        minlat = avglat - diflong * 0.8
-        maxlat = avglat + diflong * 0.8
-        sw = [minlat, min(longlist)]
-        ne = [maxlat, max(longlist)]
-    else:
-        # si la longueur est plus grande que la largeur, largeur = 1.25 * longueur;
-        # on centre la carte sur la largeur moyenne
-        minlong = avglong - diflat * 1.25
-        maxlong = avglong + diflat * 1.25
-        sw = [min(latlist), minlong]
-        ne = [max(latlist), maxlong]
-
-    # définition de la taille des marqueurs, qui varie selon leur distance sur la carte
-    if diflat > 50 or diflong > 50:
-        radius = 300000
-    elif diflat > 30 or diflong > 30:
-        radius = 200000
-    elif diflat > 5 or diflong > 5:
-        radius = 50000
-    elif diflat > 1 or diflong > 1:
-        radius = 10000
-    else:
-        radius = 2000
+    sw, ne, radius, diflat, diflong = mapdim(longlist=longlist, latlist=latlist)
 
     # génération de la carte intégrée à la page; la carte est sauvegardée dans un dossier et
     # appelée lorsque l'on va sur la page de l'artiste
@@ -863,18 +813,6 @@ def sparql_results_without_req():
     return redirect("/")
 
 
-@app.route("/sparql")
-def sparql_redirect():
-    """Route permettant la redirection vers la bonne URL"""
-    return redirect("/duchamp_sparqler")
-
-
-@app.route("/sparql/results")
-def sparql_results_redirect():
-    """Route permettant la redirection vers la bonne URL"""
-    return redirect("/duchamp_sparqler/results")
-
-
 # ----- ROUTES UTILITAIRES ----- #
 @app.route("/carte_ville/<int:id>")
 def carte_ville(id):
@@ -893,6 +831,7 @@ def carte_galerie(id):
     """Route permettant d'appeler une carte à intégrer dans un iframe dans une page HTML"""
     return render_template(f"partials/maps/galerie{id}.html")
 
+
 @app.route("/download/<filename>")
 def dl(filename):
     try:
@@ -905,3 +844,15 @@ def dl(filename):
         return render_template("pages/duchamp_sparqler_out.html", erreurs=erreurs,
                                last_nominations=last_nominations, last_artistes=last_artistes,
                                last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+
+@app.route("/sparql")
+def sparql_redirect():
+    """Route permettant la redirection vers la bonne URL"""
+    return redirect("/duchamp_sparqler")
+
+
+@app.route("/sparql/results")
+def sparql_results_redirect():
+    """Route permettant la redirection vers la bonne URL"""
+    return redirect("/duchamp_sparqler/results")

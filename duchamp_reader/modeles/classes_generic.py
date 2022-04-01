@@ -33,6 +33,7 @@ class Artiste(db.Model):
         """
         return self.prenom + " " + self.nom
 
+    # annee_nomination, laureat, theme
     @staticmethod
     def artiste_new(nom, prenom, annee_naissance, genre, ville_naissance, ville_residence, id_wikidata):
         # vérifier que toutes les données ont été fournies
@@ -224,10 +225,10 @@ class Nomination(db.Model):
     artiste = db.relationship("Artiste", back_populates="nomination")
     theme = db.relationship("Theme", back_populates="nomination", uselist=False)
 
-    # COMMENT traduire le lauréat en booléen
     @staticmethod
-    def nomination_new (annee, laureat, nom_artiste, prenom_artiste, theme):
+    def nomination_new(annee, laureat, nom_artiste, prenom_artiste, theme):
         # vérifier que toutes les données ont été fournies
+        laureat = bool(laureat)
         erreurs = []
         if not annee:
             erreurs.append("Vous devez fournir une année de nomination")
@@ -246,7 +247,7 @@ class Nomination(db.Model):
         theme = clean_string(theme).lower()
         if len(str(annee)) != 4:
             erreurs.append("La date de naissance doit être au format: AAAA")
-        if not isinstance(annee, int):
+        if not isinstance(int(annee), int):
             erreurs.append("La date de naissance ne doit contenir que des chiffres")
         # pour lauréat j'y réfléchis plus tard
         nomregex = re.search(regexnp, nom_artiste)
@@ -321,7 +322,7 @@ class Nomination(db.Model):
         nv_nomination = Nomination(
             annee=annee,
             laureat=laureat,
-            id_artiste=id_artiste, # je croiiiiis
+            id_artiste=id_artiste,
             id_theme=id_theme
         )
         try:

@@ -92,11 +92,12 @@ def wikimaker(full, nom):
                 for w in wikilist:
                     try:
                         wikidict[w] = wikipedia.page(w).url
-                    except DisambiguationError as e:
+                    except WikipediaException as e:
                         try:
                             wikidict[e.options[0]] = wikipedia.page(e.options[0].url)
-                        except WikipediaException:
-                            wikidict[e.options[0]] = None
+                        except Exception:
+                            # si VRAIMENT rien ne marche, créer une entrée vide dans le dictionnaire
+                            wikidict[None] = None
                 code = "no"
 
         # si la page n'est trouvée ni en français, ni en anglais, proposer une liste de 4 pages au hasard

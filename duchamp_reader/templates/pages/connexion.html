@@ -29,15 +29,6 @@
         </div>
     </form>
 
-    <!-- flash d'erreur -->
-    {% with messages = get_flashed_messages(category_filter=["error"]) %}
-        {% if messages %}
-            <div class="alert-danger">
-                <p>{{ messages }}</p>
-            </div>
-        {% endif %}
-    {% endwith %}
-
     <!-- footer -->
     <div class="basdepage">
         <a class="btn" href="{{url_for('accueil')}}">Accueil</a>

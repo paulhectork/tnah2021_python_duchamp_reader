@@ -31,7 +31,21 @@
                             <img class="img-thumbnail" src="{{ l }}"/></dd>
                         {% endfor %}
                     {% endif %}
-            {% elif k == "collid" %}
+            {% elif k == "colllabel" %}
+        <dt><strong>Collections et musées possédant des œuvres de l'artiste</strong></dt>
+                {% set list = datadict[k].split(", ") %}
+                {% if list|length > 1 %}
+                    <ul>
+                        {% for l in list %}
+                            <li>{{ l }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    {% for l in list %}
+                        <dd>{{ l }}</dd>
+                    {% endfor %}
+                {% endif %}
+        {% elif k == "collid" %}
                 <dt><strong>Identifiants Wikidata de ces collections et musées</strong></dt>
                 {% set list = datadict[k].split(", ") %}
                 {% if list|length > 1 %}
@@ -42,7 +56,7 @@
                     </ul>
                 {% else %}
                     {% for l in list %}
-                    <dd><a href="{{ l }}">{{ l }}</a></dd>
+                        <dd><a href="{{ l }}">{{ l }}</a></dd>
                     {% endfor %}
                 {% endif %}
             {% elif k == "collname" %}
