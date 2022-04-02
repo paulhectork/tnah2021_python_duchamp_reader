@@ -2,6 +2,7 @@ from sqlalchemy.ext import hybrid
 
 from ..app import db
 from ..utils.regex import *
+from ..utils.geography import coordinator
 
 # les tables génériques
 class Artiste(db.Model):
@@ -11,7 +12,7 @@ class Artiste(db.Model):
     prenom = db.Column(db.Text, nullable=False)
     annee_naissance = db.Column(db.Integer) # format YYYY
     genre = db.Column(db.String(1))  # M : masculin, F : femme, A : autre/non-binaire
-    id_wikidata = db.Column(db.Text, unique=True)
+    id_wikidata = db.Column(db.Text)
     id_ville_naissance = db.Column(db.Integer, db.ForeignKey("ville.id"))
     id_ville_residence = db.Column(db.Integer, db.ForeignKey("ville.id"))
     classname = db.Column(db.Text, nullable=False, default="artiste")
@@ -33,15 +34,40 @@ class Artiste(db.Model):
         """
         return self.prenom + " " + self.nom
 
-    # annee_nomination, laureat, theme
     @staticmethod
-    def artiste_new(nom, prenom, annee_naissance, genre, ville_naissance, ville_residence, id_wikidata):
-        # vérifier que toutes les données ont été fournies
+    def artiste_new(nom, prenom, laureat, theme, annee_nomination, annee_naissance,
+                    genre, ville_naissance, pays_naissance, ville_residence, pays_residence, id_wikidata):
+        """Ajouter un.e nouvel.le artiste et nomination à la base de données. Si le thème indiqué n'existe pas,
+        la fonction gère l'ajout à la table Theme. Si les villes indiquées n'existent pas, la fonction essaye
+        de récupérer la longitude et la latitude de la ville et ajoute les villes à la table Ville. Les pays
+        sont demandés pour récupérer les coordonnées de la ville avec geopy. Étant donné que les données de Nomination
+        et de Artiste se recoupent pour beaucoup, la fonction artiste_new permet aussi de créer une nouvelle nomination.
+        Il n'y a donc pas de fonction pour créer directement une nouvelle nomination.
+
+        :param nom: nom de l'artiste. type str
+        :param prenom: prénom de l'artiste. type str
+        :param laureat: booléen indiquant si l'artiste est lauréat.e ou nominé.e. type bool
+        :param theme: thème sur lequel travaille l'artiste. type str
+        :param annee_nomination: année où l'artiste est nominé.e au prix Marcel Duchamp. type str ou int (retypé en int)
+        :param annee_naissance: année où l'artiste est né.e. type str ou int (retypé en int)
+        :param genre: genre de l'artiste. valeurs autorisées: A, F, M. type str
+        :param ville_naissance: ville de naissance de l'artiste. type str
+        :param pays_naissance: pays de naissance de l'artiste. type str
+        :param ville_residence: ville de résidence de l'artiste. type str
+        :param pays_residence: pays de résidence de l'artiste. type str
+        :param id_wikidata: identifiant wikidata, facultatif. permet de lancer une requête wikidata. type str
+        :return: si il n'y a pas d'erreur, nouvelle nomination après avoir rajouté toutes les tables nécessaires. Sinon,
+        chaîne de caractères contenant toutes les erreurs.
+        """
+        # vérifier que toutes les données ont été fournies ; l'ajout d'un id wikidata n'est pas obligartoire
+        laureat = bool(laureat)
         erreurs = []
         if not nom:
             erreurs.append("Un.e artiste doit avoir un nom")
         if not prenom:
             erreurs.append("Un.e artiste doit avoir un prénom")
+        if not annee_nomination:
+            erreurs.append("Vous devez fournir une année de nomination")
         if not annee_naissance:
             erreurs.append("Un.e artiste doit avoir une date de naissance")
         if not genre:
@@ -50,56 +76,95 @@ class Artiste(db.Model):
             erreurs.append("Vous devez fournir la ville de naissance de votre artiste")
         if not ville_residence:
             erreurs.append("Vous devez fournir la ville de résidence de votre artiste")
+        if not theme:
+            erreurs.append("Vous devez indiquer le thème sur lequel travaille l'artiste")
+        if not pays_naissance:
+            erreurs.append("Vous devez fournir le pays de naissance de votre artiste")
+        if not pays_residence:
+            erreurs.append("Vous devez fournir le pays de résidence de votre artiste")
+        if not theme:
+            erreurs.append("Vous devez indiquer le thème sur lequel travaille l'artiste")
 
         # nettoyer les données et vérifier leur validité
         nom = clean_string(nom)
         prenom = clean_string(prenom)
         ville_naissance = clean_string(ville_naissance)
+        pays_naissance = clean_string(pays_naissance)
+        pays_residence = clean_string(pays_residence)
         ville_residence = clean_string(ville_residence)
-        annee_naissance = int(annee_naissance.strip())
+        if annee_naissance:
+            annee_naissance = int(annee_naissance.strip())
+        if annee_nomination:
+            annee_nomination = int(annee_nomination.strip())
+        theme = clean_string(theme).lower()
         if id_wikidata:
             id_wikidata = clean_string(id_wikidata)
-        # je fais pas ça à date, vu que date sera un INT
         nomregex = re.search(regexnp, nom)
         if not nomregex:
             erreurs.append(
-                "Un nom correspond à l'expression: \
-                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
+                "Un nom doit avoir la forme suivante : \
+                majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne"
             )
         prenomregex = re.search(regexnp, prenom)
         if not prenomregex:
             erreurs.append(
-                "Un prénom correspond à l'expression: ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
+                "Un prénom doit avoir la forme suivante : \
+                majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne"
+            )
+        themeregex = re.search(regexnc, theme)
+        if not themeregex:
+            erreurs.append(
+                "Un nom de thème doit avoir la forme suivante : \
+                minuscules uniquement, accentuées ou non, séparées par des espaces et/ou tirets"
+            )
+        ville_n_regex = re.search(regexnp, ville_naissance)
+        if not ville_n_regex:
+            erreurs.append(
+                "Un nom de ville doit avoir la forme suivante : \
+                majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne"
+            )
+        ville_r_regex = re.search(regexnp, ville_residence)
+        if not ville_r_regex:
+            erreurs.append(
+                "Un nom de ville de résidence doit avoir la forme suivante: \
+                majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne"
+            )
+        pays_n_regex = re.search(regexnp, pays_naissance)
+        if not pays_n_regex:
+            erreurs.append(
+                "Un nom de pays doit avoir la forme suivante : \
+                majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne"
+            )
+        pays_r_regex = re.search(regexnp, ville_residence)
+        if not pays_r_regex:
+            erreurs.append(
+                "Un nom de pays de résidence doit avoir la forme suivante: \
+                majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
+                tirets et espaces, miniscule en fin de chaîne"
             )
         if len(str(annee_naissance)) != 4:
             erreurs.append("La date de naissance doit être au format: AAAA")
         if not isinstance(annee_naissance, int):
             erreurs.append("La date de naissance ne doit contenir que des chiffres")
-        ville_n_regex = re.search(regexnp, ville_naissance)
-        if not ville_n_regex:
-            erreurs.append(
-                "Un nom de ville de naissance correspond à l'expression: \
-                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
-            )
-        ville_r_regex = re.search(regexnp, ville_residence)
-        if not ville_r_regex:
-            erreurs.append(
-                "Un nom de ville de résidence correspond à l'expression: \
-                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
-            )
+        if len(str(annee_nomination)) != 4:
+            erreurs.append("L'année de nomination  doit être au format: AAAA")
+        if not isinstance(annee_nomination, int):
+            erreurs.append("L'année de nomination ne doit contenir que des chiffres")
         if id_wikidata:
             wikiregex = re.search(regexwkd, id_wikidata)
             if not wikiregex:
-                erreurs.append("Un identifiant wikidata correspond à l'expression: ^Q\d+$ (Q suivi de un ou plusieurs chiffres)")
+                erreurs.append("Un identifiant wikidata correspond à la forme suivante : \
+                Q suivi de un ou plusieurs chiffres")
+            id_wiki_check = Artiste.query.filter(Artiste.id_wikidata == id_wikidata).count()
+            if id_wiki_check > 0:
+                erreurs.append("Cet identifiant wikipedia existe déjà ; veuillez en choisir un autre.")
 
+        # vérifier si l'artiste existe déjà dans la base de données ou si il/elle a déjà une nomination à son nom
         db_artiste_check = Artiste.query.filter(db.and_(
             Artiste.nom == nom,
             Artiste.prenom == prenom
@@ -107,35 +172,82 @@ class Artiste(db.Model):
         if db_artiste_check > 0:
             erreurs.append("Cet.te artiste existe déjà dans la base; veuillez changer le nom ou le prénom de l'artiste \
             pour ajouter un.e nouvel.le artiste à la base")
+        db_artiste_check = Artiste.query.filter(db.and_(
+            Artiste.prenom == prenom,
+            Artiste.nom == nom
+        )).first()
+        if db_artiste_check:
+            db_nomination_check = Nomination.query.filter(
+                Nomination.id_artiste == db_artiste_check.id
+            ).count()
+            if db_nomination_check > 0:
+                erreurs.append("Cet.te artiste a déjà une nomination enregistrée dans la base de données.")
 
         # vérifier qu'il n'y a pas d'erreurs dans l'ajout d'un nouvel artiste
         if len(erreurs) > 0:
             return False, erreurs
 
-        # ajouter les villes si elles n'existent pas dans la base de données
-        db_ville_n_check = Ville.query.filter(Ville.nom == ville_naissance).count()
-        if db_ville_n_check == 0:
-            nv_ville = Ville(nom=ville_naissance)
-            try:
-                db.session.add(nv_ville)
-                db.session.commit()
-            except Exception as error:
-                return False, [str(error)]
-        db_ville_r_check = Ville.query.filter(Ville.nom == ville_residence).count()
-        if db_ville_r_check == 0:
-            nv_ville = Ville(nom=ville_residence)
-            try:
-                db.session.add(nv_ville)
-                db.session.commit()
-            except Exception as error:
-                return False, [str(error)]
+        # si les villes n'existent pas dans la base de données, essayer de récupérer
+        # leurs coordonnées et les y rajouter ; si la ville de naissance est la même que la ville de résidence,
+        # ne rajouter que la première ville
+        if ville_naissance == ville_residence and pays_naissance == pays_residence:
+            db_ville_check = Ville.query.filter(db.and_(
+                Ville.nom == ville_naissance,
+                Ville.pays == pays_naissance
+            )).count()
+            if db_ville_check == 0:
+                longitude, latitude = coordinator(f"{ville_naissance}, {pays_naissance}")
+                nv_ville = Ville(
+                    nom=ville_naissance,
+                    pays=pays_naissance,
+                    longitude=longitude,
+                    latitude=latitude
+                )
+                try:
+                    db.session.add(nv_ville)
+                    db.session.commit()
+                except Exception as error:
+                    return False, [str(error)]
+        else:
+            db_ville_n_check = Ville.query.filter(db.and_(
+                Ville.nom == ville_naissance,
+                Ville.pays == pays_naissance
+            )).count()
+            if db_ville_n_check == 0:
+                longitude, latitude = coordinator(f"{ville_naissance}, {pays_naissance}")
+                nv_ville = Ville(
+                    nom=ville_naissance,
+                    pays=pays_naissance,
+                    longitude=longitude,
+                    latitude=latitude
+                )
+                try:
+                    db.session.add(nv_ville)
+                    db.session.commit()
+                except Exception as error:
+                    return False, [str(error)]
+            db_ville_r_check = Ville.query.filter(Ville.nom == ville_residence).count()
+            if db_ville_r_check == 0:
+                longitude, latitude = coordinator(f"{ville_residence}, {pays_residence}")
+                nv_ville = Ville(
+                    nom=ville_residence,
+                    pays=pays_residence,
+                    latitude=latitude,
+                    longitude=longitude
+                )
+                try:
+                    db.session.add(nv_ville)
+                    db.session.commit()
+                except Exception as error:
+                    return False, [str(error)]
 
-        # si il n'y a pas d'erreurs, créer un.e nouvel.le artiste et l'ajouter à la base
+        # si il n'y a pas d'erreurs, récupérer les données nécessaires et ajouter un.e nouvel.le artiste à la base
         db_ville_naissance = Ville.query.filter(Ville.nom == ville_naissance).first()
         id_ville_naissance = db_ville_naissance.id
         db_ville_residence = Ville.query.filter(Ville.nom == ville_residence).first()
         id_ville_residence = db_ville_residence.id
 
+        # ajouter l'artiste à la base de données
         nv_artiste = Artiste(
             nom=nom,
             prenom=prenom,
@@ -145,15 +257,46 @@ class Artiste(db.Model):
             id_ville_naissance=id_ville_naissance,
             id_ville_residence=id_ville_residence
         )
-
         try:
             db.session.add(nv_artiste)
             db.session.commit()
-            return True, nv_artiste
         except Exception as error:
             return False, [str(error)]
 
-    # une version allégée de artiste_new() pour ajouter des données au moment de l'initialisation de la base
+        # vérifier si le thème existe dans la bdd ; si il n'existe pas, l'ajouter à la base de données
+        db_theme_check = Theme.query.filter(Theme.nom == theme).count()
+        if db_theme_check == 0:
+            nv_theme = Theme(nom=theme)
+            try:
+                db.session.add(nv_theme)
+                db.session.commit()
+            except Exception as error:
+                return False, [str(error)]
+
+        # récupérer les identifiants de l'artiste et du thème nécessaires et ajouter la nouvelle nomination à la BDD
+        db_artiste = Artiste.query.filter(db.and_(
+            Artiste.nom == nom,
+            Artiste.prenom == prenom
+        )).first()
+        id_artiste = db_artiste.id
+        db_theme = Theme.query.filter(Theme.nom == theme).first()
+        id_theme = db_theme.id
+
+        nv_nomination = Nomination(
+            annee=annee_nomination,
+            laureat=laureat,
+            id_artiste=id_artiste,
+            id_theme=id_theme
+        )
+        try:
+            db.session.add(nv_nomination)
+            db.session.commit()
+            return True, nv_nomination
+        except Exception as error:
+            return False, [str(error)]
+        # si cette fonction de l'angoisse fonctionne, prendre une pause méritée
+
+    # une version très allégée de artiste_new() pour ajouter des données au moment de l'initialisation de la base
     @staticmethod
     def artiste_new_init(nom, prenom, annee_naissance, genre, id_wikidata, id_ville_naissance, id_ville_residence):
         erreurs = []
@@ -212,6 +355,7 @@ class Artiste(db.Model):
         except Exception as error:
             return False, [str(error)]
 
+
 class Nomination(db.Model):
     __tablename__ = "nomination"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
@@ -224,113 +368,6 @@ class Nomination(db.Model):
     authorship = db.relationship("AuthorshipNomination", back_populates="nomination")
     artiste = db.relationship("Artiste", back_populates="nomination")
     theme = db.relationship("Theme", back_populates="nomination", uselist=False)
-
-    @staticmethod
-    def nomination_new(annee, laureat, nom_artiste, prenom_artiste, theme):
-        # vérifier que toutes les données ont été fournies
-        laureat = bool(laureat)
-        erreurs = []
-        if not annee:
-            erreurs.append("Vous devez fournir une année de nomination")
-        #  if not laureat:
-        #    erreurs.append("Vous devez indiquer si l'artiste est lauréat.e ou non")
-        if not nom_artiste:
-            erreurs.append("Vous devez indiquer le nom de famille de l'artiste")
-        if not prenom_artiste:
-            erreurs.append("Vous devez indiquer le prénom de l'artiste")
-        if not theme:
-            erreurs.append("Vous devez indiquer le thème sur lequel travaille l'artiste")
-
-        # nettoyer les données et vérifier leur validité
-        nom_artiste = clean_string(nom_artiste)
-        prenom_artiste = clean_string(prenom_artiste)
-        theme = clean_string(theme).lower()
-        if len(str(annee)) != 4:
-            erreurs.append("La date de naissance doit être au format: AAAA")
-        if not isinstance(int(annee), int):
-            erreurs.append("La date de naissance ne doit contenir que des chiffres")
-        # pour lauréat j'y réfléchis plus tard
-        nomregex = re.search(regexnp, nom_artiste)
-        if not nomregex:
-            erreurs.append(
-                "Un nom correspond à l'expression: ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
-            )
-        prenomregex = re.search(regexnp, prenom_artiste)
-        if not prenomregex:
-            erreurs.append(
-                "Un prénom correspond à l'expression: ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
-            )
-        themeregex = re.search(regexnc, theme)
-        if not themeregex:
-            erreurs.append(
-                "Un nom de thème doit correspondre à l'expression: \
-                ^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])|(\-?\s?))+([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$ \
-                (minuscules uniquement, accentuées ou non, séparées par des espaces et/ou tirets)"
-            )
-
-        # LAUREAT
-        # comment récupérer les données d'une liste à champ contrôlé ?
-        # pour le lauréat, difficulté supplémentaire : dans le formulaire,
-        # on a un champ <select><option>Oui</option><option>Non</option></select>,
-        # qui fait un choix dans une liste défilante ;
-        # faut récupérer ces valeurs et les traduire en booléen
-
-        # vérifier qu'il n'y ait pas d'erreurs
-        if len(erreurs) > 0:
-            return False, erreurs
-
-        # vérifier si l'artiste et le thème existent ; sinon, les rajouter
-        db_artiste_check = Artiste.query.filter(db.and_(
-            Artiste.nom == nom_artiste,
-            Artiste.prenom == prenom_artiste
-        )).count()
-        if db_artiste_check == 0:
-            nv_artiste = Artiste(
-                nom=nom_artiste,
-                prenom=prenom_artiste
-            )
-            try:
-                db.session.add(nv_artiste)
-                db.session.commit()
-            except Exception as error:
-                return False, [str(error)]
-        db_theme_check = Theme.query.filter(Theme.nom == theme).count()
-        if db_theme_check == 0:
-            nv_theme = Theme(
-                nom=theme
-            )
-            try:
-                db.session.add(nv_theme)
-                db.session.commit()
-            except Exception as error:
-                return False, [str(error)]
-
-        # si il n'y a pas d'erreurs, créer une nouvelle nomination et l'ajouter à la base
-        # en fait je sais pas si on a besoin de récupérer toutes ces données sur d'autres tables
-        db_artiste = Artiste.query.filter(db.and_(
-            Artiste.nom == nom_artiste,
-            Artiste.prenom == prenom_artiste
-        )).first()
-        id_artiste = db_artiste.id
-        db_theme = Theme.query.filter(Theme.nom == theme).first()
-        id_theme = db_theme.id
-
-        nv_nomination = Nomination(
-            annee=annee,
-            laureat=laureat,
-            id_artiste=id_artiste,
-            id_theme=id_theme
-        )
-        try:
-            db.session.add(nv_nomination)
-            db.session.commit()
-            return True, nv_nomination
-        except Exception as error:
-            return False, [str(error)]
 
     @staticmethod
     def nomination_new_init(annee, laureat, id_artiste, id_theme):

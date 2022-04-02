@@ -1,3 +1,6 @@
+from geopy.geocoders import Nominatim
+import time
+
 def mapdim(longlist, latlist):
     """Fonction permettant de définir en fonction des données à afficher (sous la forme de marqueurs) :
        - les dimensions d'une carte
@@ -22,10 +25,16 @@ def mapdim(longlist, latlist):
     :rtype diflong: float
     """
     # calcul de diflong, diflat, de la longitude et de la latitude moyenne sur la carte
-    diflat = max(latlist) - min(latlist)
-    diflong = max(longlist) - min(longlist)
-    avglat = (max(latlist) + min(latlist)) / 2
-    avglong = (max(longlist) + min(longlist)) / 2
+    if len(latlist) > 1:
+        diflat = max(latlist) - min(latlist)
+        diflong = max(longlist) - min(longlist)
+        avglat = (max(latlist) + min(latlist)) / 2
+        avglong = (max(longlist) + min(longlist)) / 2
+    else:
+        diflat = 0
+        diflong = 0
+        avglat = latlist[0]
+        avglong = longlist[0]
 
     # définir les dimensions extrêmes de la carte
     if diflong > diflat:
@@ -57,3 +66,25 @@ def mapdim(longlist, latlist):
 
     # return
     return sw, ne, radius, diflat, diflong
+
+
+def coordinator(location):
+    """Fonction permettant de récupérer automatiquement des coordonnées géographiques
+    lorsque l'utilisateur.ice rajoute une nouvelle ville sans indiquer ses coordonnées
+    (en créant un.e nouvel.le artiste, par exemple). Nominatim ne permet de ne lancer
+    qu'une requête par seconde. La fonction attend donc 1 seconde avant de se lancer.
+
+    :param location: le lieu à rechercher, au format "Ville, Pays"
+    :return: latitude et longitude de la localisation, si elle est trouvée; sinon, la valeur None
+    est attribuée à longitude et latitude
+    """
+    ntm = Nominatim(user_agent="duchampreader")
+    time.sleep(1)
+    try:
+        geodata = ntm.geocode(location).raw
+        latitude = geodata["lat"]
+        longitude = geodata["lon"]
+    except Exception:
+        latitude = None
+        longitude = None
+    return longitude, latitude

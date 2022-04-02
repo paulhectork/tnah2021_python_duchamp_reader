@@ -14,8 +14,8 @@
         quatre artistes sont nominé.e.s. Un.e lauréat.e est ensuite désigné.e après le vote
         d'un jury.</p>
 
-    <!-- dernières nominations -->
     {% if artistes %}
+        <!-- dernières nominations -->
         <p>Les dernier.ère.s artistes ajoutées à la base sont</p>
         <ul>
         {% for artiste in artistes %}
@@ -26,6 +26,11 @@
             </li>
         {% endfor %}
         </ul>
+
+        <!-- sparql -->
+        <h2>Enrichir vos jeux de données</h2>
+        <p>Explorez Wikidata avec le <a href="{{ url_for('sparql') }}">duchamp_sparqler</a>, un constructeur de requêtes SPARQL !</p>
+
     {% else %}
         <p>La base de données est en cours de constitution. Des données doivent encore être ajoutées.</p>
     {% endif %}

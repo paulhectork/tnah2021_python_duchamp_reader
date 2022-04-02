@@ -10,10 +10,10 @@ from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
 from .modeles.classes_users import *
 from .utils.constantes import PERPAGE, cartes, statics, css, uploads
-from .utils.constantes_query import last_nominations, last_artistes, last_galeries, last_themes, last_villes
+from .utils.constantes_query import queries # last_nominations, last_artistes, last_galeries, last_themes, last_villes
 from .utils.duchamp_sparqler import duchamp_sparqler
 from .utils.wikimaker import wikimaker
-from .utils.mapdimensions import mapdim
+from .utils.geography import mapdim
 
 
 # gesion des flashes d'erreurs:
@@ -23,6 +23,7 @@ from .utils.mapdimensions import mapdim
 # et passer la variable "erreurs" au render_template
 # sinon (un seul message d'erreur), flash directement le message d'erreur sans le stocker dans une variable
 
+last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
 # ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
@@ -241,15 +242,32 @@ def artiste_main(id_artiste):
 
     # génération dynamique des cartes, si il y a des données géolocalisées à afficher
     # définition des coordonnées de la carte: zone sur laquelle centrer, coordonnées de la carte, taille du popup
-    if nomination.artiste.ville_naissance and nomination.artiste.ville_residence:
-        longitude = (nomination.artiste.ville_naissance.longitude + nomination.artiste.ville_residence.longitude) / 2
-        latitude = (nomination.artiste.ville_naissance.latitude + nomination.artiste.ville_residence.latitude) / 2
-        longlist = []
-        latlist = []
-        longlist.append(nomination.artiste.ville_naissance.longitude)
-        longlist.append(nomination.artiste.ville_residence.longitude)
-        latlist.append(nomination.artiste.ville_naissance.latitude)
-        latlist.append(nomination.artiste.ville_residence.latitude)
+    # la manière dont les coordonnées de la carte est calculée dépend des coordonnées sont connues pour chaque ville
+    longlist = []
+    latlist = []
+    if nomination.artiste.ville_naissance.longitude or nomination.artiste.ville_naissance.latitude \
+            or nomination.artiste.ville_residence.latitude or nomination.artiste.ville_residence.longitude:
+        if nomination.artiste.ville_naissance.longitude and nomination.artiste.ville_naissance.latitude \
+                and nomination.artiste.ville_residence.latitude and nomination.artiste.ville_residence.longitude:
+            print(3)
+            longitude = (nomination.artiste.ville_naissance.longitude + nomination.artiste.ville_residence.longitude) / 2
+            latitude = (nomination.artiste.ville_naissance.latitude + nomination.artiste.ville_residence.latitude) / 2
+            longlist.append(nomination.artiste.ville_naissance.longitude)
+            longlist.append(nomination.artiste.ville_residence.longitude)
+            latlist.append(nomination.artiste.ville_naissance.latitude)
+            latlist.append(nomination.artiste.ville_residence.latitude)
+        elif nomination.artiste.ville_naissance.longitude and nomination.artiste.ville_naissance.latitude:
+            print(1)
+            longitude = nomination.artiste.ville_naissance.longitude
+            latitude = nomination.artiste.ville_naissance.latitude
+            longlist = [longitude]
+            latlist = [latitude]
+        elif nomination.artiste.ville_residence.latitude and nomination.artiste.ville_residence.longitude:
+            print(2)
+            longitude = nomination.artiste.ville_residence.longitude
+            latitude = nomination.artiste.ville_residence.latitude
+            longlist = [longitude]
+            latlist = [latitude]
         sw, ne, radius, diflat, diflong = mapdim(longlist=longlist, latlist=latlist)
 
         # création du texte d'un popup qui donnera des informations sur chaque ville
@@ -323,12 +341,7 @@ def artiste_add():
     render_template vers la page "artiste/add" avec un message indiquant que la transaction s'est bien déroulée.
     """
     # les requêtes constantes sont relancées pour éviter une SQLAlchemy ProgrammingError
-    last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(3).all()
-    last_nominations = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id) \
-        .order_by(Nomination.id.desc()).limit(3).all()
-    last_galeries = Galerie.query.order_by(Galerie.id.desc()).limit(3).all()
-    last_villes = Ville.query.order_by(Ville.id.desc()).limit(3).all()
-    last_themes = Theme.query.order_by(Theme.id.desc()).limit(3).all()
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
@@ -336,14 +349,24 @@ def artiste_add():
         return redirect("/connexion")
 
     # si iel est connecté.e et si un formulaire est envoyé avec POST
+
+    #artiste_new(nom, prenom, laureat, theme, annee_nomination, annee_naissance,
+    #                genre, ville_naissance, ville_residence, id_wikidata):
+
     if request.method == "POST":
         succes, donnees = Artiste.artiste_new(
             nom=request.form.get("nom", None),
             prenom=request.form.get("prenom", None),
+            laureat=request.form.get("laureat", None),
+            theme=request.form.get("theme_nomination", None),
+            annee_nomination=request.form.get("annee_nomination", None),
             annee_naissance=request.form.get("annee_naissance", None),
             genre=request.form.get("genre", None),
             ville_naissance=request.form.get("ville_naissance", None),
-            ville_residence=request.form.get("ville_residence", None)
+            pays_naissance=request.form.get("pays_naissance", None),
+            ville_residence=request.form.get("ville_residence", None),
+            pays_residence=request.form.get("pays_residence", None),
+            id_wikidata=request.form.get("id_wikidata", None)
         )
         if succes is True:
             flash("Vous avez ajouté un.e nouvel.le artiste à la base de données.", "success")
@@ -391,12 +414,7 @@ def nomination_index():
 @app.route("/nomination/add", methods=["GET", "POST"])
 def nomination_add():
     # les requêtes constantes sont relancées pour éviter une SQLAlchemy ProgrammingError
-    last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(3).all()
-    last_nominations = Nomination.query.join(Artiste, Nomination.id_artiste == Artiste.id) \
-        .order_by(Nomination.id.desc()).limit(3).all()
-    last_galeries = Galerie.query.order_by(Galerie.id.desc()).limit(3).all()
-    last_villes = Ville.query.order_by(Ville.id.desc()).limit(3).all()
-    last_themes = Theme.query.order_by(Theme.id.desc()).limit(3).all()
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
     # si l'utilisateur.ice n'est pas connecté.e, le/la rediriger vers la page d'accueil
     if current_user.is_authenticated is False:
@@ -589,40 +607,43 @@ def ville_main(id_ville):
     else:
         ville = ville_galerie[0].ville
 
-    # création du texte d'un popup qui donnera des informations sur chaque ville
-    html = f"<head><meta charset='UTF-8'/><style type='text/css'>{css}</style></meta></head><h2>{ville.nom}</h2>"
-    if ville_artiste_naissance:
-        html += "<p>Dans cette ville est né.e :</p><ul>"
-        for artiste in ville_artiste_naissance:
-            html += f"<li>{artiste.full}</li>"
-        html += "</ul>"
-    if ville_artiste_residence:
-        html += "<p>Dans cette ville habite(nt) :</p><ul>"
-        for artiste in ville_artiste_residence:
-            html += f"<li>{artiste.full}</li>"
-        html += "</ul>"
-    if ville_galerie:
-        html += "<p>Dans cette ville se trouve(nt) la/les galeries suivante(s) :</p><ul>"
-        for rel in ville_galerie:
-            html += f"<li>{rel.galerie.nom}</li>"
-        html += "</ul>"
+    # si la ville a des coordonnées, générer une carte
+    if ville.longitude and ville.latitude:
+        html = f"<head><meta charset='UTF-8'/><style type='text/css'>{css}</style></meta></head><h2>{ville.nom}</h2>"
+        if ville_artiste_naissance:
+            html += "<p>Dans cette ville est né.e :</p><ul>"
+            for artiste in ville_artiste_naissance:
+                html += f"<li>{artiste.full}</li>"
+            html += "</ul>"
+        if ville_artiste_residence:
+            html += "<p>Dans cette ville habite(nt) :</p><ul>"
+            for artiste in ville_artiste_residence:
+                html += f"<li>{artiste.full}</li>"
+            html += "</ul>"
+        if ville_galerie:
+            html += "<p>Dans cette ville se trouve(nt) la/les galeries suivante(s) :</p><ul>"
+            for rel in ville_galerie:
+                html += f"<li>{rel.galerie.nom}</li>"
+            html += "</ul>"
 
-    # transformation du popup en élément iframe
-    iframe = folium.element.IFrame(html=html, width=500, height=300)
-    popup = folium.Popup(iframe, max_width=2650)
+        # transformation du popup en élément iframe
+        iframe = folium.element.IFrame(html=html, width=500, height=300)
+        popup = folium.Popup(iframe, max_width=2650)
 
-    # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
-    # appelée lorsque l'on va sur la page de la ville
-    carte = folium.Map(location=[ville.latitude, ville.longitude], tiles='Stamen Toner')
-    popups = folium.CircleMarker(
-        location=[ville.latitude, ville.longitude],
-        popup=popup,
-        radius=1000,
-        color="purple",
-        fill_color="plum",
-        fill_opacity=100
-    ).add_to(carte)
-    carte.save(f"{cartes}/ville{id_ville}.html")
+        # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
+        # appelée lorsque l'on va sur la page de la ville
+        carte = folium.Map(location=[ville.latitude, ville.longitude], tiles='Stamen Toner')
+        popups = folium.CircleMarker(
+            location=[ville.latitude, ville.longitude],
+            popup=popup,
+            radius=1000,
+            color="purple",
+            fill_color="plum",
+            fill_opacity=100
+        ).add_to(carte)
+        carte.save(f"{cartes}/ville{id_ville}.html")
+    else:
+        carte = ""
 
     return render_template("pages/ville_main.html", ville=ville, carte=carte,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
@@ -631,6 +652,9 @@ def ville_main(id_ville):
 
 @app.route("/ville/add", methods=["POST", "GET"])
 def ville_ajout():
+    # les requêtes sont relancées pour éviter des erreurs sqlalchemy
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
@@ -692,6 +716,8 @@ def theme_main(id_theme):
 @app.route("/theme/add", methods=["POST", "GET"])
 def theme_add():
     """fonction de création d'un nouveau thème"""
+    # les requêtes sont relancées pour éviter des erreurs sqlalchemy
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
 
 # ----- ROUTES SPARQL ----- #

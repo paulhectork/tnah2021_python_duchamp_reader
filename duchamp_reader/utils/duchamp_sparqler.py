@@ -219,7 +219,8 @@ WHERE {
                     if k not in datadict.keys():
                         datadict[k] = v["value"]
                     else:
-                        datadict[k] += f", {v['value']}"
+                        if v['value'] not in datadict[k]:
+                            datadict[k] = f"{datadict[k]}, {v['value']}"
                 except Exception:
                     datadict[k] = "information non disponible"
 

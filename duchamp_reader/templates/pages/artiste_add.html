@@ -6,7 +6,7 @@
     <h1>Ajouter un.e nouvel.le artiste à la base de données</h1>
 
     <!-- corps du texte -->
-    <p>Pour ajouter un.e artiste à la base, veuillez remplir le formulaire et cliquer sur "Ajouter".</p>
+    <p>Pour ajouter un.e artiste et sa nomination au prix Marcel Duchamp à la base, veuillez remplir le formulaire et cliquer sur "Ajouter".</p>
     <form class="form" method="POST" action="{{ url_for('artiste_add') }}">
 
         <!-- nom -->
@@ -22,6 +22,34 @@
             <label for="artiste-prenom" class="col-sm-2 col-form-label">Prénom</label>
             <div class="col-sm-10">
                 <input type="text" class="form-control" id="artiste-prenom" name="prenom" placeholder="Prénom (ex: Nadine)"/>
+            </div>
+        </div>
+
+        <!-- lauréat.e ou nominé.e -->
+        <div class="form-group row">
+            <label for="laureat" class="col-sm-2 col-form-label">Lauréat.e ou nominé.e</label>
+            <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <select type="text" class="form-select" id="laureat" name="laureat" aria-expanded="false">
+                    <option>Sélectionner</option>
+                    <option value=1>Lauréat.e</option>
+                    <option value=0>Nominé.e</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- thème de la nomination -->
+        <div class="form-group row">
+            <label for="theme_nomination" class="col-sm-2 col-form-label">Thème sur lequel travaille l'artiste</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="theme_nomination" name="theme_nomination" placeholder="Thème de la nomination (ex: nostalgie)"/>
+            </div>
+        </div>
+
+        <!-- annee de la nomination -->
+        <div class="form-group row">
+            <label for="annee-nomination" class="col-sm-2 col-form-label">Année de la nomination</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="annee-nomination" name="annee_nomination" placeholder="Année de la nomination au format AAAA (ex: 2017)"/>
             </div>
         </div>
 
@@ -54,11 +82,35 @@
             </div>
         </div>
 
+        <!-- pays de naissance -->
+        <div class="form-group row">
+            <label for="artiste-pays-naissance" class="col-sm-2 col-form-label">Pays de naissance</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="artiste-pays-naissance" name="pays_naissance" placeholder="Pays de naissance (ex: Etats-Unis d'Amérique)"/>
+            </div>
+        </div>
+
         <!-- ville de résidence -->
         <div class="form-group row">
             <label for="artiste-ville-residence" class="col-sm-2 col-form-label">Ville de résidence</label>
             <div class="col-sm-10">
                 <input type="text" class="form-control" id="artiste-ville-residence" name="ville_residence" placeholder="Ville de résidence (ex: Twin Peaks)"/>
+            </div>
+        </div>
+
+        <!-- pays de résidence -->
+        <div class="form-group row">
+            <label for="artiste-pays-residence" class="col-sm-2 col-form-label">Pays de résidence</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="artiste-pays-residence" name="pays_residence" placeholder="Pays de résidence (ex: Etats-Unis d'Amérique)"/>
+            </div>
+        </div>
+
+        <!-- id wikidata -->
+        <div class="form-group row">
+            <label for="artiste-id-wikidata" class="col-sm-2 col-form-label">Identifiant wikidata au format QXXXXX (facultatif)</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="artiste-id-wikidata" name="id_wikidata" placeholder="Identifiant wikidata de l'artiste (ex: Q41192)"/>
             </div>
         </div>
 

@@ -13,6 +13,8 @@
         </dl>
         {% if carte %}
             <iframe class="iframe" src="{{url_for('carte_ville', id=ville.id)}}"></iframe>
+        {% else %}
+            <dt>Carte</dt><dd>Malheureusement, nous n'avons pas pu générer de carte pour cette ville.</dd>
         {% endif %}
     {% else %}
         <p>La base de données est en cours de constitution</p>

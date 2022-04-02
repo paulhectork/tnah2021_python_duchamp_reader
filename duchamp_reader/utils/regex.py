@@ -9,7 +9,8 @@ regexurl = "http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0
 
 def clean_string(chaine):
     """Fonction pour nettoyer une chaîne de caractères à l'aide d'expressions régulières :
-    séparer les mots par un seul espace ou tiret, supprimer les espaces en début et fin de chaîne
+    séparer les mots par un seul espace ou tiret, supprimer les espaces en début et fin de chaîne,
+    remplacer les majuscules accentuées les plus courantes par des majuscules non-accentuées
 
     :param chaine: la chaîne de caractères à nettoyer
     :type chaine: str
@@ -19,6 +20,9 @@ def clean_string(chaine):
     chaine = str(chaine) # pour être sûr de ne pas se taper des mauvais messages d'erreurs
     chaine = re.sub(r"\s{2,}", " ", chaine)
     chaine = re.sub(r"-{2,}", "-", chaine)
+    chaine = re.sub(r"(É|Ë|Ê)", "E", chaine)
+    chaine = re.sub(r"(Ä|Â|À)", "A", chaine)
+    chaine = re.sub(r"(Ô|Ö|Ò)", "0", chaine)
     chaine = chaine.strip()
     return chaine
 

@@ -7,10 +7,10 @@
 <!-- {% if nomination.artiste.genre == "F" %}{% elif nomination.artiste.genre == "A" %}{% else %}{% endif %} -->
 
 {% block corps %}
-    {% if nomination and represente %}
+    {% if nomination %}
         <h1>{{nomination.artiste.full}}</h1>
 
-        <!-- corps du texte -->
+        <!-- à propos de la nomination -->
         <h2>Nomination</h2>
             <p>{{nomination.artiste.full}} a été
                 <!-- lauréat ou nominé.e -->
@@ -34,16 +34,19 @@
 
                 <!-- nom du / de la lauréat.e de cette année là -->
                 {% if nomination.laureat != 1 %}
-                    <p>Cette année,
-                    {% for n in nominations_all %}
-                        {% if n.laureat == 1%}
-                            {% if n.artiste.genre == "F" %}la lauréate{% elif n.artiste.genre == "A" %}le/la lauréat.e{% else %}le lauréat{% endif %}
-                            a été <a href="{{ url_for('artiste_main', id_artiste=n.id_artiste) }}">{{n.artiste.full}}</a>.
-                        {% endif %}
-                    {% endfor %}
-                    </p>
+                    {% if nominations_all|length > 1 %}
+                        <p>Cette année,
+                        {% for n in nominations_all %}
+                            {% if n.laureat == 1%}
+                                {% if n.artiste.genre == "F" %}la lauréate{% elif n.artiste.genre == "A" %}le/la lauréat.e{% else %}le lauréat{% endif %}
+                                a été <a href="{{ url_for('artiste_main', id_artiste=n.id_artiste) }}">{{n.artiste.full}}</a>.
+                            {% endif %}
+                        {% endfor %}
+                        </p>
+                    {% endif %}
                 {% endif %}
 
+        <!-- à propos de la nomination -->
         <h2>À propos de l'artiste</h2>
         <!-- année et ville de naissance -->
         <p>{{nomination.artiste.full}} est
@@ -55,18 +58,20 @@
         </p>
 
         <!-- galeries représentant l'artiste -->
-        <p>{% if nomination.artiste.genre == "F" %}Elle {% elif nomination.artiste.genre == "A" %}Iel {% else %}Il {% endif %}
-            est {% if nomination.artiste.genre == "F" %}représentée {% elif nomination.artiste.genre == "A" %}représenté.e {% else %}représenté {% endif %} par
-            {% if represente|length > 1 %}
-                les galeries :
-                <ul>
-                    {% for r in represente %}
-                        <li><a href="{{ url_for('galerie_main', id_galerie=r.id_galerie) }}">{{r.galerie.nom}}</a></li>
-                    {% endfor %}
-                </ul>
-            {% else %} la galerie {% for r in represente %}<a href="{{ url_for('galerie_main', id_galerie=r.id_galerie) }}">{{r.galerie.nom}}</a>{% endfor %}.
-            {% endif %}
-        </p>
+        {% if represente %}
+            <p>{% if nomination.artiste.genre == "F" %}Elle {% elif nomination.artiste.genre == "A" %}Iel {% else %}Il {% endif %}
+                est {% if nomination.artiste.genre == "F" %}représentée {% elif nomination.artiste.genre == "A" %}représenté.e {% else %}représenté {% endif %} par
+                {% if represente|length > 1 %}
+                    les galeries :
+                    <ul>
+                        {% for r in represente %}
+                            <li><a href="{{ url_for('galerie_main', id_galerie=r.id_galerie) }}">{{r.galerie.nom}}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% else %} la galerie {% for r in represente %}<a href="{{ url_for('galerie_main', id_galerie=r.id_galerie) }}">{{r.galerie.nom}}</a>{% endfor %}.
+                {% endif %}
+            </p>
+        {% endif %}
 
         <!-- identifiant wikidata -->
         <p>{% if nomination.artiste.id_wikidata %}L'identifiant wikidata de l'artiste est : {{nomination.artiste.id_wikidata}}.{% endif %}</p>

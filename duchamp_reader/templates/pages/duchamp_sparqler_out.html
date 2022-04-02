@@ -10,10 +10,10 @@
     </p>
     <dl>
         <!-- résultats embarqués dans la page -->
+        <dt><strong>Nom de l'artiste</strong></dt><dd>{{ datadict["labelen"] }}</dd>
+        <dt><strong>Identifiant wikidata </strong></dt><dd>{{ datadict["id"] }}</dd>
         {% for k, v in datadict.items() %}
-            {% if k == "labelen" %}
-                <dt><strong>Nom de l'artiste (en anglais)</strong></dt><dd>{{ datadict[k] }}</dd>
-            {% elif k == "url" %}
+            {% if k == "url" %}
                 <dt><strong>Lien vers le site internet de l'artiste</strong></dt><dd><a href="{{ datadict[k] }}">{{ datadict[k] }}</a></dd>
             {% elif k == "img" %}
                 <dt><strong>Images libres de droit de l'artiste</strong></dt>
@@ -32,7 +32,7 @@
                         {% endfor %}
                     {% endif %}
             {% elif k == "colllabel" %}
-        <dt><strong>Collections et musées possédant des œuvres de l'artiste</strong></dt>
+                <dt><strong>Collections et musées possédant des œuvres de l'artiste</strong></dt>
                 {% set list = datadict[k].split(", ") %}
                 {% if list|length > 1 %}
                     <ul>
@@ -45,7 +45,7 @@
                         <dd>{{ l }}</dd>
                     {% endfor %}
                 {% endif %}
-        {% elif k == "collid" %}
+            {% elif k == "collid" %}
                 <dt><strong>Identifiants Wikidata de ces collections et musées</strong></dt>
                 {% set list = datadict[k].split(", ") %}
                 {% if list|length > 1 %}
@@ -59,22 +59,6 @@
                         <dd><a href="{{ l }}">{{ l }}</a></dd>
                     {% endfor %}
                 {% endif %}
-            {% elif k == "collname" %}
-                <dt><strong>Collections possédant des oeuvres de {{name}}</strong></dt>
-                {% set list = datadict[k].split(", ") %}
-                {% if list|length > 1 %}
-                        <ul>
-                            {% for l in list %}
-                                <li><a href="{{ l }}">{{ l }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        {% for l in list %}
-                            <dd><a href="{{ l }}">{{ l }}</a></dd>
-                        {% endfor %}
-                {% endif %}
-            {% elif k == "id" %}
-                <dt><strong>Identifiant wikidata </strong></dt><dd>{{ datadict[k] }}</dd>
             {% elif k == "idisni" %}
                 <dt><strong>Identifiant ISNI</strong></dt><dd>{{ datadict[k] }}</dd>
             {% elif k == "idviaf" %}
