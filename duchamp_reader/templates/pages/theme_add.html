@@ -1,0 +1,30 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| nouveau thème{% endblock %}
+
+{% block corps %}
+    <h1>Ajouter un nouveau thème à la base de données</h1>
+
+    <!-- corps du texte -->
+    <p>Pour ajouter un nouveau thème à la base de données, veuillez remplir le formulaire et cliquer sur "Ajouter".</p>
+    <form class="form" method="POST" action="{{ url_for('theme_add') }}">
+
+        <!-- nom -->
+        <div class="form-group row">
+            <label for="theme-nom" class="col-sm-2 col-form-label">Thème</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="theme-nom" name="nom" placeholder="Nom du thème (ex: nostalgie - télévision)"/>
+            </div>
+        </div>
+
+        <!-- sumbit -->
+        <div> <button type="submit" class="btn btn-primary">Ajouter</button></div>
+    </form>
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('theme_index')}}">Index des thèmes</a>
+    </div>
+
+{% endblock %}

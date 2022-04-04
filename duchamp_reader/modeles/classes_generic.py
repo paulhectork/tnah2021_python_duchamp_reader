@@ -655,9 +655,8 @@ class Theme(db.Model):
         nom = clean_string(nom)
         nomregex = re.search(regexnc, nom)
         if not nomregex:
-            erreurs.append("Un nom de thème doit correspondre à l'expression: \
-                ^^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])|(\-?\s?))+([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])+$ \
-                (minuscules uniquement, accentuées ou non, séparées par des espaces et/ou tirets)")
+            erreurs.append("Un nom de thème doit correspondre la forme suivante: \
+                minuscules uniquement, accentuées ou non, séparées par des espaces et/ou tirets")
         nom = clean_string(nom).lower()
 
         # vérifier si le thème existe déjà dans la base de données
@@ -702,7 +701,3 @@ class Theme(db.Model):
             return True, nv_theme
         except Exception as error:
             return False, [str(error)]
-
-# les relations dont je suis assez sûr : toutes les tables de relation, la relation artiste-nomination, la relation
-# artiste-theme
-# là où j'ai un plus gros doute : les relations artiste-ville

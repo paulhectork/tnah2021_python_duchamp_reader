@@ -1,0 +1,35 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}
+    {%if theme %}| thème : {{theme.nom}} | modification {% endif %}
+{% endblock %}
+
+{% block corps %}
+    {% if theme %}
+        <form method="POST" action="{{ url_for('theme_update', id_theme=theme.id) }}">
+
+            <!-- nom -->
+            <div class="form-group row">
+                <label for="theme-nom" class="col-sm-2 col-form-label">Thème</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control {% if 'theme_nom' in erreurs %}is-invalid{% endif %}"
+                           id="theme-nom" name="nom" value="{{ theme.nom }}" aria-describedby="help"/>
+                    <div id="help" class="form-text">Nom désignant le thème</div>
+                </div>
+            </div>
+
+            <!-- sumbit -->
+            <div> <button type="submit" class="btn btn-primary">Modifier</button></div>
+        </form>
+
+        <!-- footer -->
+        <div class="basdepage">
+            <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+            <a class="btn" href="{{url_for('theme_main', id_theme=theme.id) }}">Page principale du thème</a>
+            <a class="btn" href="{{url_for('theme_index')}}">Index des thèmes</a>
+        </div>
+
+    {% else %}
+        <p>La base de données est en cours de constitution</p>
+    {% endif %}
+{% endblock %}

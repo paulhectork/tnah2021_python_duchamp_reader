@@ -1,17 +1,19 @@
 from flask import render_template, request, flash, redirect, send_file, url_for
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 from urllib.parse import quote_plus, unquote_plus
 import folium
 import json
 import os
+import re
 
 from .app import app, db
+from .modeles.classes_users import *
 from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
-from .modeles.classes_users import *
-from .utils.constantes import PERPAGE, cartes, statics, css, uploads
-from .utils.constantes_query import queries # last_nominations, last_artistes, last_galeries, last_themes, last_villes
+from .utils.regex import regexnc, clean_string
+from .utils.constantes_query import queries
 from .utils.duchamp_sparqler import duchamp_sparqler
+from .utils.constantes import PERPAGE, cartes, statics, css, uploads
 from .utils.wikimaker import wikimaker
 from .utils.geography import mapdim
 
@@ -369,6 +371,8 @@ def artiste_add():
             id_wikidata=request.form.get("id_wikidata", None)
         )
         if succes is True:
+            # les requêtes sont relancées pour actualiser le sidebar
+            last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
             flash("Vous avez ajouté un.e nouvel.le artiste à la base de données.", "success")
             return redirect("/artiste/add")
         else:
@@ -411,7 +415,7 @@ def nomination_index():
                            last_themes=last_themes, last_villes=last_villes)
 
 
-@app.route("/nomination/add", methods=["GET", "POST"])
+@app.route("/nomination/add", methods=["GET", "POST"])  # EN FAIT NN LOL
 def nomination_add():
     # les requêtes constantes sont relancées pour éviter une SQLAlchemy ProgrammingError
     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
@@ -479,11 +483,6 @@ def galerie_main(id_galerie):
     """
     # requêtes
     galerie = Galerie.query.filter(Galerie.id == id_galerie).first()
-    print(galerie.nom)
-    for r in galerie.represent:
-        print(r.artiste.full)
-    for r in galerie.localisation:
-        print(r.ville.nom)
 
     # génération dynamique des cartes
     # définition des coordonnées de la carte: zone sur laquelle centrée, bordures, dimension des popups
@@ -604,6 +603,7 @@ def ville_main(id_ville):
         ville = ville_artiste_naissance[0].ville_naissance
     elif ville_artiste_residence:
         ville = ville_artiste_residence[0].ville_residence
+    # il faut changer ce else par un elif
     else:
         ville = ville_galerie[0].ville
 
@@ -718,6 +718,80 @@ def theme_add():
     """fonction de création d'un nouveau thème"""
     # les requêtes sont relancées pour éviter des erreurs sqlalchemy
     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour rajouter des données", "error")
+        return redirect("/login")
+    # si il.elle est connecté.e et si un formulaire est envoyé avec post
+    if request.method == "POST":
+        succes, donnees = Theme.theme_new(
+            nom=request.form.get("nom", None)
+        )
+        if succes is True:
+            # les requêtes sont relancées pour actualiser le sidebar
+            last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+            flash("Vous avez ajouté un nouveau thème à la base de données.", "success")
+            return redirect("/theme/add")
+        else:
+            # afficher un message d'erreur sur la page
+            erreurs = "~".join(str(d) for d in donnees)
+            flash(erreurs, "error")
+            return render_template("pages/theme_add.html", erreurs=erreurs,
+                                   last_nominations=last_nominations, last_artistes=last_artistes,
+                                   last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+
+@app.route("/theme/<int:id_theme>/update", methods=["GET", "POST"])
+@login_required
+def theme_update(id_theme):
+    """route permettant de mettre à jour les données sur un thème.
+
+    :param theme_id: la clé primaire du thème à modifier
+    """
+    # initialisation des variables pour la mise à jour
+    theme = Theme.query.get_or_404(id_theme)
+    erreurs = []
+    updated = False
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+
+    # si un formulaire est envoyé avec POST
+    if request.method == "POST":
+        # vérifier que les informations sont fournies et sont valides
+        if not request.form.get("nom", "").strip():
+            erreurs.append("theme_nom.")
+        else:
+            nom = request.form.get("nom")
+            nom = clean_string(nom)
+            rgxnom = re.search(regexnc, nom)
+            if not rgxnom:
+                erreurs.append("L'orthographe du thème n'est pas conforme.")
+
+        # si il n'y a pas d'erreurs, procéder à la mise à jour
+        if not erreurs:
+            theme.nom = nom
+            try:
+                db.session.add(theme)
+                db.session.add(AuthorshipTheme(theme=theme, user=current_user))
+                db.session.commit()
+                updated = True
+                flash("Le thème a été modifié avec succès.", "success")
+                # les requêtes sont relancées pour actualiser le sidebar
+                last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+                return redirect(url_for("theme_main", id_theme=theme.id))
+            except Exception as error:
+                print(error)
+                flash(error, "erreur")
+                return render_template("pages/theme_update.html", theme=theme, erreurs=erreurs,
+                                       last_nominations=last_nominations, last_artistes=last_artistes,
+                                       last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+        else:
+            erreurs = "~".join(str(e) for e in erreurs)
+            flash(erreurs, "error")
+
+    # return
+    return render_template("pages/theme_update.html", theme=theme, erreurs=erreurs,
+                           last_nominations=last_nominations, last_artistes=last_artistes,
+                           last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
 
 # ----- ROUTES SPARQL ----- #
