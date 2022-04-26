@@ -6,6 +6,7 @@
 
 {% block corps %}
     {% if theme %}
+        <h1>Modofier le thème {{theme.nom}}</h1>
         <form method="POST" action="{{ url_for('theme_update', id_theme=theme.id) }}">
 
             <!-- nom -->

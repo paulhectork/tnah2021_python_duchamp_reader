@@ -7,7 +7,7 @@ from .utils.constantes import SECRET_KEY, templates, statics, cartes, uploads
 
 # ----- CONFIGURATION DE L'APPLICATION ----- #
 app = Flask(
-    "Application",
+    "Duchamp Reader",
     template_folder=templates,
     static_folder=statics
 )

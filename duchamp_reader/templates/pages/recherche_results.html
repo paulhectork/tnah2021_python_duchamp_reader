@@ -15,10 +15,9 @@
             {% for result in results.items %}
                 {% if result.classname == "artiste" %}
                     <li><a href="{{ url_for('artiste_main', id_artiste=result.id) }}">{{result.data}}</a></li>
-                {% elif result.classname == "nomination" %}
                 {% elif result.classname == "galerie" %}
                     <li><a href="{{ url_for('galerie_main', id_galerie=result.id) }}">{{result.data}}</a></li>
-                {% elif result.classname == "galerie" %}
+                {% elif result.classname == "theme" %}
                     <li><a href="{{ url_for('theme_main', id_theme=result.id) }}">{{result.data}}</a></li>
                 {% elif result.classname == "ville" %}
                     <li><a href="{{ url_for('ville_main', id_ville=result.id) }}">{{result.data}}</a></li>

@@ -389,6 +389,255 @@ def artiste_add():
                            last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
 
+@app.route("/artiste/<int:id_artiste>/update", methods=["GET", "POST"])
+@login_required
+def artiste_update(id_artiste):
+    """route permettant de mettre à jour les données sur un. artiste et sa nomination
+    (implique des modifications sur les tables artiste, nomination et ville)
+
+    :param id_artiste: la clé primaire de l'artiste à modifier
+    """
+    # vérifier si l'utilisateurice est connecté.e
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour rajouter des données", "error")
+        return redirect("/login")
+
+    # initialisation des variables pour la mise à jour
+    artiste = Artiste.query.get_or_404(id_artiste)  # récupérer l'artiste sur lequel la modification porte
+    nomination = Nomination.query.filter(Nomination.id_artiste == id_artiste).first()  # récup la nomination associée
+    # id_theme = nomination.theme.id   # requête pour faire des jointures avec les tables Theme
+    # theme = Theme.query.filter(Theme.id == id_theme).first()  # récupérer le thème associé
+                                                              # EN FAIT PAS SUR QUE ÇA SOIT UTILE
+
+    erreurs = []
+    updated = False
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+
+    # si un formulaire est envoyé avec POST
+    if request.method == "POST":
+        # récupérer les données
+        nom = request.form.get("nom", None)
+        prenom = request.form.get("prenom", None)
+        laureat = request.form.get("laureat", None)
+        theme = request.form.get("theme_nomination", None)
+        annee_nomination = request.form.get("annee_nomination", None)
+        annee_naissance = request.form.get("annee_naissance", None)
+        genre = request.form.get("genre", None)
+        ville_naissance = request.form.get("ville_naissance", None)
+        pays_naissance = request.form.get("pays_naissance", None)
+        ville_residence = request.form.get("ville_residence", None)
+        pays_residence = request.form.get("pays_residence", None)
+        id_wikidata = request.form.get("id_wikidata", None)
+
+        # vérifier que les données ont été fournies
+        laureat = bool(laureat)  # LA IL FAUDRA FAIRE ATTENTION À METTRE LES BONNES DONNÉES EN ENTRÉE
+        if not nom:
+            erreurs.append("Un.e artiste doit avoir un nom")
+        if not prenom:
+            erreurs.append("Un.e artiste doit avoir un prénom")
+        if not annee_nomination:
+            erreurs.append("Vous devez fournir une année de nomination")
+        if not annee_naissance:
+            erreurs.append("Un.e artiste doit avoir une date de naissance")
+        if not genre:
+            erreurs.append("Un.e artiste doit avoir un genre")
+        if not ville_naissance:
+            erreurs.append("Vous devez fournir la ville de naissance de votre artiste")
+        if not ville_residence:
+            erreurs.append("Vous devez fournir la ville de résidence de votre artiste")
+        if not theme:
+            erreurs.append("Vous devez indiquer le thème sur lequel travaille l'artiste")
+        if not pays_naissance:
+            erreurs.append("Vous devez fournir le pays de naissance de votre artiste")
+        if not pays_residence:
+            erreurs.append("Vous devez fournir le pays de résidence de votre artiste")
+        if not theme:
+            erreurs.append("Vous devez indiquer le thème sur lequel travaille l'artiste")
+
+        # nettoyer les données et vérifier leur validité
+        nom = clean_string(nom)
+        prenom = clean_string(prenom)
+        ville_naissance = clean_string(ville_naissance)
+        pays_naissance = clean_string(pays_naissance)
+        pays_residence = clean_string(pays_residence)
+        ville_residence = clean_string(ville_residence)
+        annee_naissance = annee_naissance.strip()
+        annee_nomination = annee_nomination.strip()
+        theme = clean_string(theme).lower()
+        if id_wikidata:
+            id_wikidata = clean_string(id_wikidata)
+        nomregex = re.search(regexnp, nom)
+        if not nomregex:
+            erreurs.append("Le nom contient des caractères non autorisés.")
+        prenomregex = re.search(regexnp, prenom)
+        if not prenomregex:
+            erreurs.append("Le prénom contient des caractères non autorisés.")
+        themeregex = re.search(regexnc, theme)
+        if not themeregex:
+            erreurs.append(
+                "Un nom de thème doit avoir la forme suivante : \
+                minuscules uniquement, accentuées ou non, séparées par des espaces et/ou tirets"
+            )
+        ville_n_regex = re.search(regexnp, ville_naissance)
+        if not ville_n_regex:
+            erreurs.append("Le nom de la ville de naissance contient des caractères non autorisés.")
+        ville_r_regex = re.search(regexnp, ville_residence)
+        if not ville_r_regex:
+            erreurs.append("Le nom de la ville de résidence contient des caractères non autorisés.")
+        pays_n_regex = re.search(regexnp, pays_naissance)
+        if not pays_n_regex:
+            erreurs.append("Le nom du pays de naissance contient des caractères non autorisés.")
+        pays_r_regex = re.search(regexnp, ville_residence)
+        if not pays_r_regex:
+            erreurs.append("Le nom du pays de résidence contient des caractères non autorisés.")
+        if len(str(annee_naissance)) != 4:
+            erreurs.append("La date de naissance doit être au format: AAAA")
+        try:
+            if not isinstance(int(annee_naissance), int):
+                erreurs.append("La date de naissance ne doit contenir que des chiffres")
+        except:
+            erreurs.append("La date de naissance ne doit contenir que des chiffres")
+        if len(str(annee_nomination)) != 4:
+            erreurs.append("L'année de nomination  doit être au format: AAAA")
+        try:
+            if not isinstance(int(annee_nomination), int):
+                erreurs.append("L'année de nomination ne doit contenir que des chiffres")
+        except:
+            erreurs.append("L'année de nomination ne doit contenir que des chiffres")
+        if id_wikidata:
+            wikiregex = re.search(regexwkd, id_wikidata)
+            if not wikiregex:
+                erreurs.append("Un identifiant wikidata correspond à la forme suivante : \
+                 Q suivi de un ou plusieurs chiffres")
+            id_wiki_check = Artiste.query.filter(db.and_(
+                Artiste.id_wikidata == id_wikidata,
+                Artiste.id != id_artiste
+            )).count()
+            if id_wiki_check > 0:
+                erreurs.append("Cet identifiant wikipedia existe déjà ; veuillez en choisir un autre.")
+
+        # si il n'y a pas d'erreurs, procéder à la mise à jour
+        if not erreurs:
+            # vérifier si le thème existe dans la bdd ; si il n'existe pas, l'ajouter à la base de données
+            db_theme_check = Theme.query.filter(Theme.nom == theme).count()
+            if db_theme_check == 0:
+                nv_theme = Theme(nom=theme)
+                try:
+                    db.session.add(nv_theme)
+                    db.session.add(AuthorshipTheme(theme=theme, user=current_user))
+                    db.session.commit()
+                except Exception as error:
+                    return False, [str(error)]
+
+            # essayer de récupérer les villes dans la BDD
+            # si les villes n'existent pas dans la base de données, essayer de récupérer
+            # leurs coordonnées et les y rajouter ; si la ville de naissance est la même
+            # que la ville de résidence, ne rajouter que la première ville
+            if ville_naissance == ville_residence and pays_naissance == pays_residence:
+                db_ville_check = Ville.query.filter(db.and_(
+                    Ville.nom == ville_naissance,
+                    Ville.pays == pays_naissance
+                )).count()
+                if db_ville_check == 0:
+                    longitude, latitude = coordinator(f"{ville_naissance}, {pays_naissance}")
+                    nv_ville = Ville(
+                        nom=ville_naissance,
+                        pays=pays_naissance,
+                        longitude=longitude,
+                        latitude=latitude
+                    )
+                    try:
+                        db.session.add(nv_ville)
+                        db.session.add(AuthorshipVille(ville=nv_ville, user=current_user))
+                        db.session.commit()
+                    except Exception as error:
+                        return False, [str(error)]
+            else:
+                db_ville_n_check = Ville.query.filter(db.and_(
+                    Ville.nom == ville_naissance,
+                    Ville.pays == pays_naissance
+                )).count()
+                if db_ville_n_check == 0:
+                    longitude, latitude = coordinator(f"{ville_naissance}, {pays_naissance}")
+                    nv_ville = Ville(
+                        nom=ville_naissance,
+                        pays=pays_naissance,
+                        longitude=longitude,
+                        latitude=latitude
+                    )
+                    try:
+                        db.session.add(nv_ville)
+                        db.session.add(AuthorshipVille(ville=nv_ville, user=current_user))
+                        db.session.commit()
+                    except Exception as error:
+                        return False, [str(error)]
+                db_ville_r_check = Ville.query.filter(Ville.nom == ville_residence).count()
+                if db_ville_r_check == 0:
+                    longitude, latitude = coordinator(f"{ville_residence}, {pays_residence}")
+                    nv_ville = Ville(
+                        nom=ville_residence,
+                        pays=pays_residence,
+                        latitude=latitude,
+                        longitude=longitude
+                    )
+                    try:
+                        db.session.add(nv_ville)
+                        db.session.add(AuthorshipVille(ville=nv_ville, user=current_user))
+                        db.session.commit()
+                    except Exception as error:
+                        return False, [str(error)]
+
+            # si il n'y a pas d'erreurs, récupérer les données nécessaires
+            db_theme = Theme.query.filter(Theme.nom == theme).first()
+            id_theme = db_theme.id
+            db_ville_naissance = Ville.query.filter(Ville.nom == ville_naissance).first()
+            id_ville_naissance = db_ville_naissance.id
+            db_ville_residence = Ville.query.filter(Ville.nom == ville_residence).first()
+            id_ville_residence = db_ville_residence.id
+
+            # ajouter l'artiste et la nomination modifiés
+            artiste.nom = nom
+            artiste.prenom = prenom
+            artiste.annee_naissance = annee_naissance
+            artiste.genre = genre
+            artiste.id_wikidata = id_wikidata
+            artiste.id_ville_naissance = id_ville_naissance
+            artiste.id_ville_residence = id_ville_residence
+
+            nomination.annee = annee_nomination
+            nomination.laureat = laureat
+            nomination.id_artiste = artiste.id
+            nomination.id_theme = id_theme
+
+            try:
+                db.session.add(artiste)
+                db.sessiob.add(nomination)
+                db.session.add(AuthorshipArtiste(artiste=artiste, user=current_user))
+                db.session.add(AuthorshipNomination(nomination=nomination, user=current_user))
+                db.session.commit()
+                updated = True
+                flash("L'artiste a été modifié avec succès.", "success")
+                last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+                return redirect(url_for("artiste_main", id_artiste=artiste.id))
+            except Exception as error:
+                print(error)
+                flash(error, "erreur")
+                return render_template("pages/artiste_update.html", artiste=artiste, nomination=nomination,
+                                       erreurs=erreurs, last_nominations=last_nominations, last_artistes=last_artistes,
+                                       last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+        else:
+            erreurs = "~".join(str(e) for e in erreurs)
+            flash(erreurs, "error")
+
+    print(artiste.nom)
+    print(nomination.annee)
+
+    # return
+    return render_template("pages/artiste_update.html", artiste=artiste, nomination=nomination,
+                           erreurs=erreurs, last_nominations=last_nominations, last_artistes=last_artistes,
+                           last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+
 # ----- ROUTES NOMINATION ----- #
 # il n'y a pas de route "nomination_main()" puisque  la page principale d'une nomination est la même
 # que la page d'un.e artiste
@@ -748,6 +997,11 @@ def theme_update(id_theme):
 
     :param theme_id: la clé primaire du thème à modifier
     """
+    # vérifier si l'utilisateurice est connecté.e
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour rajouter des données", "error")
+        return redirect("/login")
+
     # initialisation des variables pour la mise à jour
     theme = Theme.query.get_or_404(id_theme)
     erreurs = []
