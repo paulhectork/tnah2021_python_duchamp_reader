@@ -1,8 +1,9 @@
-from flask import render_template, request, flash, redirect, send_file, url_for
+from flask import render_template, request, flash, redirect, send_file, url_for, session
 from flask_login import current_user, login_required, login_user, logout_user
 from urllib.parse import quote_plus, unquote_plus
 import folium
 import json
+import time
 import os
 import re
 
@@ -26,6 +27,7 @@ from .utils.geography import mapdim
 # sinon (un seul message d'erreur), flash directement le message d'erreur sans le stocker dans une variable
 
 last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+
 
 # ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
@@ -238,9 +240,22 @@ def artiste_main(id_artiste):
     represente = RelationRepresente.query.filter(RelationRepresente.id_artiste == id_artiste).all()
     nominations_all = Nomination.query.filter(Nomination.annee == nomination.annee).all()
 
-    # enrichissement de la page avec wikipedia
-    code, summary, bio, formation, carriere, travail, oeuvre, url, wikidict = \
-        wikimaker(full=nomination.artiste.full, nom=nomination.artiste.nom)
+    # si les enrichissements wikipedia sont activés, lancer une requête sur wikipedia
+    if session["wikistatus"] == "active":
+        code, summary, bio, formation, carriere, travail, oeuvre, url, wikidict = \
+            wikimaker(full=nomination.artiste.full, nom=nomination.artiste.nom)
+        wikistatus = "active"
+    else:
+        code = None
+        summary = None
+        bio = None
+        formation = None
+        carriere = None
+        travail = None
+        oeuvre = None
+        url = None
+        wikidict = None
+        wikistatus = "inactive"
 
     # génération dynamique des cartes, si il y a des données géolocalisées à afficher
     # définition des coordonnées de la carte: zone sur laquelle centrer, coordonnées de la carte, taille du popup
@@ -329,7 +344,7 @@ def artiste_main(id_artiste):
                            carriere=carriere, url=url, wikidict=wikidict, represente=represente,
                            nominations_all=nominations_all, carte=carte, last_nominations=last_nominations,
                            last_artistes=last_artistes, last_galeries=last_galeries, last_themes=last_themes,
-                           last_villes=last_villes)
+                           last_villes=last_villes, wikistatus=wikistatus)
 
 
 @app.route("/artiste/add", methods=["GET", "POST"])
@@ -907,9 +922,7 @@ def ville_ajout():
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login",
-                        last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                        last_themes=last_themes, last_villes=last_villes)
+        return redirect("/login")
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, donnees = Ville.ville_new(
@@ -918,9 +931,7 @@ def ville_ajout():
         )
         if succes is True:
             flash("Vous avez rajouté une nouvelle ville à la base de données", "success")
-            return redirect("/ville",
-                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                            last_themes=last_themes, last_villes=last_villes)
+            return redirect("/ville")
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
             return render_template("pages/ville_ajout.html",
@@ -1210,3 +1221,17 @@ def sparql_redirect():
 def sparql_results_redirect():
     """Route permettant la redirection vers la bonne URL"""
     return redirect("/duchamp_sparqler/results")
+
+
+@app.route("/wikistatus")
+def wikistatus():
+    """
+    récupère grâce à une requête asynchrone transmise via ajax la valeur d'un attribut @value
+    d'un bouton qui permet d'indiquer si les requêtes sont activées ou désactivées. sauvegarde
+    le json issu de cette requête dans une session flask pour le transmettre à d'autres routes
+    :return: dictionnaire indiquant si les enrichissements wikipedia sont activés ou non
+    """
+    # récupérer le statut de des recherches wikipedia
+    wikistatus = dict(request.args)
+    session["wikistatus"] = list(wikistatus.values())[0]
+    return wikistatus

@@ -77,50 +77,54 @@
         <p>{% if nomination.artiste.id_wikidata %}L'identifiant wikidata de l'artiste est : {{nomination.artiste.id_wikidata}}.{% endif %}</p>
 
         <!-- wikipedia -->
-        <h2>En savoir plus (via wikipedia)</h2>
-        {% if code == "fr" %}
-            <p>Les informations qui suivent viennent de la page francophone de <a href="{{url}}">{{nomination.artiste.full}}</a>.</p>
+        {% if wikistatus == "active" %}
+            <h2>En savoir plus (via wikipedia)</h2>
+            {% if code == "fr" %}
+                <p>Les informations qui suivent viennent de la page francophone de <a href="{{url}}">{{nomination.artiste.full}}</a>.</p>
+            {% endif %}
+            {% if code == "en" %}
+                <p>Les informations qui suivent viennent de la page anglophone de <a href="{{url}}">{{nomination.artiste.full}}</a>.</p>
+            {% endif %}
+            {% if summary %}
+                <h4>En bref</h4>
+                <p style="white-space:pre-wrap">{{ summary }}</p>
+            {% endif %}
+            {% if bio %}
+                <h4>Biographie</h4>
+                <p style="white-space:pre-wrap">{{ bio }}</p>
+            {% endif %}
+            {% if formation %}
+                <h4>Formation</h4>
+                <p style="white-space:pre-wrap">{{ formation }}</p>
+            {% endif %}
+            {% if carriere %}
+                <h4>Carrière</h4>
+                <p style="white-space:pre-wrap">{{ carriere }}</p>
+            {% endif %}
+            {% if travail %}
+                <h4>Travail artistique</h4>
+                <p style="white-space:pre-wrap">{{ travail }}</p>
+            {% endif %}
+            {% if oeuvre %}
+                <h4>Pratique artistique et oeuvre</h4>
+                <p style="white-space:pre-wrap">{{ oeuvre }}</p>
+            {% endif %}
+            {% if oeuvres %}
+                <h4>Pratique artistique et oeuvre</h4>
+                <p style="white-space:pre-wrap">{{ oeuvres }}</p>
+            {% endif %}
+            {% if code == "no" %}
+                <p>La page wikipedia de cet.te artiste n'a pas été trouvée ! Si vous voulez vous cultiver ou procrastiner, pourquoi ne pas visiter une de ces pages au hasard ?</p>
+                <ul>
+                    {% for key, value in wikidict.items() %}
+                        <li><a href="{{value}}">{{key}}</a></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% else %}
+            <p>Les enrichissements Wikipédia sont désactivés pour rendre la navigation plus fluide. Vous pouvez
+            les activer dans le menu.</p>
         {% endif %}
-        {% if code == "en" %}
-            <p>Les informations qui suivent viennent de la page anglophone de <a href="{{url}}">{{nomination.artiste.full}}</a>.</p>
-        {% endif %}
-        {% if summary %}
-            <h4>En bref</h4>
-            <p style="white-space:pre-wrap">{{ summary }}</p>
-        {% endif %}
-        {% if bio %}
-            <h4>Biographie</h4>
-            <p style="white-space:pre-wrap">{{ bio }}</p>
-        {% endif %}
-        {% if formation %}
-            <h4>Formation</h4>
-            <p style="white-space:pre-wrap">{{ formation }}</p>
-        {% endif %}
-        {% if carriere %}
-            <h4>Carrière</h4>
-            <p style="white-space:pre-wrap">{{ carriere }}</p>
-        {% endif %}
-        {% if travail %}
-            <h4>Travail artistique</h4>
-            <p style="white-space:pre-wrap">{{ travail }}</p>
-        {% endif %}
-        {% if oeuvre %}
-            <h4>Pratique artistique et oeuvre</h4>
-            <p style="white-space:pre-wrap">{{ oeuvre }}</p>
-        {% endif %}
-        {% if oeuvres %}
-            <h4>Pratique artistique et oeuvre</h4>
-            <p style="white-space:pre-wrap">{{ oeuvres }}</p>
-        {% endif %}
-        {% if code == "no" %}
-            <p>La page wikipedia de cet.te artiste n'a pas été trouvée ! Si vous voulez vous cultiver ou procrastiner, pourquoi ne pas visiter une de ces pages au hasard ?</p>
-            <ul>
-                {% for key, value in wikidict.items() %}
-                    <li><a href="{{value}}">{{key}}</a></li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
 
         <!-- carousel d'images -->
         {% if nomination.annee == 2021 and nomination.id_artiste != 18 %}
@@ -160,66 +164,6 @@
                         <img src="../static/images/2021duchamp_reynauddewar2.jpg" class="slide"/>
                     </div>
                 {% endif %}
-
-                <!-- javascript -->
-                <script type="text/javascript">
-                    var slides = document.querySelectorAll('.slides img');
-                    var currentSlide = 0;
-                    var slideInterval = setInterval(nextSlide,3500);
-                    var playing = true;
-                    var pausebtn = document.querySelector('#pause');
-                    var prevbtn = document.querySelector('#prev');
-                    var nextbtn = document.querySelector('#next');
-
-                    //slide automatique
-                    function nextSlide() {
-                      slides[currentSlide].className = 'slide';
-                      currentSlide = (currentSlide+1)%slides.length;
-                      slides[currentSlide].className = 'shown';
-                    };
-
-                    //pause et play
-                    function pauseSlideshow() {
-                      pausebtn.innerHTML = 'reprendre';
-                      playing = false;
-                      clearInterval(slideInterval);
-                    };
-                    function playSlideshow() {
-                      pausebtn.innerHTML = 'pause';
-                      playing = true;
-                      slideInterval = setInterval(nextSlide,3500);
-                    };
-
-                    //slide précédente et suivante
-                    function prevSlide() {
-                      toSlide(currentSlide-1);
-                    };
-                    function nextSlide() {
-                      toSlide(currentSlide+1);
-                    };
-                    function toSlide(n) {
-                      slides[currentSlide].className = 'slide';
-                      currentSlide = (n+slides.length)%slides.length;
-                      slides[currentSlide].className = 'shown';
-                    };
-
-                    //action des bouttons
-                    pausebtn.onclick = function() {
-                      if(playing) {
-                        pauseSlideshow();
-                      } else {
-                        playSlideshow();
-                      }
-                    };
-                    prevbtn.onclick = function() {
-                      pauseSlideshow()
-                      prevSlide();
-                    };
-                    nextbtn.onclick = function() {
-                      pauseSlideshow()
-                      nextSlide();
-                    }
-                </script>
 
             </div>
         {% endif %}
