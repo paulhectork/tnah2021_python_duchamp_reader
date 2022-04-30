@@ -62,11 +62,11 @@ class Artiste(db.Model):
         # valider les données
         nom, prenom, genre, annee_naissance, annee_nomination, ville_naissance, ville_residence, \
         pays_naissance, pays_residence, theme, id_wikidata, laureat, erreurs = \
-            validate_artist(nom=nom, prenom=prenom, genre=genre, annee_naissance=annee_naissance,
-                            annee_nomination=annee_nomination, ville_naissance=ville_naissance,
-                            ville_residence=ville_residence, pays_naissance=pays_naissance,
-                            pays_residence=pays_residence, theme=theme, id_wikidata=id_wikidata,
-                            laureat=laureat)
+            validate_artiste(nom=nom, prenom=prenom, genre=genre, annee_naissance=annee_naissance,
+                             annee_nomination=annee_nomination, ville_naissance=ville_naissance,
+                             ville_residence=ville_residence, pays_naissance=pays_naissance,
+                             pays_residence=pays_residence, theme=theme, id_wikidata=id_wikidata,
+                             laureat=laureat)
 
         # vérifier qu'il n'y a pas d'erreurs dans l'ajout d'un nouvel artiste
         if len(erreurs) > 0:
@@ -181,9 +181,20 @@ class Artiste(db.Model):
             return False, [str(error)]
         # si cette fonction de l'angoisse fonctionne, prendre une pause méritée
 
-    # une version très allégée de artiste_new() pour ajouter des données au moment de l'initialisation de la base
     @staticmethod
     def artiste_new_init(nom, prenom, annee_naissance, genre, id_wikidata, id_ville_naissance, id_ville_residence):
+        """
+        fonction permettant d'ajouter les artistes lorsque la base de données est peuplée au lancement de l'application
+        :param nom: nom de l'artiste
+        :param prenom: prénom de l'artiste
+        :param annee_naissance: année de naissance de l'artiste
+        :param genre: genre de l'artiste
+        :param id_wikidata: identifiant wikidata
+        :param id_ville_naissance: clé renvoyant à l'identifiant de la ville de naissance de l'artiste
+        :param id_ville_residence: clé renvoyant à l'identifiant de la ville de résidence de l'artiste
+        :return: True et objet sqlalchemy correspondant au nouvel artiste si tout va bien ; message d'erreur et False
+        sinon
+        """
         erreurs = []
         if not nom:
             erreurs.append("Un.e artiste doit avoir un nom")
@@ -218,7 +229,8 @@ class Artiste(db.Model):
             wikiregex = re.search(regexwkd, id_wikidata)
             if not wikiregex:
                 erreurs.append(
-                    "Un identifiant wikidata correspond à l'expression: ^Q\d+$ (Q suivi de un ou plusieurs chiffres)")
+                    "Un identifiant wikidata correspond à l'expression: ^Q\d+$ (Q suivi de un ou plusieurs chiffres)"
+                )
 
         # si tout va bien, on ajoute les données
         if len(erreurs) > 0:
@@ -256,6 +268,15 @@ class Nomination(db.Model):
 
     @staticmethod
     def nomination_new_init(annee, laureat, id_artiste, id_theme):
+        """
+        fonction permettant d'ajouter les nominations lors de la création de la base de données au premier
+        lancement de l'application
+        :param annee: année de nomination
+        :param laureat: booléen indiquant si l'artiste est lauréat.e ou non
+        :param id_artiste: clé renvoyant à l'identifiant de l'artiste
+        :param id_theme: clé renvoyant au thème de l'artiste
+        :return: True & objet sqlalchemy correspondant à la nouvelle nomination si tout va bien ; erreur & False sinon
+        """
         erreurs = []
         if not annee:
             erreurs.append("Fournir une année")
@@ -306,46 +327,19 @@ class Galerie(db.Model):
     localisation = db.relationship("RelationLocalisation", back_populates="galerie")
 
     @staticmethod
-    # EUH? J'AI OUBLIÉ D'AJOUTER LA LOCALISATION ET QUI EST REPRÉSENTÉ PAR LA GALERIE
-    # POUR FAIRE ÇA, IL FAUDRAIT GÉRER L'AJOUT DE DONNÉES AUX TABLES "RELATION_LOCALISATION"
-    # ET "RELATION_REPRESENTE", CE QUI EN SOIT EST FAISABLE (mais doit être fait)
     def galerie_new(nom, url):
-        # vérifier que les données ont été fournies
-        erreurs = []
-        if not nom:
-            erreurs.append("Une galerie doit avoir un nom")
-        if not url:
-            erreurs.append("Une galerie doit avoir un URL")
+        """
+        fonction permettant d'ajouter une galerie à la base de données
+        :param nom: nom de la galerie
+        :param url: url de la galerie
+        :return: True et objet sqlalchemy correspondant à la nouvelle galerie si tout va bien ; sinon, False et
+        message d'erreur
+        """
+        nom, url, erreurs = validate_galerie(nom=nom, url=url)
 
-        # nettoyer les données et vérifier leur validité
-        nom = clean_string(nom)
-        nomregex = re.search(regexnp, nom)
-        if not nomregex:
-            erreurs.append(
-                "Un nom de galerie correspond à l'expression: \
-                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
-            )
-        url = url.strip()
-        urlregex = re.search(regexurl, url)
-        if not urlregex:
-            erreurs.append(
-                "Un URL correspond à l'expression: \
-                http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+.\
-                Veuillez fournir un URL valide."
-            )
-
-        # vérifier si la galerie existe déjà dans la base de données
-        db_galerie_check = Galerie.query.filter(Galerie.nom == nom).count()
-        if db_galerie_check > 0:
-            erreurs.append("Cette galerie existe déjà dans la base; veuillez changer le nom pour ajouter une nouvelle \
-            galerie à la base")
-
+        # si il y a des erreurs, arrêter ; si tout va bien, ajouter la galerie à la base de données
         if len(erreurs) > 0:
             return False, erreurs
-
-        # si tout va bien, ajouter la galerie à la base de données
         nv_galerie = Galerie(
             nom=nom,
             url=url
@@ -359,24 +353,18 @@ class Galerie(db.Model):
 
     @staticmethod
     def galerie_new_init(nom, url):
-        erreurs = []
-        if not nom:
-            erreurs.append("Une galerie doit avoir un nom")
-        if not url:
-            erreurs.append("Vous devez fournir un URL")
-
-        # nettoyer les données et vérifier leur validité
-        nom = clean_string(nom)
-        nomregex = re.search(regexnp, nom)
-        if not nomregex:
-            erreurs.append("Nom incorrect. Voir regex")
-        url = url.strip()
-        urlregex = re.search(regexurl, url)
-        if not urlregex:
-            erreurs.append("URL incorrect. Voir regex")
+        """
+        fonction permettant de peupler la base de données lors du premier lancement de l'application
+        :param nom: nom de la galerie
+        :param url: url de la galerie
+        :return: nom et url nettoyés, liste d'erreurs (vide si il n'y a pas d'erreurs)
+        """
+        # vérifier la validité des données
+        nom, url, erreurs = validate_galerie(nom=nom, url=url)
 
         # vérifier si il y a des erreurs; sinon, rajouter les données à la base
         if len(erreurs) > 0:
+            print(erreurs)
             return False, erreurs
         nv_galerie = Galerie(
             nom=nom,
@@ -404,51 +392,17 @@ class Ville(db.Model):
 
     @staticmethod
     def ville_new(nom, latitude, longitude, pays):
-        # vérifier que les données ont été fournies
-        erreurs = []
-        if not nom:
-            erreurs.append("Vous devez fournir un nom pour la ville")
-        if not longitude:
-            erreurs.append("Vous devez fournir une longitude pour cette ville")
-        if not latitude:
-            erreurs.append("Vous devez fournir une latitude pour cette ville")
-        if not pays:
-            erreurs.append("Vous devez fournir un pays pour cette ville")
-
-        # nettoyer les données et vérifier leur validité
-        nom = clean_string(nom)
-        nomregex = re.search(regexnp, nom)
-        if not nomregex:
-            erreurs.append(
-                "Un nom de ville correspond à l'expression: \
-                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
-            )
-        if not isinstance(longitude, float):
-            erreurs.append("La longitude doit être un nombre décimal")
-        if not isinstance(latitude, float):
-            erreurs.append("La latitude doit être un nombre décimal")
-        pays = clean_string(pays)
-        paysregex = re.search(regexnp, pays)
-        if not paysregex:
-            erreurs.append(
-                "Un nom de pays correspond à l'expression: \
-                ^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$ \
-                (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
-                tirets et espaces, miniscule en fin de chaîne)"
-            )
-
-        # vérifier que la ville n'existe pas déjà dans la  base de données
-        db_ville_check = Ville.query.filter(db.and_(
-            Ville.nom == nom,
-            Ville.longitude == longitude,
-            Ville.latitude == latitude,
-            Ville.pays == pays
-        )).count()
-        if db_ville_check > 0:
-            erreurs.append("Cette ville existe déjà ; veuillez changer le nom ou ses coordonnées pour rajouter une \
-            nouvelle ville à la base")
+        """
+        fonction permettant d'ajouter une nouvelle ville à la base de données
+        :param nom: nom de la ville
+        :param latitude: latitude de la ville
+        :param longitude: longitude de la ville
+        :param pays: pays où se trouve la ville
+        :return: True et objet sqlalchemy correspondant à la nouvelle ville si tout va bien ; sinon, False et message
+        d'erreur
+        """
+        nom, longitude, latitude, pays, erreurs = validate_ville(nom=nom, longitude=longitude,
+                                                                 latitude=latitude, pays=pays)
 
         if len(erreurs) > 0:
             return False, erreurs
@@ -469,30 +423,18 @@ class Ville(db.Model):
 
     @staticmethod
     def ville_new_init(nom, latitude, longitude, pays):
-        # vérifier que toutes les données sont fournies
-        erreurs = []
-        if not nom:
-            erreurs.append("Vous devez fournir un nom pour la ville")
-        if not longitude:
-            erreurs.append("Vous devez fournir une longitude pour cette ville")
-        if not latitude:
-            erreurs.append("Vous devez fournir une latitude pour cette ville")
-        if not pays:
-            erreurs.append("Vous devez fournir un pays pour cette ville")
-
-        # nettoyer les données et vérifier leur validité
-        nom = clean_string(nom)
-        nomregex = re.search(regexnp, nom)
-        if not nomregex:
-            erreurs.append("Nom non conforme à la regex")
-        if not isinstance(longitude, float):
-            erreurs.append("La longitude doit être un nombre décimal")
-        if not isinstance(latitude, float):
-            erreurs.append("La latitude doit être un nombre décimal")
-        pays = clean_string(pays)
-        paysregex = re.search(regexnp, nom)
-        if not paysregex:
-            erreurs.append("Nom de pays non conforme à la regex")
+        """
+        fonction permettant de peupler la table Ville lors de la création de la base de données
+        :param nom: nom de la ville
+        :param latitude: latitude de la ville
+        :param longitude: longitude de la ville
+        :param pays: pays où se trouve la ville
+        :return: True et objet sqlalchemy correspondant à la nouvelle ville si tout va bien ; sinon, False et message
+        d'erreur
+        """
+        # vérifier la validité des données et les nettoyer
+        nom, longitude, latitude, pays, erreurs = validate_ville(nom=nom, longitude=longitude,
+                                                                 latitude=latitude, pays=pays)
 
         # vérifier si il y a des erreurs; sinon, ajouter les données à la base
         if len(erreurs) > 0:
@@ -513,7 +455,6 @@ class Ville(db.Model):
     @hybrid.hybrid_property
     def full(self):
         """Cette propriété permet de concaténer nom de la ville et nom du pays.
-
         :return: Nom de la ville avec nom du pays entre parenthèses
         :rtype: str
         """
@@ -531,23 +472,13 @@ class Theme(db.Model):
 
     @staticmethod
     def theme_new(nom):
-        # vérifier que les données sont fournies
-        erreurs = []
-        if not nom:
-            erreurs.append("Vous devez fournir un nom")
-
-        # nettoyer les données et vérifier leur validité
-        nom = clean_string(nom)
-        nomregex = re.search(regexnc, nom)
-        if not nomregex:
-            erreurs.append("Un nom de thème doit correspondre la forme suivante: \
-                minuscules uniquement, accentuées ou non, séparées par des espaces et/ou tirets")
-        nom = clean_string(nom).lower()
-
-        # vérifier si le thème existe déjà dans la base de données
-        db_theme_check = Theme.query.filter(Theme.nom == nom).count()
-        if db_theme_check > 0:
-            erreurs.append("Ce thème existe déjà; veuillez en fournir un autre")
+        """
+        fonction permettant de créer un nouveau thème
+        :param nom: nom du thème
+        :return: True et objet sqlalchemy correspondant au thème si tout va bien. sinon, False et liste d'erreurs
+        """
+        # vérifier la validité des données
+        nom, erreurs = validate_theme(nom=nom)
 
         if len(erreurs) > 0:
             return False, erreurs
@@ -565,14 +496,13 @@ class Theme(db.Model):
 
     @staticmethod
     def theme_new_init(nom):
-        # vérifier que les données existent et qu'elles sont valides
-        erreurs = []
-        if not nom:
-            erreurs.append("Fournir un nom")
-        nomregex = re.search(regexnc, nom)
-        if not nomregex:
-            erreurs.append("Nom non conforme à la regex")
-        nom = clean_string(nom).lower()
+        """
+        fonction permettant de peupler la table Theme à l'initialisation de la base de données
+        :param nom: nom du thème
+        :return: True et objet sqlalchemy correspondant au thème si tout va bien; False et message d'erreur sinon
+        """
+        # vérifier la validité des données
+        nom, erreurs = validate_theme(nom=nom)
 
         # si il n'y a pas d'erreurs, ajouter les données à la base
         if len(erreurs) > 0:
@@ -589,4 +519,4 @@ class Theme(db.Model):
 
 
 # ----- ÉVITER LES IMPORTS CIRCULAIRES ----- #
-from ..utils.validation import validate_artist
+from ..utils.validation import validate_artiste, validate_galerie, validate_ville, validate_theme

@@ -8,6 +8,8 @@ def db_create():
     """Fonction d'initalisation permettant de créer la base de donnéres
     """
     if not database_exists('sqlite:///db.sqlite'):
+        print("")
+        print("###########################################")
         print("CRÉATION DE LA BASE DE DONNÉES")
         db.create_all()
 
@@ -271,6 +273,9 @@ def db_populate_relation_localisation():
         RelationLocalisation.localisation_new_init(38, 33)
         RelationLocalisation.localisation_new_init(39, 11)
         print("TABLE 'RELATIONLOCALISATION' PEUPLÉE")
+        print("BASE DE DONNÉES CRÉÉE")
+        print("###########################################")
+        print("")
 
 def db_populate():
     db_populate_galerie()

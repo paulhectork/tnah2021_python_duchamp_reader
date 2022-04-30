@@ -17,7 +17,7 @@ from .utils.duchamp_sparqler import duchamp_sparqler
 from .utils.constantes import PERPAGE, cartes, statics, css, uploads
 from .utils.wikimaker import wikimaker
 from .utils.geography import mapdim
-from .utils.validation import validate_artist
+from .utils.validation import validate_artiste, validate_galerie, validate_ville
 
 
 # gesion des flashes d'erreurs:
@@ -86,15 +86,6 @@ def recherche():
 
         results = results_artiste.union(results_galerie, results_ville, results_theme)\
             .order_by(Artiste.id.asc()).paginate(page=page, per_page=PERPAGE)
-
-        # en SQL, UNION permet d'empiler des requêtes avec le même nombre de colonnes et les mêmes
-        # noms de colonnes. c'est pour ça qu'on utilise ".with_entities()", pour sélectionner les colonnes
-        # à conserver et ".label()" pour renommer les colonnes. la requête au dessus équivaut à:
-        #   SELECT nomination.id, nomination.annee AS data, nomination.classname
-	    #   FROM nomination
-        #   UNION
-        #   SELECT artiste.id, artiste.nom AS data, artiste.classname
-	    #   FROM artiste
 
     # return
     return render_template(
@@ -443,11 +434,11 @@ def artiste_update(id_artiste):
         # valider les données
         nom, prenom, genre, annee_naissance, annee_nomination, ville_naissance, ville_residence, \
         pays_naissance, pays_residence, theme, id_wikidata, laureat, erreurs = \
-            validate_artist(nom=nom, prenom=prenom, genre=genre, annee_naissance=annee_naissance,
-                            annee_nomination=annee_nomination, ville_naissance=ville_naissance,
-                            ville_residence=ville_residence, pays_naissance=pays_naissance,
-                            pays_residence=pays_residence, theme=theme, id_wikidata=id_wikidata,
-                            laureat=laureat, id_artiste=artiste.id)
+            validate_artiste(nom=nom, prenom=prenom, genre=genre, annee_naissance=annee_naissance,
+                             annee_nomination=annee_nomination, ville_naissance=ville_naissance,
+                             ville_residence=ville_residence, pays_naissance=pays_naissance,
+                             pays_residence=pays_residence, theme=theme, id_wikidata=id_wikidata,
+                             laureat=laureat, id_artiste=artiste.id)
 
         # si il n'y a pas d'erreurs, procéder à la mise à jour
         if len(erreurs) == 0:
@@ -592,41 +583,6 @@ def nomination_index():
                            last_themes=last_themes, last_villes=last_villes)
 
 
-@app.route("/nomination/add", methods=["GET", "POST"])  # EN FAIT NN LOL
-def nomination_add():
-    # les requêtes constantes sont relancées pour éviter une SQLAlchemy ProgrammingError
-    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-
-    # si l'utilisateur.ice n'est pas connecté.e, le/la rediriger vers la page d'accueil
-    if current_user.is_authenticated is False:
-        flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login")
-    # si il.elle est connecté.e et si un formulaire est envoyé avec post
-    if request.method == "POST":
-        succes, donnees = Nomination.nomination_new(
-            annee=request.form.get("annee", None),
-            laureat=request.form.get("laureat", None),
-            nom_artiste=request.form.get("nom_artiste", None),
-            prenom_artiste=request.form.get("prenom_artiste", None),
-            theme=request.form.get("theme", None)
-        )
-        if succes is True:
-            flash("Vous avez rajouté une nouvelle nomination au prix Marcel Duchamp dans la base", "success")
-            return redirect("/nomination")
-        else:
-            # afficher un message d'erreur sur la page
-            erreurs = "~".join(str(d) for d in donnees)
-            print(erreurs)
-            flash(erreurs, "error")
-            return render_template("pages/nomination_add.html",
-                                   last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                                   last_themes=last_themes, last_villes=last_villes)
-    else:
-        return render_template("pages/nomination_add.html",
-                               last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                               last_themes=last_themes, last_villes=last_villes)
-
-
 # ----- ROUTES GALERIE ----- #
 @app.route("/galerie")
 def galerie_index():
@@ -735,8 +691,8 @@ def galerie_ajout():
         else:
             flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
             return render_template("pages/galerie_ajout.html",
-                                   last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                                   last_themes=last_themes, last_villes=last_villes)
+                                   last_nominations=last_nominations, last_artistes=last_artistes,
+                                   last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
     else:
         return render_template("pages/galerie_ajout.html",
                                last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,

@@ -134,7 +134,8 @@
                 <label for="artiste-id-wikidata" class="col-sm-2 col-form-label">Identifiant wikidata au format QXXXXX (facultatif)</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="artiste-id-wikidata"
-                           name="id_wikidata" value="{{ artiste.id_wikidata }}"/>
+                           name="id_wikidata"
+                           value="{% if artiste.id_wikidata %}{{ artiste.id_wikidata }}{% endif %}"/>
                 </div>
             </div>
 

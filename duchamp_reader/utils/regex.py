@@ -2,7 +2,7 @@ import re
 
 # l'expression régulière utilisée pour vérifier la validité des noms propres : majuscules non-accentuées
 # uniquement, lettres accentuées ou non, tirets et espaces
-regexnp = "^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)+[^-]$"
+regexnp = "^[A-Z]((([a-z]')|[-\s]|[A-Z])*([àáâäéèêëíìîïòóôöúùûüøœæ&+]|[a-z])+)*[^-]$"
 
 # l'expression régulière pour vérifier la validité des noms communs : caractères en minuscules,
 # accentués ou non, séparés ou non par un unique espace ou tiret
