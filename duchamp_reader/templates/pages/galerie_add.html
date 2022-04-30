@@ -1,0 +1,66 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| nouveau thème{% endblock %}
+
+{% block corps %}
+    <h1>Ajouter un nouveau thème à la base de données</h1>
+
+    <!-- corps du texte -->
+    <p>Pour ajouter une nouvelle galerie à la base de données, veuillez remplir
+        le formulaire et cliquer sur "Ajouter".</p>
+    <form class="form" method="POST" action="{{ url_for('galerie_add') }}">
+
+        <!-- nom -->
+        <div class="form-group row">
+            <label for="galerie-nom" class="col-sm-2 col-form-label">Nom de la galerie</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="galerie-nom" name="nom" placeholder="Nom de la galerie"/>
+            </div>
+        </div>
+
+        <!-- url -->
+        <div class="form-group row">
+            <label for="galerie-url" class="col-sm-2 col-form-label">URL du site principal de la galerie</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="galerie-url" name="url"
+                       placeholder="Url de la galerie (ex: www.bluerosegallery.com)"/>
+            </div>
+        </div>
+
+        <!-- artiste représenté -->
+        <div class="form-group row">
+            <label for="galerie-artiste" class="col-sm-2 col-form-label">Artiste représenté.e</label>
+            <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <select type="text" class="form-select" id="galerie-artiste" name="represente" aria-expanded="false">
+                    <option value="base">Sélectionner</option>
+                    {% for a in artistes %}
+                        <option value="{{ a.id }}">{{ a.full }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- localisation -->
+        <div class="form-group row">
+            <label for="galerie-localisation" class="col-sm-2 col-form-label">Localisation de la galerie</label>
+            <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <select type="text" class="form-select" id="galerie-localisation" name="localisation" aria-expanded="false">
+                    <option value="base">Sélectionner</option>
+                    {% for v in villes %}
+                        <option value="{{ v.id }}">{{ v.nom }} ({{ v.pays }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- sumbit -->
+        <div> <button type="submit" class="btn btn-primary">Ajouter</button></div>
+    </form>
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('galerie_index')}}">Index des galeries</a>
+    </div>
+
+{% endblock %}

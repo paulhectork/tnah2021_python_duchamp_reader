@@ -12,7 +12,7 @@ regexnc = "^(([a-z]|[àáâäéèêëíìîïòóôöúùûüøœæ])|(\-?\s?))+
 regexmail = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
 # expression régulière validant les URL
-regexurl = "http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+regexurl = "(http[s]?:\/\/)?(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 
 # expression régulière vérifiant les ID wikidata
 regexwkd = "^Q\d+$"

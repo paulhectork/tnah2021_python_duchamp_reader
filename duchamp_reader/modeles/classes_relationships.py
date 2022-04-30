@@ -64,7 +64,7 @@ class RelationRepresente(db.Model):
 
     # méthode de création de données à l'initialisation de la base
     @staticmethod
-    def represente_new_init(id_artiste, id_galerie):
+    def represente_new(id_artiste, id_galerie):
         # vérifier que les données sont fournies et valides
         erreurs = []
         if not id_artiste:
@@ -100,7 +100,7 @@ class RelationLocalisation(db.Model):
     ville = db.relationship("Ville", back_populates="localisation")
 
     @staticmethod
-    def localisation_new_init(id_galerie, id_ville):
+    def localisation_new(id_galerie, id_ville):
         # vérifier que les données sont fournies et valides
         erreurs = []
         if not id_ville:

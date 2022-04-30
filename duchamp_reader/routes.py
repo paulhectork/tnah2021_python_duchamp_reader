@@ -117,7 +117,7 @@ def inscription():
                                    last_nominations=last_nominations, last_artistes=last_artistes,
                                    last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
         else:
-            statut, donnees = User.usr_new(
+            statut, output = User.usr_new(
                 nom=request.form.get("nom", None),
                 login=request.form.get("login", None),
                 email=request.form.get("email", None),
@@ -128,7 +128,7 @@ def inscription():
                 return redirect("/")
             else:
                 # afficher un message d'erreur sur la page
-                erreurs = "~".join(str(d) for d in donnees)
+                erreurs = "~".join(str(o) for o in output)
                 flash(str(erreurs), "error")
                 return render_template("pages/inscription.html", erreurs=erreurs,
                                        last_nominations=last_nominations, last_artistes=last_artistes,
@@ -363,7 +363,7 @@ def artiste_add():
     #                genre, ville_naissance, ville_residence, id_wikidata):
 
     if request.method == "POST":
-        succes, donnees = Artiste.artiste_new(
+        succes, output = Artiste.artiste_new(
             nom=request.form.get("nom", None),
             prenom=request.form.get("prenom", None),
             laureat=request.form.get("laureat", None),
@@ -378,13 +378,20 @@ def artiste_add():
             id_wikidata=request.form.get("id_wikidata", None)
         )
         if succes is True:
-            # les requêtes sont relancées pour actualiser le sidebar
-            last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-            flash("Vous avez ajouté un.e nouvel.le artiste à la base de données.", "success")
-            return redirect("/artiste/add")
+            try:
+                db.session.add(AuthorshipArtiste(artiste=output, user=current_user))
+                db.session.commit()
+                # les requêtes sont relancées pour actualiser le sidebar
+                last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+                flash("Vous avez ajouté un.e nouvel.le artiste à la base de données.", "success")
+                return redirect("/artiste/add")
+            except Exception as error:
+                db.session.rollback()
+                flash("Une erreur a eu lieu lors de l'ajout du nouvel artiste", "error")
+                return redirect("/artiste/add")
         else:
             # afficher un message d'erreur sur la page
-            erreurs = "~".join(str(d) for d in donnees)
+            erreurs = "~".join(str(o) for o in output)
             flash(erreurs, "error")
             return render_template("pages/artiste_add.html", erreurs=erreurs,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
@@ -541,7 +548,6 @@ def artiste_update(id_artiste):
                     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
                     return redirect(url_for("artiste_main", id_artiste=artiste.id))
                 except Exception as error:
-                    print(error)
                     flash(error, "erreur")
                     return render_template("pages/artiste_update.html", artiste=artiste, nomination=nomination,
                                            erreurs=erreurs, last_nominations=last_nominations,
@@ -558,8 +564,8 @@ def artiste_update(id_artiste):
 
 
 # ----- ROUTES NOMINATION ----- #
-# il n'y a pas de route "nomination_main()" puisque  la page principale d'une nomination est la même
-# que la page d'un.e artiste
+# il n'y a pas de route "nomination_main()", add ou update :
+# la page principale d'une nomination est la même que la page d'un.e artiste
 @app.route("/nomination")
 def nomination_index():
     """Fonction permettant d'afficher un index de toutes les nominations figurant dans la base de données
@@ -674,27 +680,89 @@ def galerie_main(id_galerie):
 
 
 @app.route("/galerie/add", methods=["POST", "GET"])
-def galerie_ajout():
+def galerie_add():
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login")
+        return redirect("/connexion")
+
+    # lancer les requêtes nécessaires
+    villes = Ville.query.all()
+    artistes = Artiste.query.all()
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
-        succes, donnees = Galerie.galerie_new(
-            nom=request.form.get("nom", None)
-        )
-        if succes is True:
-            flash("Vous avez rajouté une nouvelle galerie à la base de données", "success")
-            return redirect("/artiste")
+        # définition des variables
+        erreurs = []
+        out_loc = None
+        out_repr = None
+        succes_loc = False
+        succes_repr = False
+
+        # récupérer les données du formulaire et vérifier que toutes les données ont été fournies
+        nom = request.form.get("nom", None)
+        url = request.form.get("url", None)
+        localisation = request.form.get("localisation", None)
+        represente = request.form.get("represente", None)
+
+        if localisation == "base":
+            erreurs.append("Veuillez fournir une localisation")
+        if represente == "base":
+            erreurs.append("Veuillez fournir un.e artiste représenté.e par la galerie")
+
+        # ajouter l'artiste
+        if len(erreurs) == 0:
+            succes_galerie, out_galerie = Galerie.galerie_new(
+                nom=nom,
+                url=url
+            )
+            if succes_galerie is True:
+                # ajouter la relation entre Galerie et Ville
+                succes_loc, out_loc = RelationLocalisation.localisation_new(
+                    id_galerie=out_galerie.id,
+                    id_ville=int(localisation)
+                )
+            if succes_loc is True:
+                # ajouter la relation entre Galerie et Artiste
+                succes_repr, out_repr = RelationRepresente.represente_new(
+                    id_galerie=out_galerie.id,
+                    id_artiste=int(represente)
+                )
+
+            # si tout va bien, ajouter une entrée à la table AuthorshipGalerie et rediriger
+            # vers l'index des galeries
+            if succes_galerie is True and succes_loc is True and succes_repr is True:
+                db.session.add(AuthorshipGalerie(galerie=out_galerie, user=current_user))
+                last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+                flash("Vous avez rajouté une nouvelle galerie à la base de données", "success")
+                return redirect("/galerie")
+            else:
+                # si il y a une erreur, générer et afficher la liste des erreurs
+                db.session.rollback()
+                if succes_galerie is False:
+                    for o in list(out_galerie):
+                        erreurs.append(o)
+                if succes_loc is False and out_loc is not None:
+                    for o in list(out_loc):
+                        erreurs.append(o)
+                if succes_repr is False and out_repr is not None:
+                    for o in out_repr:
+                        erreurs = erreurs.append(o)
+                erreurs = "~".join(str(e) for e in erreurs)
+                flash(erreurs, "error")
+                return render_template("pages/galerie_add.html", erreurs=erreurs, villes=villes, artistes=artistes,
+                                       last_nominations=last_nominations, last_artistes=last_artistes,
+                                       last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
         else:
-            flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
-            return render_template("pages/galerie_ajout.html",
+            erreurs = "~".join(str(e) for e in erreurs)
+            flash(erreurs, "error")
+            return render_template("pages/galerie_add.html", erreurs=erreurs, villes=villes, artistes=artistes,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
                                    last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
     else:
-        return render_template("pages/galerie_ajout.html",
+        return render_template("pages/galerie_add.html", villes=villes, artistes=artistes,
                                last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                                last_themes=last_themes, last_villes=last_villes)
 
@@ -794,7 +862,7 @@ def ville_ajout():
         return redirect("/login")
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
-        succes, donnees = Ville.ville_new(
+        succes, output = Ville.ville_new(
             nom=request.form.get("nom", None),
             longitude=request.form.get("longitude", None)
         )
@@ -802,7 +870,7 @@ def ville_ajout():
             flash("Vous avez rajouté une nouvelle ville à la base de données", "success")
             return redirect("/ville")
         else:
-            flash("L'ajout de données n'a pas pu être fait: " + " + ".join(donnees), "error")
+            flash("L'ajout de données n'a pas pu être fait: " + " + ".join(output), "error")
             return render_template("pages/ville_ajout.html",
                                    last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                                    last_themes=last_themes, last_villes=last_villes)
@@ -853,17 +921,18 @@ def theme_add():
         return redirect("/login")
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
-        succes, donnees = Theme.theme_new(
+        succes, output = Theme.theme_new(
             nom=request.form.get("nom", None)
         )
         if succes is True:
             # les requêtes sont relancées pour actualiser le sidebar
             last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
             flash("Vous avez ajouté un nouveau thème à la base de données.", "success")
-            return redirect("/theme/add")
+            return redirect("/theme")
         else:
+            db.session.rollback()
             # afficher un message d'erreur sur la page
-            erreurs = "~".join(str(d) for d in donnees)
+            erreurs = "~".join(str(o) for o in output)
             flash(erreurs, "error")
             return render_template("pages/theme_add.html", erreurs=erreurs,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
