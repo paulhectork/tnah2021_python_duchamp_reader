@@ -1,13 +1,14 @@
 from sqlalchemy_utils.functions import database_exists
 
 from ..app import db
-from ..modeles.classes_generic import *
+from ..modeles.classes_generic import Artiste, Galerie, Nomination, Theme, Ville
 from ..modeles.classes_relationships import RelationRepresente, RelationLocalisation
 
 def db_create():
     """Fonction d'initalisation permettant de créer la base de donnéres
     """
     if not database_exists('sqlite:///db.sqlite'):
+        print("CRÉATION DE LA BASE DE DONNÉES")
         db.create_all()
 
 def db_populate_galerie():
@@ -41,7 +42,7 @@ def db_populate_galerie():
         Galerie.galerie_new_init("Tanja Wagner", "https://tanjawagner.com/")
         Galerie.galerie_new_init("Valérie Bach - La Patinoire Royale", "https://www.prvbgallery.com/")
         Galerie.galerie_new_init("Wentrup", "https://wentrupgallery.com/en")
-        Galerie.galerie_new_init("CulturesInterface", "https://www.facebook.com/pages/category/Art-Gallery/CulturesInterface-327265323963197/")
+        Galerie.galerie_new_init("Cultures Interface", "https://www.facebook.com/pages/category/Art-Gallery/CulturesInterface-327265323963197/")
         Galerie.galerie_new_init("Emmanuel Layr", "https://emanuellayr.com/")
         Galerie.galerie_new_init("Dittrich & Schlechtreim", "https://dittrich-schlechtriem.com/")
         Galerie.galerie_new_init("Sean Kelly", "https://www.skny.com/")
@@ -53,6 +54,7 @@ def db_populate_galerie():
         Galerie.galerie_new_init("Foskal", "https://www.galeriafoksal.pl/en/home/")
         Galerie.galerie_new_init("High Art", "https://highart.fr/")
         Galerie.galerie_new_init("Document", "https://documentspace.com/")
+        print("TABLE 'GALERIE' PEUPLÉE")
 
 def db_populate_ville():
     """Fonction d'initialisation permettant de peupler la table Ville
@@ -101,6 +103,7 @@ def db_populate_ville():
         Ville.ville_new_init("Vienne", 48.20835, 16.37250, "Autriche")
         Ville.ville_new_init("Zurich", 47.37445, 8.54104, "Suisse")
         Ville.ville_new_init("Zuoz", 46.60129, 9.96080, "Suisse")
+        print("TABLE 'VILLE' PEUPLÉE")
 
 def db_populate_theme():
     """Fonction d'initialisation permettant de peupler la table Theme
@@ -112,6 +115,7 @@ def db_populate_theme():
         Theme.theme_new_init("écologie - sciences - anthropocène")
         Theme.theme_new_init("mémoire - histoire")
         Theme.theme_new_init("abstraction - formalisme")
+        print("TABLE 'THÈME' PEUPLÉE")
 
 def db_populate_artiste():
     """Fonction d'initialisation permettant de peupler la table Artiste
@@ -139,6 +143,7 @@ def db_populate_artiste():
         Artiste.artiste_new_init("Cornaro", "Isabelle", 1974, "F", "Q55235943", 2, 19)
         Artiste.artiste_new_init("Creuzet", "Julien", 1986, "M", id_wikidata=None,
                                  id_ville_naissance=26, id_ville_residence=17)
+        print("TABLE 'ARTISTE' PEUPLÉE")
 
 def db_populate_nomination():
     """Fonction d'initialisation permettant de peupler la table Nomination
@@ -164,6 +169,7 @@ def db_populate_nomination():
         Nomination.nomination_new_init(2021, False, 18, 4)
         Nomination.nomination_new_init(2021, False, 19, 3)
         Nomination.nomination_new_init(2021, False, 20, 1)
+        print("TABLE 'NOMINATION' PEUPLÉE")
 
 def db_populate_relation_represente():
     """Fonction d'initialisation permettant de peupler la table Represente
@@ -212,6 +218,7 @@ def db_populate_relation_represente():
         RelationRepresente.represente_new_init(19, 37)
         RelationRepresente.represente_new_init(20, 38)
         RelationRepresente.represente_new_init(20, 39)
+        print("TABLE 'RELATIONREPRESENTE' PEUPLÉE")
 
 def db_populate_relation_localisation():
     """Fonction d'initialisation permettant de peupler la table Localisation
@@ -263,6 +270,7 @@ def db_populate_relation_localisation():
         RelationLocalisation.localisation_new_init(37, 40)
         RelationLocalisation.localisation_new_init(38, 33)
         RelationLocalisation.localisation_new_init(39, 11)
+        print("TABLE 'RELATIONLOCALISATION' PEUPLÉE")
 
 def db_populate():
     db_populate_galerie()

@@ -24,7 +24,7 @@ login = LoginManager(app)
 
 # ----- PEUPLER LA BDD ET CONFIGURER L'INDEX ----- #
 # vérifier si la bdd est déjà créé ; sinon, la créer et peupler
-from .utils.populate import *
+from .utils.populate import db_create, db_populate
 db_create()
 db_populate()
 

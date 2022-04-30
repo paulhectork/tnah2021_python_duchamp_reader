@@ -10,7 +10,7 @@ uploads = os.path.join(parent, "templates", "uploads")
 
 SECRET_KEY = "clé secrète par défaut mais franchement faudrait la changer par les temps qui courent"
 if SECRET_KEY == "clé secrète par défaut mais franchement faudrait la changer par les temps qui courent":
-    warn("--- c'est un acte de sagesse de changer la clé secrète ---", Warning)
+    warn("par sécurité, veuillez changer la clé secrète", Warning)
 
 PERPAGE = 4
 

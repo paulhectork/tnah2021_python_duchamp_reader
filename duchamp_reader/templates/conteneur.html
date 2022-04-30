@@ -252,10 +252,11 @@
 
                 // récupérer la valeur de l'attribut, le texte et le css
                 // et les sauvegarder en cookie
-                wikival = wiki.getAttribute("value");
-                localStorage.setItem("wikisave", wikival);
-                localStorage.setItem("text", wikitext.innerText);
-                localStorage.setItem("css", wikicont.style.backgroundColor);
+                saveCookies();
+
+                // transmettre une requête asynchrone au serveur flask
+                var data = {"wikistatus": wiki.getAttribute("value")};
+                sendData(data);
             };
 
             // activer / désactiver l'enrichissement wikipédia des pages artiste
@@ -277,19 +278,29 @@
 
                 // récupérer la valeur de l'attribut, le texte et le css
                 // et les sauvegarder en cookie
-                wikival = wiki.getAttribute("value");
-                localStorage.setItem("wikisave", wikival);
-                localStorage.setItem("text", wikitext.innerText);
-                localStorage.setItem("css", wikicont.style.backgroundColor);
+                saveCookies();
 
                 // transmettre une requête asynchrone au serveur flask
                 var data = {"wikistatus": wiki.getAttribute("value")};
+                sendData(data);
+            };
+
+            // transmettre les données en requête asynchrone au serveur
+            function sendData(data) {
                 $.ajax({
                     type: "GET",
                     url: "/wikistatus",
                     data: data,
                     dataType: 'json',
                 });
+            };
+
+            // sauvegarder le css, le texte du bouton et le statut wikipedia dans des cookies pour
+            // maintenir le comportement du site après les changements de session
+            function saveCookies(){
+                localStorage.setItem("wikisave", wiki.getAttribute("value"));
+                localStorage.setItem("text", wikitext.innerText);
+                localStorage.setItem("css", wikicont.style.backgroundColor);
             };
 
             // charger le css et le texte du bouton wikipedia au chargement
@@ -301,61 +312,70 @@
             ////////////////////////////////////////////////////////////
 
             // CAROUSEL DES PAGES "ARTISTE"
+
             // définition des variables
             var slides = document.querySelectorAll('.slides img');
             var currentSlide = 0;
-            var slideInterval = setInterval(nextSlide,3500);
+            var slideInterval = setInterval(nextSlide,2000);
             var playing = true;
             var pausebtn = document.querySelector('#pause');
             var prevbtn = document.querySelector('#prev');
             var nextbtn = document.querySelector('#next');
 
-            //slide automatique
             function nextSlide() {
-              slides[currentSlide].className = 'slide';
-              currentSlide = (currentSlide+1)%slides.length;
-              slides[currentSlide].className = 'shown';
+                if (slides.length != 0){
+                    slides[currentSlide].className = 'slide';
+                    currentSlide = (currentSlide+1)%slides.length;
+                    slides[currentSlide].className = 'shown';
+                };
             };
 
-            // pause et play
-            function pauseSlideshow() {
-              pausebtn.innerHTML = 'reprendre';
-              playing = false;
-              clearInterval(slideInterval);
-            };
-            function playSlideshow() {
-              pausebtn.innerHTML = 'pause';
-              playing = true;
-              slideInterval = setInterval(nextSlide,3500);
-            };
-            // slide précédente et suivante
-            function prevSlide() {
-              toSlide(currentSlide-1);
-            };
-            function nextSlide() {
-              toSlide(currentSlide+1);
-            };
-            function toSlide(n) {
-              slides[currentSlide].className = 'slide';
-              currentSlide = (n+slides.length)%slides.length;
-              slides[currentSlide].className = 'shown';
-            };
+            if (
+                slides.length == 0
+                && pausebtn != null
+                && prevbtn != null
+                && nextbtn != null
+            ) {
+                // pause et play
+                function pauseSlideshow() {
+                  pausebtn.innerHTML = 'reprendre';
+                  playing = false;
+                  clearInterval(slideInterval);
+                };
+                function playSlideshow() {
+                  pausebtn.innerHTML = 'pause';
+                  playing = true;
+                  slideInterval = setInterval(nextSlide,3500);
+                };
+                // slide précédente et suivante
+                function prevSlide() {
+                  toSlide(currentSlide-1);
+                };
+                function nextSlide() {
+                  toSlide(currentSlide+1);
+                };
+                function toSlide(n) {
+                  slides[currentSlide].className = 'slide';
+                  currentSlide = (n+slides.length)%slides.length;
+                  slides[currentSlide].className = 'shown';
+                };
 
-            // action des bouttons
-            pausebtn.onclick = function() {
-              if(playing) {
-                pauseSlideshow();
-              } else {
-                playSlideshow();
-              }
-            };
-            prevbtn.onclick = function() {
-              pauseSlideshow()
-              prevSlide();
-            };
-            nextbtn.onclick = function() {
-              pauseSlideshow()
-              nextSlide();
+                // action des bouttons
+                pausebtn.onclick = function() {
+                  if(playing) {
+                    pauseSlideshow();
+                  } else {
+                    playSlideshow();
+                  }
+                };
+                prevbtn.onclick = function() {
+                  pauseSlideshow()
+                  prevSlide();
+                };
+                nextbtn.onclick = function() {
+                  pauseSlideshow()
+                  nextSlide();
+                }
             }
         </script>
     </body>
