@@ -13,6 +13,7 @@ from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
 from .utils.regex import regexnc, clean_string
 from .utils.query import queries
+from .utils.visualisation import a_voir
 from .utils.duchamp_sparqler import duchamp_sparqler
 from .utils.constantes import PERPAGE, cartes, statics, css, uploads
 from .utils.wikimaker import wikimaker
@@ -1554,6 +1555,25 @@ def sparql_results_without_req():
     return redirect("/")
 
 
+# ----- ROUTES RIEN À VOIR (VISUALISATIONS) ----- #
+@app.route("/rien_a_voir", methods=["GET", "POST"])
+def rien_a_voir():
+    if request.method == "POST":
+        a_voir(
+            xaxis=request.form.get("xaxis"),
+            yaxis=request.form.get("yaxis"),
+            graph=request.form.get("graph")
+        )
+        #datagraph = session["datagraph"]
+        #print(datagraph["graph"])
+        return render_template("pages/rien_a_voir.html", last_nominations=last_nominations,
+                               last_artistes=last_artistes, last_galeries=last_galeries, last_themes=last_themes,
+                               last_villes=last_villes)
+    return render_template("pages/rien_a_voir.html", last_nominations=last_nominations,
+                           last_artistes=last_artistes, last_galeries=last_galeries, last_themes=last_themes,
+                           last_villes=last_villes)
+
+
 # ----- ROUTES UTILITAIRES ----- #
 @app.route("/carte_ville/<int:id>")
 def carte_ville(id):
@@ -1599,15 +1619,36 @@ def sparql_results_redirect():
     return redirect("/duchamp_sparqler/results")
 
 
-@app.route("/wikistatus")
-def wikistatus():
+@app.route("/asynchrone")
+def asynchrone():
     """
-    récupère grâce à une requête asynchrone transmise via ajax la valeur d'un attribut @value
-    d'un bouton qui permet d'indiquer si les requêtes sont activées ou désactivées. sauvegarde
-    le json issu de cette requête dans une session flask pour le transmettre à d'autres routes
+    récupère grâce à des requêtes asynchrones transmises via ajax des données
+    à transmettre au serveur Flask :
+        - pour l'activation / désactivation des enrichissements wikipedia, la valeur d'un
+        attribut @value d'un bouton permet d'indiquer si les requêtes sont activées ou
+        désactivées.
+
+    sauvegarde le json issu de cette requête dans une session flask pour le transmettre à d'autres routes
     :return: dictionnaire indiquant si les enrichissements wikipedia sont activés ou non
     """
-    # récupérer le statut de des recherches wikipedia
-    wikistatus = dict(request.args)
-    session["wikistatus"] = list(wikistatus.values())[0]
-    return wikistatus
+    # récupérer les données des requêtes asynchrones
+    asyncdata = dict(request.args)
+
+    # si la requête asynchrone concerne le statut wikipedia, stocker ce statut dans un cookie
+    if "wikistatus" in list(asyncdata.keys()):
+        session["wikistatus"] = asyncdata["wikistatus"]  # cookie pour le statut des enrichissements wikipedia
+
+    """
+    # si la requête asynchrone concerne les graphiques, traduire en JSON et stocker l'information
+    # dans un cookie
+    # le JSON envoyé par ajax est laid donc il doit être retravaillé comme suit
+    else:
+        try:
+            datagraph = json.loads(list(asyncdata.keys())[0])
+            session["datagraph"] = datagraph
+            print("OKKKKK")
+        except Exception as error:
+            print(error)
+    """
+
+    return asyncdata

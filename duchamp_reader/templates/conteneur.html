@@ -9,6 +9,7 @@
             integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
             crossorigin="anonymous"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     </head>
     <body>
         <!-- barre de navigation -->
@@ -290,9 +291,10 @@
             function sendData(data) {
                 $.ajax({
                     type: "GET",
-                    url: "/wikistatus",
+                    url: "/asynchrone",
                     data: data,
-                    dataType: 'json',
+                    //dataType: 'json',
+                    dataType: 'application/json'
                 });
             };
 
@@ -308,6 +310,38 @@
             window.onload = function(){
                 wikitext.innerText = text;
                 wikicont.style.backgroundColor = css;
+            };
+
+            ////////////////////////////////////////////////////////////
+
+            // EN FAIT CA MARCHE BOF
+            // GENERATION DYNAMIQUE DE GRAPHIQUES
+
+            // définition des variables
+            var send = document.querySelector("#send")
+
+            // si on est sur la bonne page, construction d'un
+            // json à renvoyer au serveur flask
+            if (send != null) {
+                send.addEventListener("click", graphmaker);
+
+                function graphmaker() {
+                    // récupérer les valeurs sélectionnées
+                    var xaxis = $("#xaxis").val();
+                    var yaxis = $("#yaxis").val();
+                    var graph = $("#graph").val();
+                    // si toutes les données ont été fournies, envoyer une requête au serveur
+                    if (xaxis != "None" ||
+                        yaxis != "None" ||
+                        graph != "None"){
+                        var datagraph = {"xaxis": xaxis, "yaxis": yaxis, "graph": graph};  // les données à transmettre
+                        // console.log(datagraph);
+                        // datagraph = JSON.stringify({"datagraph": datagraph})
+                        // sendData(datagraph);
+                    } else {
+                        window.alert("Sélectionnez toutes les données nécessaires puis renvoyez le formulaire");
+                    };
+                };
             };
 
             ////////////////////////////////////////////////////////////

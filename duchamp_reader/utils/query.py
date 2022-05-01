@@ -1,5 +1,4 @@
 from ..modeles.classes_generic import *
-from ..app import app
 
 # ce fichier de variables constantes contient toutes les requêtes nécessaires à la sidebar (joli franglais)
 # il permet d'éviter les imports circulaires
