@@ -29,7 +29,6 @@ def validate_artiste(nom, prenom, genre, annee_naissance, annee_nomination, vill
     """
     # vérifier que les données ont été fournies
     erreurs = []  # liste d'erreurs qui ont lieu au moment de l'ajout / modification des données
-    laureat = bool(laureat)
     if not nom:
         erreurs.append("Un.e artiste doit avoir un nom")
     if not prenom:
@@ -63,6 +62,8 @@ def validate_artiste(nom, prenom, genre, annee_naissance, annee_nomination, vill
     annee_naissance = annee_naissance.strip()
     annee_nomination = annee_nomination.strip()
     theme = clean_string(theme).lower()
+    laureat = int(laureat)  # le laureat est retypé en integer et n'est pas travaillé plus
+                            # que ça puisque la donnée n'est jamais librement entrée par l'utilisateurice
     if id_wikidata:
         id_wikidata = clean_string(id_wikidata)
     nomregex = re.search(regexnp, nom)

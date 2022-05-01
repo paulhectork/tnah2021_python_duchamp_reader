@@ -377,7 +377,6 @@ def artiste_add():
             pays_residence=request.form.get("pays_residence", None),
             id_wikidata=request.form.get("id_wikidata", None)
         )
-        print("OKKKKK")
         if succes is True:
             try:
                 db.session.add(AuthorshipArtiste(artiste=output, user=current_user))
@@ -395,6 +394,7 @@ def artiste_add():
             # afficher un message d'erreur sur la page
             erreurs = "~".join(str(o) for o in output)
             flash(erreurs, "error")
+            db.session.rollback()
             last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
             return render_template("pages/artiste_add.html", erreurs=erreurs,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
@@ -555,19 +555,63 @@ def artiste_update(id_artiste):
                     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
                     return redirect(url_for("artiste_main", id_artiste=artiste.id))
                 except Exception as error:
-                    flash(error, "erreur")
+                    db.session.rollback()
+                    erreurs.append(str(error))
+                    erreurs = "~".join(str(e) for e in erreurs)
+                    flash(erreurs, "error")
                     return render_template("pages/artiste_update.html", artiste=artiste, nomination=nomination,
                                            erreurs=erreurs, last_nominations=last_nominations,
                                            last_artistes=last_artistes, last_galeries=last_galeries,
                                            last_themes=last_themes, last_villes=last_villes)
         else:
+            db.session.rollback()
             erreurs = "~".join(str(e) for e in erreurs)
             flash(erreurs, "error")
+            render_template("pages/artiste_update.html", artiste=artiste, nomination=nomination,
+                            erreurs=erreurs, last_nominations=last_nominations, last_artistes=last_artistes,
+                            last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
 
     # return
     return render_template("pages/artiste_update.html", artiste=artiste, nomination=nomination,
                            erreurs=erreurs, last_nominations=last_nominations, last_artistes=last_artistes,
                            last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+
+@app.route("/artiste/<int:id_artiste>/delete")
+def artiste_delete(id_artiste):
+    """
+    fonction permettant de supprimer un artiste et une nomination à partir
+    de leurs identifiants
+
+    :param id_artiste: identifiant de l'artiste à supprimer
+    :return: objet render_template renvoyant à l'index des artistes si tout va bien ; sinon,
+    redirection vers la page principale de l'artiste en cours de suppression avec flash d'erreur
+    """
+    # vérifier si l'utilisateurice est connecté.e
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour supprimer des données", "error")
+        return redirect("/connexion")
+
+    # initalisation des variables
+    artiste = Artiste.query.get_or_404(id_artiste)
+    nomination = Nomination.query.filter(Nomination.id_artiste == id_artiste).first()
+    erreurs = []
+
+    # suppression
+    try:
+        db.session.delete(artiste)
+        db.session.delete(nomination)
+        db.session.commit()
+        last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+        return redirect("/artiste")
+    except Exception as error:
+        db.session.rollback()
+        erreurs.append(str(error))
+        erreurs = "~".join(str(e) for e in erreurs)
+        flash(erreurs, "error")
+        return redirect(url_for("artiste_main", id_artiste=artiste.id))
+
 
 
 # ----- ROUTES NOMINATION ----- #
@@ -956,7 +1000,7 @@ def galerie_delete(id_galerie):
     """
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
-        flash("Veuillez vous connecter pour rajouter des données", "error")
+        flash("Veuillez vous connecter pour supprimer des données", "error")
         return redirect("/connexion")
 
     # initalisation des variables
@@ -1015,8 +1059,10 @@ def ville_main(id_ville):
     elif ville_artiste_residence:
         ville = ville_artiste_residence[0].ville_residence
     # il faut changer ce else par un elif
-    else:
+    elif ville_galerie:
         ville = ville_galerie[0].ville
+    else:
+        ville = Ville.query.get(id_ville)
 
     # si la ville a des coordonnées, générer une carte
     if ville.longitude and ville.latitude:
@@ -1062,7 +1108,7 @@ def ville_main(id_ville):
 
 
 @app.route("/ville/add", methods=["POST", "GET"])
-def ville_ajout():
+def ville_add():
     # les requêtes sont relancées pour éviter des erreurs sqlalchemy
     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
@@ -1088,6 +1134,45 @@ def ville_ajout():
         return render_template("pages/ville_ajout.html",
                                last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                                last_themes=last_themes, last_villes=last_villes)
+
+
+@app.route("/ville/<int:id_ville>/update")
+def ville_update(id_ville):
+    pass
+
+
+@app.route("/ville/<int:id_ville>/delete")
+def ville_delete(id_ville):
+    """
+    fonction permettant de supprimer une ville à partir
+    de son identifiant
+
+    :param id_ville: identifiant de la ville à supprimer
+    :return: objet render_template renvoyant à l'index des villes si tout va bien ; sinon,
+    redirection vers la page principale de la ville en cours de suppression avec flash d'erreur
+    """
+    # vérifier si l'utilisateurice est connecté.e
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour supprimer des données", "error")
+        return redirect("/connexion")
+
+    # initalisation des variables
+    ville = Ville.query.get_or_404(id_ville)
+    erreurs = []
+
+    # suppression
+    try:
+        db.session.delete(ville)
+        db.session.commit()
+        last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+        return redirect("/ville")
+    except Exception as error:
+        db.session.rollback()
+        erreurs.append(str(error))
+        erreurs = "~".join(str(e) for e in erreurs)
+        flash(erreurs, "error")
+        return redirect(url_for("ville_main", id_ville=ville.id))
+
 
 
 # ----- ROUTES THEME ----- #
@@ -1205,6 +1290,39 @@ def theme_update(id_theme):
     return render_template("pages/theme_update.html", theme=theme, erreurs=erreurs,
                            last_nominations=last_nominations, last_artistes=last_artistes,
                            last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+
+
+@app.route("/theme/<int:id_theme>/delete")
+def theme_delete(id_theme):
+    """
+    fonction permettant de supprimer un thème à partir de son identifiant
+
+    :param id_theme: identifiant du thème à supprimer
+    :return: objet render_template renvoyant à l'index des thèmes si tout va bien ; sinon,
+    redirection vers la page principale du thème en cours de suppression avec flash d'erreur
+    """
+    # vérifier si l'utilisateurice est connecté.e
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour supprimer des données", "error")
+        return redirect("/connexion")
+
+    # initalisation des variables
+    theme = Theme.query.get_or_404(id_theme)
+    erreurs = []
+
+    # suppression
+    try:
+        db.session.delete(theme)
+        db.session.commit()
+        last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+        return redirect("/theme")
+    except Exception as error:
+        db.session.rollback()
+        erreurs.append(str(error))
+        erreurs = "~".join(str(e) for e in erreurs)
+        flash(erreurs, "error")
+        return redirect(url_for("theme_main", id_theme=theme.id))
 
 
 # ----- ROUTES SPARQL ----- #

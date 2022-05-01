@@ -23,6 +23,9 @@
     <!-- footer -->
     <div class="basdepage">
         <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('ville_add')}}">Ajouter une ville</a>
+        <a class="btn" href="{{ url_for('ville_update', id_ville=ville.id) }}">Modifier la ville</a>
+        <btn class="btn deletebtn" value="{{ ville.id }}">Supprimer la ville</btn>
         <a class="btn" href="{{url_for('ville_index')}}">Index des villes</a>
     </div>
 {% endblock %}

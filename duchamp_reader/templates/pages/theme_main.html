@@ -37,6 +37,7 @@
         <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
         <a class="btn" href="{{url_for('theme_add')}}">Ajouter un thème</a>
         <a class="btn" href="{{url_for('theme_update', id_theme=theme.id) }}">Modifier ce thème</a>
+        <btn class="btn deletebtn" value="{{ theme.id }}">Supprimer ce thème</btn>
         <a class="btn" href="{{url_for('theme_index')}}">Index des thèmes</a>
     </div>
 
