@@ -377,6 +377,36 @@
                   nextSlide();
                 }
             }
+
+            ////////////////////////////////////////////////////////////
+
+            // POPUP AVANT LA SUPPRESSION D'UNE PAGE
+
+            // définition des variables
+            const deleteBtn = document.querySelector(".deletebtn");  // bouton de suppression des données
+
+            if (deleteBtn != null){
+                // si on est sur une page où les données peuvent être supprimées,
+                // définir toutes les données ; construire une url
+                // vers la fonction de suppression des données ;
+                // sauvegarder l'url dans un cookie
+                const dataid = deleteBtn.getAttribute("value");  // l'identifiant de la donnée à supprimer
+                const urlobject = new URL(window.location.href);  // l'url actuel
+                const root = urlobject.origin;  // la racine du site
+                const pageclass = urlobject.pathname.split("/")[1];  // le type de page sur lequel on est (artiste, galerie...)
+                const urltodel = new URL(`${root}/${pageclass}/${dataid}/delete`);  // l'url de la fonction de suppression de données
+                localStorage.setItem("urltodel", urltodel.href);  // sauvegarder l'url dans un cookie
+                deleteBtn.addEventListener("click", redirect);  // ajouter un eventListener
+            };
+
+            function redirect(){
+                if (deleteBtn != null){
+                    var path = localStorage.getItem("urltodel");
+                    if (confirm("La suppression est irréversible. Voulez-vous continuer ?")){
+                        window.location.href = path;
+                    };
+                };
+            };
         </script>
     </body>
 </html>

@@ -65,6 +65,8 @@
     <!-- footer -->
     <div class="basdepage">
         <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{ url_for('galerie_update', id_galerie=galerie.id) }}">Modifier cette galerie</a>
+        <btn class="btn deletebtn" value="{{ galerie.id }}">Supprimer cette galerie</btn>
         <a class="btn" href="{{url_for('galerie_index')}}">Index des galeries</a>
     </div>
 {% endblock %}

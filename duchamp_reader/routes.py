@@ -377,6 +377,7 @@ def artiste_add():
             pays_residence=request.form.get("pays_residence", None),
             id_wikidata=request.form.get("id_wikidata", None)
         )
+        print("OKKKKK")
         if succes is True:
             try:
                 db.session.add(AuthorshipArtiste(artiste=output, user=current_user))
@@ -384,15 +385,17 @@ def artiste_add():
                 # les requêtes sont relancées pour actualiser le sidebar
                 last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
                 flash("Vous avez ajouté un.e nouvel.le artiste à la base de données.", "success")
-                return redirect("/artiste/add")
+                return redirect("/artiste_index")
             except Exception as error:
                 db.session.rollback()
-                flash("Une erreur a eu lieu lors de l'ajout du nouvel artiste", "error")
+                flash(str(error), "error")
+                last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
                 return redirect("/artiste/add")
         else:
             # afficher un message d'erreur sur la page
             erreurs = "~".join(str(o) for o in output)
             flash(erreurs, "error")
+            last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
             return render_template("pages/artiste_add.html", erreurs=erreurs,
                                    last_nominations=last_nominations, last_artistes=last_artistes,
                                    last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
@@ -457,7 +460,8 @@ def artiste_update(id_artiste):
                     db.session.add(nv_theme)
                     db.session.add(AuthorshipTheme(theme=nv_theme, user=current_user))
                 except Exception as error:
-                    erreurs.append(error)
+                    db.session.rollback()
+                    erreurs.append(str(error))
 
             # essayer de récupérer les villes dans la BDD
             # si les villes n'existent pas dans la base de données, essayer de récupérer
@@ -480,7 +484,8 @@ def artiste_update(id_artiste):
                         db.session.add(nv_ville)
                         db.session.add(AuthorshipVille(ville=nv_ville, user=current_user))
                     except Exception as error:
-                        erreurs.append(error)
+                        db.session.rollback()
+                        erreurs.append(str(error))
             else:
                 db_ville_n_check = Ville.query.filter(db.and_(
                     Ville.nom == ville_naissance,
@@ -498,7 +503,8 @@ def artiste_update(id_artiste):
                         db.session.add(nv_ville)
                         db.session.add(AuthorshipVille(ville=nv_ville, user=current_user))
                     except Exception as error:
-                        erreurs.append(error)
+                        db.session.rollback()
+                        erreurs.append(str(error))
                 db_ville_r_check = Ville.query.filter(Ville.nom == ville_residence).count()
                 if db_ville_r_check == 0:
                     longitude, latitude = coordinator(f"{ville_residence}, {pays_residence}")
@@ -512,7 +518,8 @@ def artiste_update(id_artiste):
                         db.session.add(nv_ville)
                         db.session.add(AuthorshipVille(ville=nv_ville, user=current_user))
                     except Exception as error:
-                        erreurs.append(error)
+                        db.session.rollback()
+                        erreurs.append(str(error))
 
             # si il n'y a pas d'erreurs, récupérer les données nécessaires
             if len(erreurs) == 0:
@@ -623,55 +630,60 @@ def galerie_main(id_galerie):
     # requêtes
     galerie = Galerie.query.filter(Galerie.id == id_galerie).first()
 
-    # génération dynamique des cartes
-    # définition des coordonnées de la carte: zone sur laquelle centrée, bordures, dimension des popups
-    nboucles = 0  # nombre de boucles, pour calculer la longitude et latitude moyenne
-    longitude = 0  # longitude moyenne des différents points sur la carte
-    latitude = 0  # latitude moyenne des différents points sur la carte
-    longlist = []  # liste des longitudes des différents points sur la carte
-    latlist = []  # liste des latitudes des différents points sur la carte
-    for r in galerie.localisation:
-        nboucles += 1
-        longitude += r.ville.longitude
-        latitude += r.ville.latitude
-        longlist.append(r.ville.longitude)
-        latlist.append(r.ville.latitude)
-    longitude = longitude / nboucles
-    latitude = latitude / nboucles
-    sw, ne, radius, diflat, diflong = mapdim(longlist=longlist, latlist=latlist)
+    if len(galerie.localisation) > 0:
+        # génération dynamique des cartes
+        # définition des coordonnées de la carte: zone sur laquelle centrée, bordures, dimension des popups
+        nboucles = 0  # nombre de boucles, pour calculer la longitude et latitude moyenne
+        longitude = 0  # longitude moyenne des différents points sur la carte
+        latitude = 0  # latitude moyenne des différents points sur la carte
+        longlist = []  # liste des longitudes des différents points sur la carte
+        latlist = []  # liste des latitudes des différents points sur la carte
+        for r in galerie.localisation:
+            nboucles += 1
+            longitude += r.ville.longitude
+            latitude += r.ville.latitude
+            longlist.append(r.ville.longitude)
+            latlist.append(r.ville.latitude)
+        if nboucles > 0:
+            longitude = longitude / nboucles
+            latitude = latitude / nboucles
+        sw, ne, radius, diflat, diflong = mapdim(longlist=longlist, latlist=latlist)
 
-    # génération de la carte intégrée à la page; la carte est sauvegardée dans un dossier et
-    # appelée lorsque l'on va sur la page de l'artiste
-    carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
-    if diflat > 1 or diflong > 1:
-        carte.fit_bounds([sw, ne])
+        # génération de la carte intégrée à la page; la carte est sauvegardée dans un dossier et
+        # appelée lorsque l'on va sur la page de l'artiste
+        carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
+        if diflat > 1 or diflong > 1:
+            carte.fit_bounds([sw, ne])
 
-    # génération des popups à ajouter à la carte: 1 popup / ville où est située une galerie;
-    # la taille des popups dépend de la distance entre eux sur la carte
-    for r in galerie.localisation:
-        html = f"<html> \
-                    <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
-                        <body> \
-                            <p style='position:absolute; top:50%; left:50%; \
-                                -ms-transform:translate(-50%, -50%); \
-                                transform: translate(-50%, -50%); \
-                                text-align: center;'>\
-                                La galerie {galerie.nom} se trouve à : {r.ville.nom}\
-                            </p></body>\
-                </html>"
-        iframe = folium.element.IFrame(html=html, width="300px", height="100px")
-        popup_galerie = folium.Popup(iframe)
-        popups_galerie = folium.CircleMarker(
-            location=[r.ville.latitude, r.ville.longitude],
-            popup=popup_galerie,
-            radius=radius,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
+        # génération des popups à ajouter à la carte: 1 popup / ville où est située une galerie;
+        # la taille des popups dépend de la distance entre eux sur la carte
+        for r in galerie.localisation:
+            html = f"<html> \
+                        <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                            <body> \
+                                <p style='position:absolute; top:50%; left:50%; \
+                                    -ms-transform:translate(-50%, -50%); \
+                                    transform: translate(-50%, -50%); \
+                                    text-align: center;'>\
+                                    La galerie {galerie.nom} se trouve à : {r.ville.nom}\
+                                </p></body>\
+                    </html>"
+            iframe = folium.element.IFrame(html=html, width="300px", height="100px")
+            popup_galerie = folium.Popup(iframe)
+            popups_galerie = folium.CircleMarker(
+                location=[r.ville.latitude, r.ville.longitude],
+                popup=popup_galerie,
+                radius=radius,
+                color="purple",
+                fill_color="plum",
+                fill_opacity=0.6
+            ).add_to(carte)
 
-    # sauvegarder la carte
-    carte.save(f"{cartes}/galerie{id_galerie}.html")
+        # sauvegarder la carte
+        carte.save(f"{cartes}/galerie{id_galerie}.html")
+
+    else:
+        carte = None  # si une galerie n'a pas de localisation, ne pas créer de carte
 
     # return
     return render_template("pages/galerie_main.html", galerie=galerie, carte=carte,
@@ -681,6 +693,12 @@ def galerie_main(id_galerie):
 
 @app.route("/galerie/add", methods=["POST", "GET"])
 def galerie_add():
+    """
+    fonction permettant la création d'une nouvelle galerie. cette fonction implique également
+    la création d'entrées dans la table RelationReprésente et Relation localisation
+    :return: objet render_template avec des flashes contenant des messages d'erreurs ou une
+    indication que l'ajout de données c'est bien passé
+    """
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
@@ -734,6 +752,7 @@ def galerie_add():
             # vers l'index des galeries
             if succes_galerie is True and succes_loc is True and succes_repr is True:
                 db.session.add(AuthorshipGalerie(galerie=out_galerie, user=current_user))
+                db.session.commit()
                 last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
                 flash("Vous avez rajouté une nouvelle galerie à la base de données", "success")
                 return redirect("/galerie")
@@ -765,6 +784,197 @@ def galerie_add():
         return render_template("pages/galerie_add.html", villes=villes, artistes=artistes,
                                last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                                last_themes=last_themes, last_villes=last_villes)
+
+
+@app.route("/galerie/<int:id_galerie>/update", methods=["GET", "POST"])
+def galerie_update(id_galerie):
+    """
+    fonction permettant la modification d'une. cette fonction implique également
+    la modification d'entrées dans la table RelationReprésente et RelationLocalisation
+
+    :return: objet render_template avec des flashes contenant des messages d'erreurs ou une
+    indication que l'ajout de données c'est bien passé
+    :param id_galerie: identifiant de la galerie en cours de modification
+    :return:
+    """
+    # vérifier si l'utilisateurice est connecté.e
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour rajouter des données", "error")
+        return redirect("/connexion")
+
+    # initialisation des variables pour la mise à jour
+    erreurs = []  # liste d'erreurs
+    reqrpr = {}  # dictionnaire pour assigner à des clés les données itérables du formulaire sur RelationRepresente
+    reqloc = {}  # dictionnaire pour assigner à des clés les données itérables du formulaire sur RelationLocalisation
+    reqrpr_del = {}  # dictionnaire pour les entrées de RelationRepresente à supprimer
+    reqloc_del = {}  # dictionnaire pour les entrées de RelationLocalisation à supprimer
+    nboucles = 0  # variable permettant de compter le nombre d'itérations
+    galerie = Galerie.query.get_or_404(id_galerie)   # récupérer l'id de la galerie modifiée
+    villes = Ville.query.all()
+    artistes = Artiste.query.all()
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+
+    # si un formulaire est envoyé avec POST
+    if request.method == "POST":
+        # récupérer les données ; itérer sur les éléments du formulaire qui sont des itérables
+        # pour peupler un dictionnaire
+        nom = request.form.get("nom", None)
+        url = request.form.get("url", None)
+        for loc in galerie.localisation:
+            reqloc[f"loc{nboucles}"] = request.form.get(f"localisation{nboucles}", None)
+            reqloc_del[f"loc{nboucles}"] = request.form.get(f"localisation_del{nboucles}", None)
+            nboucles += 1
+        nboucles = 0
+        for rpr in galerie.represent:
+            reqrpr[f"rpr{nboucles}"] = request.form.get(f"represente{nboucles}", None)
+            reqrpr_del[f"rpr{nboucles}"] = request.form.get(f"represente_del{nboucles}", None)
+            nboucles += 1
+
+        # vérifier si il y a des doublons dans les dictionnaires de modification (une galerie ne peut pas être reliée
+        # deux fois à la même ville ou artiste)
+        if len(set(reqloc.keys())) != len(set(reqloc.values())):
+            erreurs.append("Vous ne pouvez pas indiquer deux fois la même localisation")
+        if len(set(reqrpr.keys())) != len(set(reqrpr.values())):
+            erreurs.append("Un.e artiste ne peut pas être représenté deux fois par la même galerie")
+
+        if len(erreurs) == 0:
+            # vérifier que les données sont valides; si tout va bien, ajouter la galerie,
+            # les localisations et les artistes représenté.e.s
+            nom, url, erreurs = validate_galerie(nom=nom, url=url, id_galerie=galerie.id)
+            if len(erreurs) == 0:
+                galerie.nom = nom
+                galerie.url = url
+                try:
+                    # ajouter les informations mises à jour sur la galerie
+                    db.session.add(galerie)
+                    db.session.add(AuthorshipGalerie(galerie=galerie, user=current_user))
+
+                    # pour la mise à jour sur les tables de relation, on supprime la relation
+                    # existante pour la remplacer par une nouvelle relation
+                    # 1) supprimer les relations existantes
+                    for loc in galerie.localisation:
+                        todel = RelationLocalisation.query.filter(db.and_(
+                            RelationLocalisation.id_galerie == galerie.id,
+                            RelationLocalisation.id_ville == loc.id_ville
+                        )).first()
+                        db.session.delete(todel)
+                    for rpr in galerie.represent:
+                        todel = RelationRepresente.query.filter(db.and_(
+                            RelationRepresente.id_galerie == galerie.id,
+                            RelationRepresente.id_artiste == rpr.id_artiste
+                        )).first()
+                        db.session.delete(todel)
+
+                    # 2) ajouter les nouvelles relations
+                    for loc in reqloc.items():
+                        # reqloc.items() et reqrpr.items() retournent des tuples avec en
+                        # valeurs les id des localisations d'une galerie
+                        ville = Ville.query.filter(Ville.id == loc[1]).first()
+                        localisation = RelationLocalisation(
+                            id_galerie=galerie.id,
+                            id_ville=ville.id,
+                            galerie=galerie,
+                            ville=ville
+                        )
+                        db.session.add(localisation)
+                    for rpr in reqrpr.items():
+                        artiste = Artiste.query.filter(Artiste.id == rpr[1]).first()
+                        represente = RelationRepresente(
+                            id_galerie=galerie.id,
+                            id_artiste=artiste.id,
+                            galerie=galerie,
+                            artiste=artiste
+                        )
+                        db.session.add(represente)
+
+                    # 3) supprimer les données à supprimer, si il y en a
+                    for rpr_del in reqrpr_del.items():
+                        if rpr_del[1] is not None:
+                            relation_del = RelationRepresente.query.filter(db.and_(
+                                RelationRepresente.id_artiste == rpr_del[1],
+                                RelationRepresente.id_galerie == galerie.id
+                            )).first()
+                            db.session.delete(relation_del)
+                    for loc_del in reqloc_del.items():
+                        if loc_del is not None:
+                            relation_del = RelationLocalisation.query.filter(db.and_(
+                                RelationLocalisation.id_ville == loc_del[1],
+                                RelationLocalisation.id_galerie == galerie.id
+                            )).first()
+                            db.session.delete(relation_del)
+
+                    # si tout s'est bien passé, faire un commit; mettre à jour les requêtes;
+                    # revenir sur la page de la galerie
+                    db.session.commit()
+                    flash("Modification effectuée avec succès", "success")
+                    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+                    return redirect(url_for("galerie_main", id_galerie=galerie.id))
+
+                except Exception as error:
+                    # si il y a des erreurs à la mise à jour, flasher les erreurs et rediriger sur la page
+                    # de mise à jour
+                    erreurs.append(error)
+                    erreurs = "~".join(str(e) for e in erreurs)
+                    flash(erreurs, "error")
+                    db.session.rollback()
+                    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+                    return render_template("pages/galerie_update.html", galerie=galerie, erreurs=erreurs,
+                                           villes=villes, artistes=artistes, last_nominations=last_nominations,
+                                           last_artistes=last_artistes, last_galeries=last_galeries,
+                                           last_themes=last_themes, last_villes=last_villes)
+            else:
+                erreurs = "~".join(str(e) for e in erreurs)
+                flash(erreurs, "error")
+                return render_template("pages/galerie_update.html", galerie=galerie, erreurs=erreurs,
+                                       villes=villes, artistes=artistes, last_nominations=last_nominations,
+                                       last_artistes=last_artistes, last_galeries=last_galeries,
+                                       last_themes=last_themes, last_villes=last_villes)
+
+        else:
+            # si il y a des erreurs ramenées par validate_galerie(), rediriger vers la page de
+            # mise à jour et afficher les erreurs
+            erreurs = "~".join(str(e) for e in erreurs)
+            flash(erreurs, "error")
+            return render_template("pages/galerie_update.html", galerie=galerie, erreurs=erreurs, villes=villes,
+                                   artistes=artistes, last_nominations=last_nominations, last_artistes=last_artistes,
+                                   last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+    # return
+    return render_template("pages/galerie_update.html", galerie=galerie, villes=villes, artistes=artistes,
+                           last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
+                           last_themes=last_themes, last_villes=last_villes)
+
+
+@app.route("/galerie/<int:id_galerie>/delete")
+def galerie_delete(id_galerie):
+    """
+    fonction permettant de supprimer une galrie à partie de son identifiant
+
+    :param id_galerie: identifiant de la galerie à supprimer
+    :return: objet render_template renvoyant à l'index des galeries si tout va rien ; sinon,
+    redirection vers la page principale de la galerie en cours de suppression avec flash d'erreur
+    """
+    # vérifier si l'utilisateurice est connecté.e
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour rajouter des données", "error")
+        return redirect("/connexion")
+
+    # initalisation des variables
+    galerie = Galerie.query.get_or_404(id_galerie)
+    erreurs = []
+
+    # suppression
+    try:
+        db.session.delete(galerie)
+        db.session.commit()
+        last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+        return redirect("/galerie")
+    except Exception as error:
+        db.session.rollback()
+        erreurs.append(str(error))
+        erreurs = "~".join(str(e) for e in erreurs)
+        flash(erreurs, "error")
+        return redirect(url_for("galerie_main", id_galerie=galerie.id))
 
 
 # ----- ROUTES VILLE ----- #

@@ -1,0 +1,100 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| nouveau thème{% endblock %}
+
+{% block corps %}
+    <h1>Modifier les informations sur la galerie {{ galerie.nom }}</h1>
+
+    <!-- corps du texte -->
+    <p>Pour modifier les informations sur cette galerie, veuillez remplir
+        le formulaire et cliquer sur "Modifier".</p>
+    <form class="form" method="POST" action="{{ url_for('galerie_update', id_galerie=galerie.id) }}">
+
+        <!-- nom -->
+        <h5 style="margin-top: 3vh;">Informations générales</h5>
+        <div class="form-group row">
+            <label for="galerie-nom" class="col-sm-2 col-form-label">Nom de la galerie</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="galerie-nom" name="nom" value="{{ galerie.nom }}"/>
+            </div>
+        </div>
+
+        <!-- url -->
+        <div class="form-group row">
+            <label for="galerie-url" class="col-sm-2 col-form-label">URL du site principal de la galerie</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="galerie-url" name="url"
+                       value="{{ galerie.url }}"/>
+            </div>
+        </div>
+
+        <!-- artiste représenté -->
+        <h5 style="margin-top: 3vh;">Artistes représenté.e.s</h5>
+        {% for r in galerie.represent %}
+            {% set idx = galerie.represent.index(r) %}
+            <div class="form-group row">
+                <label for="galerie-artiste" class="col-sm-2 col-form-label">Artiste représenté.e</label>
+                <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <select type="text" class="form-select" id="galerie-artiste" name="{{ 'represente'~idx }}" aria-expanded="false">
+                        <option value="{{ r.artiste.id }}">{{ r.artiste.full }}</option>
+                        {% for a in artistes %}
+                            <option value="{{ a.id }}">{{ a.full }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- localisation -->
+        <h5 style="margin-top: 3vh;">Villes où se trouve la galerie</h5>
+        {% for loc in galerie.localisation %}
+            {% set idx = galerie.localisation.index(loc) %}
+            <div class="form-group row">
+                <label for="galerie-localisation" class="col-sm-2 col-form-label">Localisation de la galerie</label>
+                <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <select type="text" class="form-select" id="galerie-localisation" name="{{ 'localisation'~idx }}" aria-expanded="false">
+                        <option value="{{ loc.ville.id }}">{{ loc.ville.nom }} ({{ loc.ville.pays }})</option>
+                        {% for v in villes %}
+                            <option value="{{ v.id }}">{{ v.nom }} ({{ v.pays }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- supprimer des données -->
+        <h5 style="margin-top: 3vh;">Supprimer des données</h5>
+        <p>Si vous souhaitez supprimer la relation entre la galerie {{ galerie.nom }}
+        et une ville ou un artiste, il suffit de les sélectionner.</p>
+        <div class="check">
+            {% for loc in galerie.localisation %}
+                {% set idx = galerie.localisation.index(loc) %}
+                <div class="form-check">
+                    <label class="col-sm-2 col-form-label">{{ loc.ville.nom }} ({{ loc.ville.pays  }})</label>
+                    <input class="form-check-input" type="checkbox" name="{{ 'localisation_del'~idx }}"
+                           value="{{ loc.id_ville }}"/>
+                </div>
+            {% endfor %}
+
+            {% for rpr in galerie.represent %}
+                {% set idx = galerie.represent.index(rpr) %}
+                <div class="form-check">
+                    <label class="col-sm-2 col-form-label">{{ rpr.artiste.full }}</label>
+                    <input class="form-check-input" type="checkbox" name="{{ 'represente_del'~idx }}"
+                           value="{{ rpr.id_artiste }}"/>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- sumbit -->
+        <div> <button type="submit" class="btn btn-primary">Modifier</button></div>
+    </form>
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{ url_for('galerie_main', id_galerie=galerie.id) }}">Page pricipale de la galerie</a>
+        <a class="btn" href="{{url_for('galerie_index')}}">Index des galeries</a>
+    </div>
+
+{% endblock %}

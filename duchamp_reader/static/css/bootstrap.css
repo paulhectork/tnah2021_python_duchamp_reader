@@ -47,6 +47,8 @@
  * .form-select : changement de color
  * h2, .h2 : ajout de padding-top et de règles de border-top
  * .img-thumbnail : ajout de règles pour les images
+ * .form-check-input:checked : changement de couleur de la checkbox
+ * plein d'autres règles ajoutées à la fin
 
 
 
@@ -176,7 +178,7 @@ h1, .h1 {
   }
 }
 
-h2, .h2 {
+h2, .h2, h5 {
   font-size: calc(1.325rem + 0.9vw);
   padding-top: 15px;
   border-top-style: solid;
@@ -2593,8 +2595,8 @@ textarea.form-control-lg {
   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 .form-check-input:checked {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  background-color: var(--custom-plum);
+  border-color: var(--custom-light-pink);
 }
 .form-check-input:checked[type=checkbox] {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
@@ -11619,7 +11621,7 @@ a[data-toggle="collapse"] {
 }
 
 /* formulaire sparql */
-#sparqlform {
+.check {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
