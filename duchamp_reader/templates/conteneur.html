@@ -398,6 +398,7 @@
                 const urltodel = new URL(`${root}/${pageclass}/${dataid}/delete`);  // l'url de la fonction de suppression de données
                 localStorage.setItem("urltodel", urltodel.href);  // sauvegarder l'url dans un cookie
                 deleteBtn.addEventListener("click", redirect);  // ajouter un eventListener
+                console.log(urltodel.href);
             };
 
             // faire une fenêtre d'alerte avant la suppression des données

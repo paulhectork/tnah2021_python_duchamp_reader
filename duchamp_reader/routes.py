@@ -34,6 +34,7 @@ def accueil():
     """Route utilisée pour la page d'accueil
     :return: render_template permettant la visualisation de la page d'accueil
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     artistes = Artiste.query.order_by(Artiste.id.desc()).limit(5).all()
     return render_template("pages/accueil.html", artistes=artistes,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
@@ -572,8 +573,6 @@ def artiste_update(id_artiste):
             render_template("pages/artiste_update.html", artiste=artiste, nomination=nomination,
                             erreurs=erreurs, last_nominations=last_nominations, last_artistes=last_artistes,
                             last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
-
-
     # return
     return render_template("pages/artiste_update.html", artiste=artiste, nomination=nomination,
                            erreurs=erreurs, last_nominations=last_nominations, last_artistes=last_artistes,
@@ -609,9 +608,7 @@ def artiste_delete(id_artiste):
             db.session.delete(r)
         db.session.commit()
         last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-        return render_template("pages/artiste_index.html", erreurs=erreurs, last_nominations=last_nominations,
-                               last_artistes=last_artistes, last_galeries=last_galeries, last_themes=last_themes,
-                               last_villes=last_villes)
+        return redirect("/artiste")
     except Exception as error:
         db.session.rollback()
         erreurs.append(str(error))
@@ -1018,17 +1015,20 @@ def galerie_delete(id_galerie):
 
     # initalisation des variables
     galerie = Galerie.query.get_or_404(id_galerie)
+    relationrpr = RelationRepresente.query.filter(RelationRepresente.id_galerie == id_galerie).all()
+    relationloc = RelationLocalisation.query.filter(RelationLocalisation.id_galerie == id_galerie).all()
     erreurs = []
 
     # suppression
     try:
         db.session.delete(galerie)
+        for r in relationrpr:
+            db.session.delete(r)
+        for r in relationloc:
+            db.session.delete(r)
         db.session.commit()
         last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-        return render_template("pages/galerie_index.html",
-                               last_nominations=last_nominations, last_artistes=last_artistes,
-                               last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
-
+        return redirect("/galerie")
     except Exception as error:
         db.session.rollback()
         erreurs.append(str(error))
@@ -1153,7 +1153,9 @@ def ville_add():
                 db.session.add(AuthorshipVille(ville=output, user=current_user))
                 flash("Vous avez rajouté une nouvelle ville à la base de données", "success")
                 last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-                return redirect("/ville")
+                return render_template("pages/ville_index.html", last_nominations=last_nominations,
+                                       last_artistes=last_artistes, last_galeries=last_galeries,
+                                       last_themes=last_themes, last_villes=last_villes)
             except Exception as error:
                 db.session.rollback()
                 erreurs.append(str(error))
@@ -1217,6 +1219,7 @@ def ville_update(id_ville):
                 db.session.add(ville)
                 db.session.add(AuthorshipVille(ville=ville, user=current_user))
                 db.session.commit()
+                last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
                 return redirect(url_for("ville_main", id_ville=ville.id))
             except Exception as error:
                 # en cas d'erreur, annuler la modification et rediriger la page d'ajout avec un message d'erreur
@@ -1259,14 +1262,20 @@ def ville_delete(id_ville):
 
     # initalisation des variables
     ville = Ville.query.get_or_404(id_ville)
+    relationloc = RelationLocalisation.query.filter(RelationLocalisation.id_ville == ville.id).all()
     erreurs = []
 
     # suppression
     try:
         db.session.delete(ville)
+        for r in relationloc:
+            db.session.delete(r)
         db.session.commit()
         last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-        return redirect("/ville")
+        flash("La ville a été supprimée", "success")
+        return render_template("pages/ville_index.html", last_nominations=last_nominations,
+                               last_artistes=last_artistes, last_galeries=last_galeries,
+                               last_themes=last_themes, last_villes=last_villes)
     except Exception as error:
         db.session.rollback()
         erreurs.append(str(error))
@@ -1324,7 +1333,9 @@ def theme_add():
             # les requêtes sont relancées pour actualiser le sidebar
             last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
             flash("Vous avez ajouté un nouveau thème à la base de données.", "success")
-            return redirect("/theme")
+            return render_template("pages/theme_index.html", last_nominations=last_nominations,
+                                   last_artistes=last_artistes, last_galeries=last_galeries,
+                                   last_themes=last_themes, last_villes=last_villes)
         else:
             db.session.rollback()
             # afficher un message d'erreur sur la page
@@ -1370,7 +1381,9 @@ def theme_update(id_theme):
                 flash("Le thème a été modifié avec succès.", "success")
                 # les requêtes sont relancées pour actualiser le sidebar
                 last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-                return redirect(url_for("theme_main", id_theme=theme.id))
+                return render_template("pages/theme_index.html", last_nominations=last_nominations,
+                                       last_artistes=last_artistes, last_galeries=last_galeries,
+                                       last_themes=last_themes, last_villes=last_villes)
             except Exception as error:
                 print(error)
                 flash(error, "erreur")
@@ -1411,7 +1424,9 @@ def theme_delete(id_theme):
         db.session.delete(theme)
         db.session.commit()
         last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-        return redirect("/theme")
+        return render_template("pages/theme_index.html",
+                               last_nominations=last_nominations, last_artistes=last_artistes,
+                               last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
     except Exception as error:
         db.session.rollback()
         erreurs.append(str(error))
