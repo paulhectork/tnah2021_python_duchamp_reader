@@ -1,12 +1,14 @@
 from ..modeles.classes_generic import *
+from ..app import app
 
-
-# ce second fichier de variables constantes contient toutes les requêtes nécessaires à la sidebar (joli franglais)
+# ce fichier de variables constantes contient toutes les requêtes nécessaires à la sidebar (joli franglais)
 # il permet d'éviter les imports circulaires
 
 
 def queries():
-        """Fonction lançant des requêtes pour peupler le sidebar avec les derières données
+        """
+        Fonction lançant des requêtes pour peupler le sidebar avec les derières données
+        :return: listes contenant les 3 derniers objets de chaque classe qui ont été ajoutés
         """
         # requêtes
         last_artistes = Artiste.query.order_by(Artiste.id.desc()).limit(3).all()
@@ -18,3 +20,4 @@ def queries():
 
         # return
         return last_artistes, last_nominations, last_galeries, last_villes, last_themes
+

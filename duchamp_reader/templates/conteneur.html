@@ -240,8 +240,9 @@
             // initialisation de la fonction d'activation / désactivation de wikipedia
             wiki.addEventListener("click", wikiToggle);
 
-            // définir le comportement de base: wikipedia activé
-            if (!visited) {
+            // définir le comportement de base (à la première ouverture du site
+            // ou si il n'y a pas de valeur pour wikival): wikipedia activé
+            if (!visited || wikival != null) {
                 window.localStorage.setItem("visited", true);
                 wiki.setAttribute("value", "active");
                 wikival = wiki.getAttribute("value");

@@ -1,0 +1,54 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| nouvelle ville{% endblock %}
+
+{% block corps %}
+    <h1>Ajouter une nouvelle ville à la base de données</h1>
+
+    <!-- corps du texte -->
+    <p>Pour ajouter une nouvelle ville à la base de données, veuillez remplir le formulaire et cliquer sur "Ajouter".</p>
+    <form class="form" method="POST" action="{{ url_for('ville_add') }}">
+
+        <!-- nom -->
+        <div class="form-group row">
+            <label for="ville-nom" class="col-sm-2 col-form-label">Nom de la ville</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ville-nom" name="nom" placeholder="Nom de la ville (ex: Twin Peaks)"/>
+            </div>
+        </div>
+
+        <!-- longitude -->
+        <div class="form-group row">
+            <label for="ville-longitude" class="col-sm-2 col-form-label">Longitude</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ville-longitude" name="longitude" placeholder="Longitude sur laquelle se trouve la ville (ex: -121.7863)"/>
+            </div>
+        </div>
+
+        <!-- latitude -->
+        <div class="form-group row">
+            <label for="ville-latitude" class="col-sm-2 col-form-label">Latitude</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ville-latitude" name="latitude" placeholder="Latitude sur laquelle se trouve la ville (ex: 47.5257)"/>
+            </div>
+        </div>
+
+        <!-- pays -->
+        <div class="form-group row">
+            <label for="ville-pays" class="col-sm-2 col-form-label">Nom de du pays</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ville-pays" name="pays" placeholder="Nom du pays (ex: Etats-Unis d'Amérique)"/>
+            </div>
+        </div>
+
+        <!-- sumbit -->
+        <div> <button type="submit" class="btn btn-primary">Ajouter</button></div>
+    </form>
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('ville_index')}}">Index des villes</a>
+    </div>
+
+{% endblock %}

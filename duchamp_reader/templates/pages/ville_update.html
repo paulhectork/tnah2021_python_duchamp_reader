@@ -1,0 +1,55 @@
+{% extends "conteneur.html" %}
+
+{% block titre %}| ville : {{ ville.nom }} | modification{% endblock %}
+
+{% block corps %}
+    <h1>Modifier les données à propos de {{ ville.nom }}</h1>
+
+    <!-- corps du texte -->
+    <p>Pour modifier les données sur la ville, veuillez remplir le formulaire et cliquer sur "Modifier".</p>
+    <form class="form" method="POST" action="{{ url_for('ville_update', id_ville=ville.id) }}">
+
+        <!-- nom -->
+        <div class="form-group row">
+            <label for="ville-nom" class="col-sm-2 col-form-label">Nom de la ville</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ville-nom" name="nom" value="{{ ville.nom }}"/>
+            </div>
+        </div>
+
+        <!-- longitude -->
+        <div class="form-group row">
+            <label for="ville-longitude" class="col-sm-2 col-form-label">Longitude</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ville-longitude" name="longitude" value="{{ ville.longitude }}"/>
+            </div>
+        </div>
+
+        <!-- latitude -->
+        <div class="form-group row">
+            <label for="ville-latitude" class="col-sm-2 col-form-label">Latitude</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ville-latitude" name="latitude" value="{{ ville.latitude }}"/>
+            </div>
+        </div>
+
+        <!-- pays -->
+        <div class="form-group row">
+            <label for="ville-pays" class="col-sm-2 col-form-label">Nom du pays</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="ville-pays" name="pays" value="{{ ville.pays }}"/>
+            </div>
+        </div>
+
+        <!-- sumbit -->
+        <div> <button type="submit" class="btn btn-primary">Modifier</button></div>
+    </form>
+
+    <!-- footer -->
+    <div class="basdepage">
+        <a class="btn" href="{{url_for('accueil')}}">Accueil</a>
+        <a class="btn" href="{{url_for('ville_main', id_ville=ville.id) }}">Page principale de la ville</a>
+        <a class="btn" href="{{url_for('ville_index')}}">Index des villes</a>
+    </div>
+
+{% endblock %}

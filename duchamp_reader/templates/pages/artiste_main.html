@@ -4,8 +4,6 @@
     {% if nomination %}| {{nomination.artiste.full}} {% endif %}
 {% endblock %}
 
-<!-- {% if nomination.artiste.genre == "F" %}{% elif nomination.artiste.genre == "A" %}{% else %}{% endif %} -->
-
 {% block corps %}
     {% if nomination %}
         <h1>{{nomination.artiste.full}}</h1>
@@ -21,8 +19,14 @@
                 {% endif %}
 
                 <!-- année de nomination et autres nominé.e.s -->
-                prix Marcel Duchamp en {{nomination.annee}}. Son travail portait sur le thème : <a href="{{ url_for('theme_main', id_theme=nomination.id_theme) }}">
-                    {{nomination.theme.nom}}</a>. {% if nominations_all|length > 1 %}La même année ont été nominé.e.s :</p>
+                prix Marcel Duchamp en {{nomination.annee}}.
+                {% if nomination.theme %}
+                    Son travail portait sur le thème :
+                    <a href="{{ url_for('theme_main', id_theme=nomination.id_theme) }}">
+                    {{nomination.theme.nom}}</a>
+                {% endif %}.
+                {% if nominations_all|length > 1 %}
+                    La même année ont été nominé.e.s :</p>
                     <ul>
                         {% for n in nominations_all %}
                             {% if n.artiste.full != nomination.artiste.full %}
@@ -30,7 +34,8 @@
                             {% endif %}
                         {% endfor %}
                     </ul>
-                {% else %}Il n'y a pas eu d'autres nominé.e.s cette année là.</p>{% endif %}
+                    {% else %}Il n'y a pas eu d'autres nominé.e.s cette année là.</p>
+                {% endif %}
 
                 <!-- nom du / de la lauréat.e de cette année là -->
                 {% if nomination.laureat != 1 %}
@@ -51,17 +56,23 @@
         <!-- année et ville de naissance -->
         <p>{{nomination.artiste.full}} est
             {% if nomination.artiste.genre == "F" %}née {% elif nomination.artiste.genre == "A" %}né.e {% else %}né {% endif %}
-            en {{nomination.artiste.annee_naissance}} à <a href="{{ url_for('ville_main', id_ville=nomination.artiste.id_ville_naissance) }}">
-                {{nomination.artiste.ville_naissance.nom}}</a>
-            et habite à <a href="{{ url_for('ville_main', id_ville=nomination.artiste.id_ville_residence) }}">
+            en {{nomination.artiste.annee_naissance}}
+            {% if nomination.artiste.ville_naissance %}
+                à <a href="{{ url_for('ville_main', id_ville=nomination.artiste.id_ville_naissance) }}">
+                    {{nomination.artiste.ville_naissance.nom}}</a>
+            {% endif %}.
+            {% if nomination.artiste.ville_residence %}
+                {% if nomination.artiste.genre == "F" %}Elle{% elif nomination.artiste.genre == "A" %}Iel{% else %}Il{% endif %} habite à
+                <a href="{{ url_for('ville_main', id_ville=nomination.artiste.id_ville_residence) }}">
                 {{nomination.artiste.ville_residence.nom}}</a>.
+            {% endif %}
         </p>
 
         <!-- galeries représentant l'artiste -->
         {% if represente %}
             <p>{% if nomination.artiste.genre == "F" %}Elle {% elif nomination.artiste.genre == "A" %}Iel {% else %}Il {% endif %}
                 est {% if nomination.artiste.genre == "F" %}représentée {% elif nomination.artiste.genre == "A" %}représenté.e {% else %}représenté {% endif %} par
-                {% if represente|length > 1 %}
+                {% if represente|length > 1 and represente[0].id_galerie > 0 %}
                     les galeries :
                     <ul>
                         {% for r in represente %}

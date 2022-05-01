@@ -12,13 +12,12 @@ from .modeles.classes_users import *
 from .modeles.classes_generic import *
 from .modeles.classes_relationships import *
 from .utils.regex import regexnc, clean_string
-from .utils.constantes_query import queries
+from .utils.query import queries
 from .utils.duchamp_sparqler import duchamp_sparqler
 from .utils.constantes import PERPAGE, cartes, statics, css, uploads
 from .utils.wikimaker import wikimaker
 from .utils.geography import mapdim
 from .utils.validation import validate_artiste, validate_galerie, validate_ville
-
 
 # gesion des flashes d'erreurs:
 # les messages d'erreurs sont renvoyés à l'utilisateurice via jinja à l'aide de règles contenues dans le conteneur
@@ -28,7 +27,6 @@ from .utils.validation import validate_artiste, validate_galerie, validate_ville
 # sinon (un seul message d'erreur), flash directement le message d'erreur sans le stocker dans une variable
 
 last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-
 
 # ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
@@ -227,8 +225,7 @@ def artiste_main(id_artiste):
     :rtype: objet render_template()
     """
     # requêtes; la requête principale est sur Nomination: c'est la table qui fait la jointure entre toutes les données
-    nomination = Nomination.query.filter(Nomination.id_artiste == id_artiste)\
-        .join(Theme, Nomination.id_theme == Theme.id).first()
+    nomination = Nomination.query.filter(Nomination.id_artiste == id_artiste).first()
     represente = RelationRepresente.query.filter(RelationRepresente.id_artiste == id_artiste).all()
     nominations_all = Nomination.query.filter(Nomination.annee == nomination.annee).all()
 
@@ -254,79 +251,80 @@ def artiste_main(id_artiste):
     # la manière dont les coordonnées de la carte est calculée dépend des coordonnées sont connues pour chaque ville
     longlist = []
     latlist = []
-    if nomination.artiste.ville_naissance.longitude or nomination.artiste.ville_naissance.latitude \
-            or nomination.artiste.ville_residence.latitude or nomination.artiste.ville_residence.longitude:
-        if nomination.artiste.ville_naissance.longitude and nomination.artiste.ville_naissance.latitude \
-                and nomination.artiste.ville_residence.latitude and nomination.artiste.ville_residence.longitude:
-            print(3)
-            longitude = (nomination.artiste.ville_naissance.longitude + nomination.artiste.ville_residence.longitude) / 2
-            latitude = (nomination.artiste.ville_naissance.latitude + nomination.artiste.ville_residence.latitude) / 2
-            longlist.append(nomination.artiste.ville_naissance.longitude)
-            longlist.append(nomination.artiste.ville_residence.longitude)
-            latlist.append(nomination.artiste.ville_naissance.latitude)
-            latlist.append(nomination.artiste.ville_residence.latitude)
-        elif nomination.artiste.ville_naissance.longitude and nomination.artiste.ville_naissance.latitude:
-            print(1)
-            longitude = nomination.artiste.ville_naissance.longitude
-            latitude = nomination.artiste.ville_naissance.latitude
-            longlist = [longitude]
-            latlist = [latitude]
-        elif nomination.artiste.ville_residence.latitude and nomination.artiste.ville_residence.longitude:
-            print(2)
-            longitude = nomination.artiste.ville_residence.longitude
-            latitude = nomination.artiste.ville_residence.latitude
-            longlist = [longitude]
-            latlist = [latitude]
-        sw, ne, radius, diflat, diflong = mapdim(longlist=longlist, latlist=latlist)
+    if nomination.artiste.ville_naissance and nomination.artiste.ville_residence:
+        if nomination.artiste.ville_naissance.longitude or nomination.artiste.ville_naissance.latitude \
+                or nomination.artiste.ville_residence.latitude or nomination.artiste.ville_residence.longitude:
+            if nomination.artiste.ville_naissance.longitude and nomination.artiste.ville_naissance.latitude \
+                    and nomination.artiste.ville_residence.latitude and nomination.artiste.ville_residence.longitude:
+                print(3)
+                longitude = (nomination.artiste.ville_naissance.longitude + nomination.artiste.ville_residence.longitude) / 2
+                latitude = (nomination.artiste.ville_naissance.latitude + nomination.artiste.ville_residence.latitude) / 2
+                longlist.append(nomination.artiste.ville_naissance.longitude)
+                longlist.append(nomination.artiste.ville_residence.longitude)
+                latlist.append(nomination.artiste.ville_naissance.latitude)
+                latlist.append(nomination.artiste.ville_residence.latitude)
+            elif nomination.artiste.ville_naissance.longitude and nomination.artiste.ville_naissance.latitude:
+                print(1)
+                longitude = nomination.artiste.ville_naissance.longitude
+                latitude = nomination.artiste.ville_naissance.latitude
+                longlist = [longitude]
+                latlist = [latitude]
+            elif nomination.artiste.ville_residence.latitude and nomination.artiste.ville_residence.longitude:
+                print(2)
+                longitude = nomination.artiste.ville_residence.longitude
+                latitude = nomination.artiste.ville_residence.latitude
+                longlist = [longitude]
+                latlist = [latitude]
+            sw, ne, radius, diflat, diflong = mapdim(longlist=longlist, latlist=latlist)
 
-        # création du texte d'un popup qui donnera des informations sur chaque ville
-        html_residence = f"<html> \
-                            <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
-                            <body> \
-                                <p style='position:absolute; top:50%; left:50%; \
-                                    -ms-transform:translate(-50%, -50%); \
-                                    transform: translate(-50%, -50%); \
-                                    text-align: center;'>\
-                                    Ville de résidence : {nomination.artiste.ville_residence.nom}\
-                                </p></body>\
-                         </html>"
-        html_naissance = f"<html> \
-                            <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
-                            <body> \
-                                <p style='position:absolute; top:50%; left:50%; \
-                                    -ms-transform:translate(-50%, -50%); \
-                                    transform: translate(-50%, -50%); \
-                                    text-align: center;'>\
-                                    Ville de naissance : {nomination.artiste.ville_naissance.nom} \
-                                </p></body>\
-                         </html>"
-        iframe_residence = folium.element.IFrame(html=html_residence, width="300px", height="100px")
-        iframe_naissance = folium.element.IFrame(html=html_naissance, width="300px", height="100px")
-        popup_residence = folium.Popup(iframe_residence)
-        popup_naissance = folium.Popup(iframe_naissance)
+            # création du texte d'un popup qui donnera des informations sur chaque ville
+            html_residence = f"<html> \
+                                <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                                <body> \
+                                    <p style='position:absolute; top:50%; left:50%; \
+                                        -ms-transform:translate(-50%, -50%); \
+                                        transform: translate(-50%, -50%); \
+                                        text-align: center;'>\
+                                        Ville de résidence : {nomination.artiste.ville_residence.nom}\
+                                    </p></body>\
+                             </html>"
+            html_naissance = f"<html> \
+                                <head><meta charset='UTF-8'/><style type='text/css'>{css}</style></head>\
+                                <body> \
+                                    <p style='position:absolute; top:50%; left:50%; \
+                                        -ms-transform:translate(-50%, -50%); \
+                                        transform: translate(-50%, -50%); \
+                                        text-align: center;'>\
+                                        Ville de naissance : {nomination.artiste.ville_naissance.nom} \
+                                    </p></body>\
+                             </html>"
+            iframe_residence = folium.element.IFrame(html=html_residence, width="300px", height="100px")
+            iframe_naissance = folium.element.IFrame(html=html_naissance, width="300px", height="100px")
+            popup_residence = folium.Popup(iframe_residence)
+            popup_naissance = folium.Popup(iframe_naissance)
 
-        # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
-        # appelée lorsque l'on va sur la page de l'artiste ; la taille des popups dépend de la distance entre eux
-        carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
-        if diflat > 1 or diflong > 1:
-            carte.fit_bounds([sw, ne])
-        popups_residence = folium.CircleMarker(
-            location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
-            popup=popup_residence,
-            radius=radius,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-        popups_naissance = folium.CircleMarker(
-            location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
-            popup=popup_naissance,
-            radius=radius,
-            color="purple",
-            fill_color="plum",
-            fill_opacity=0.6
-        ).add_to(carte)
-        carte.save(f"{cartes}/artiste{id_artiste}.html")
+            # génération d'une carte intégrée à la page; la carte est sauvegardée dans un dossier et
+            # appelée lorsque l'on va sur la page de l'artiste ; la taille des popups dépend de la distance entre eux
+            carte = folium.Map(location=[latitude, longitude], tiles="Stamen Toner")
+            if diflat > 1 or diflong > 1:
+                carte.fit_bounds([sw, ne])
+            popups_residence = folium.CircleMarker(
+                location=[nomination.artiste.ville_residence.latitude, nomination.artiste.ville_residence.longitude],
+                popup=popup_residence,
+                radius=radius,
+                color="purple",
+                fill_color="plum",
+                fill_opacity=0.6
+            ).add_to(carte)
+            popups_naissance = folium.CircleMarker(
+                location=[nomination.artiste.ville_naissance.latitude, nomination.artiste.ville_naissance.longitude],
+                popup=popup_naissance,
+                radius=radius,
+                color="purple",
+                fill_color="plum",
+                fill_opacity=0.6
+            ).add_to(carte)
+            carte.save(f"{cartes}/artiste{id_artiste}.html")
     else:
         carte = ""
 
@@ -553,7 +551,11 @@ def artiste_update(id_artiste):
                     updated = True
                     flash("L'artiste a été modifié avec succès.", "success")
                     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-                    return redirect(url_for("artiste_main", id_artiste=artiste.id))
+                    return render_template("pages/artiste_index.html", artiste=artiste, nomination=nomination,
+                                           erreurs=erreurs, last_nominations=last_nominations,
+                                           last_artistes=last_artistes, last_galeries=last_galeries,
+                                           last_themes=last_themes, last_villes=last_villes)
+
                 except Exception as error:
                     db.session.rollback()
                     erreurs.append(str(error))
@@ -593,25 +595,29 @@ def artiste_delete(id_artiste):
         flash("Veuillez vous connecter pour supprimer des données", "error")
         return redirect("/connexion")
 
-    # initalisation des variables
+    # initalisation des variables des données à supprimer : artiste, nomination et relation entre artiste et galerie
     artiste = Artiste.query.get_or_404(id_artiste)
     nomination = Nomination.query.filter(Nomination.id_artiste == id_artiste).first()
+    relationrpr = RelationRepresente.query.filter(RelationRepresente.id_artiste == id_artiste).all()
     erreurs = []
 
     # suppression
     try:
         db.session.delete(artiste)
         db.session.delete(nomination)
+        for r in relationrpr:
+            db.session.delete(r)
         db.session.commit()
         last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-        return redirect("/artiste")
+        return render_template("pages/artiste_index.html", erreurs=erreurs, last_nominations=last_nominations,
+                               last_artistes=last_artistes, last_galeries=last_galeries, last_themes=last_themes,
+                               last_villes=last_villes)
     except Exception as error:
         db.session.rollback()
         erreurs.append(str(error))
         erreurs = "~".join(str(e) for e in erreurs)
         flash(erreurs, "error")
         return redirect(url_for("artiste_main", id_artiste=artiste.id))
-
 
 
 # ----- ROUTES NOMINATION ----- #
@@ -674,7 +680,8 @@ def galerie_main(id_galerie):
     # requêtes
     galerie = Galerie.query.filter(Galerie.id == id_galerie).first()
 
-    if len(galerie.localisation) > 0:
+    if len(galerie.localisation) > 0 and \
+            galerie.localisation[0].ville.latitude and galerie.localisation[0].ville.longitude:
         # génération dynamique des cartes
         # définition des coordonnées de la carte: zone sur laquelle centrée, bordures, dimension des popups
         nboucles = 0  # nombre de boucles, pour calculer la longitude et latitude moyenne
@@ -799,7 +806,10 @@ def galerie_add():
                 db.session.commit()
                 last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
                 flash("Vous avez rajouté une nouvelle galerie à la base de données", "success")
-                return redirect("/galerie")
+                return render_template("pages/galerie_index.html",
+                                       last_nominations=last_nominations, last_artistes=last_artistes,
+                                       last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
             else:
                 # si il y a une erreur, générer et afficher la liste des erreurs
                 db.session.rollback()
@@ -952,7 +962,10 @@ def galerie_update(id_galerie):
                     db.session.commit()
                     flash("Modification effectuée avec succès", "success")
                     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-                    return redirect(url_for("galerie_main", id_galerie=galerie.id))
+                    return render_template("pages/galerie_index.html",
+                                           last_nominations=last_nominations, last_artistes=last_artistes,
+                                           last_galeries=last_galeries, last_themes=last_themes,
+                                           last_villes=last_villes)
 
                 except Exception as error:
                     # si il y a des erreurs à la mise à jour, flasher les erreurs et rediriger sur la page
@@ -1012,7 +1025,10 @@ def galerie_delete(id_galerie):
         db.session.delete(galerie)
         db.session.commit()
         last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
-        return redirect("/galerie")
+        return render_template("pages/galerie_index.html",
+                               last_nominations=last_nominations, last_artistes=last_artistes,
+                               last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
     except Exception as error:
         db.session.rollback()
         erreurs.append(str(error))
@@ -1109,36 +1125,121 @@ def ville_main(id_ville):
 
 @app.route("/ville/add", methods=["POST", "GET"])
 def ville_add():
+    """
+    fonction permettant l'ajout d'une nouvelle ville à la base de données
+    :return: redirection vers l'index des villes si tout va bien ; sinon, redirection vers
+    la page d'ajout avec un message d'erreur
+    """
     # les requêtes sont relancées pour éviter des erreurs sqlalchemy
     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login")
+        return redirect("/connexion")
+
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
+        erreurs = []  # liste d'erreurs vide
         succes, output = Ville.ville_new(
             nom=request.form.get("nom", None),
-            longitude=request.form.get("longitude", None)
+            longitude=request.form.get("longitude", None),
+            latitude=request.form.get("latitude", None),
+            pays=request.form.get("pays", None)
         )
+        # si tout va bien, ajouter la ville avec une base de données
         if succes is True:
-            flash("Vous avez rajouté une nouvelle ville à la base de données", "success")
-            return redirect("/ville")
+            try:
+                db.session.add(AuthorshipVille(ville=output, user=current_user))
+                flash("Vous avez rajouté une nouvelle ville à la base de données", "success")
+                last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+                return redirect("/ville")
+            except Exception as error:
+                db.session.rollback()
+                erreurs.append(str(error))
+                flash(erreurs, "error")
+                return render_template("pages/ville_add.html", erreurs=erreurs,
+                                       last_nominations=last_nominations, last_artistes=last_artistes,
+                                       last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+        # en cas d'erreur, rediriger vers la page de création de données avec une liste d'erreurs
         else:
-            flash("L'ajout de données n'a pas pu être fait: " + " + ".join(output), "error")
-            return render_template("pages/ville_ajout.html",
-                                   last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                                   last_themes=last_themes, last_villes=last_villes)
+            db.session.rollback()
+            for o in output:
+                erreurs.append(o)
+            erreurs = "~".join(str(e) for e in erreurs)
+            flash(erreurs, "error")
+            return render_template("pages/ville_add.html", erreurs=erreurs,
+                                   last_nominations=last_nominations, last_artistes=last_artistes,
+                                   last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+    # return
     else:
-        return render_template("pages/ville_ajout.html",
-                               last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
-                               last_themes=last_themes, last_villes=last_villes)
+        return render_template("pages/ville_add.html",
+                               last_nominations=last_nominations, last_artistes=last_artistes,
+                               last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
 
-@app.route("/ville/<int:id_ville>/update")
+@app.route("/ville/<int:id_ville>/update", methods=["GET", "POST"])
 def ville_update(id_ville):
-    pass
+    """
+    fonction permettant la mise à jour d'une ville existante
+    :param id_ville: identifiant de la ville à modifier
+    :return:
+    """
+    # vérifier si l'utilisateurice est connecté.e
+    if current_user.is_authenticated is False:
+        flash("Veuillez vous connecter pour rajouter des données", "error")
+        return redirect("/connexion")
+
+    # initialisation des variables pour la mise à jour
+    ville = Ville.query.get_or_404(id_ville)
+    erreurs = []
+    updated = False
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+
+    # si un formulaire est envoyé avec POST
+    if request.method == "POST":
+        nom, longitude, latitude, pays, erreurs = validate_ville(
+            nom=request.form.get("nom"),
+            longitude=request.form.get("longitude"),
+            latitude=request.form.get("latitude"),
+            pays=request.form.get("pays"),
+            id_ville=ville.id
+        )
+        # si il n'y a pas d'erreurs, ajouter les données modifiées et commit les modifications
+        if len(erreurs) == 0:
+            ville.nom = nom
+            ville.longitude = longitude
+            ville.latitude = latitude
+            ville.pays = pays
+            try:
+                db.session.add(ville)
+                db.session.add(AuthorshipVille(ville=ville, user=current_user))
+                db.session.commit()
+                return redirect(url_for("ville_main", id_ville=ville.id))
+            except Exception as error:
+                # en cas d'erreur, annuler la modification et rediriger la page d'ajout avec un message d'erreur
+                db.session.rollback()
+                erreurs.append(str(error))
+                erreurs = "~".join(str(e) for e in erreurs)
+                return render_template("pages/ville_update.html", ville=ville, erreurs=erreurs,
+                                       last_nominations=last_nominations, last_artistes=last_artistes,
+                                       last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+
+        else:
+            # en cas d'erreur, annuler la modification et rediriger la page d'ajout avec un message d'erreur
+            db.session.rollback()
+            erreurs = "~".join(str(e) for e in erreurs)
+            flash(erreurs, "error")
+            return render_template("pages/ville_update.html", ville=ville, erreurs=erreurs,
+                                   last_nominations=last_nominations, last_artistes=last_artistes,
+                                   last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
+    # return
+    else:
+        return render_template("pages/ville_update.html", ville=ville, erreurs=erreurs,
+                               last_nominations=last_nominations, last_artistes=last_artistes,
+                               last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
 
 @app.route("/ville/<int:id_ville>/delete")
@@ -1213,7 +1314,7 @@ def theme_add():
 
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login")
+        return redirect("/connexion")
     # si il.elle est connecté.e et si un formulaire est envoyé avec post
     if request.method == "POST":
         succes, output = Theme.theme_new(
@@ -1235,7 +1336,6 @@ def theme_add():
 
 
 @app.route("/theme/<int:id_theme>/update", methods=["GET", "POST"])
-@login_required
 def theme_update(id_theme):
     """route permettant de mettre à jour les données sur un thème.
 
@@ -1243,8 +1343,8 @@ def theme_update(id_theme):
     """
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
-        flash("Veuillez vous connecter pour rajouter des données", "error")
-        return redirect("/login")
+        flash("Veuillez vous connecter pour modifier des données", "error")
+        return redirect("/connexion")
 
     # initialisation des variables pour la mise à jour
     theme = Theme.query.get_or_404(id_theme)
@@ -1255,17 +1355,12 @@ def theme_update(id_theme):
     # si un formulaire est envoyé avec POST
     if request.method == "POST":
         # vérifier que les informations sont fournies et sont valides
-        if not request.form.get("nom", "").strip():
-            erreurs.append("theme_nom.")
-        else:
-            nom = request.form.get("nom")
-            nom = clean_string(nom)
-            rgxnom = re.search(regexnc, nom)
-            if not rgxnom:
-                erreurs.append("L'orthographe du thème n'est pas conforme.")
-
+        nom, erreurs = validate_theme(
+            nom=request.form.get("nom", ""),
+            id_theme=theme.id
+        )
         # si il n'y a pas d'erreurs, procéder à la mise à jour
-        if not erreurs:
+        if len(erreurs) == 0:
             theme.nom = nom
             try:
                 db.session.add(theme)

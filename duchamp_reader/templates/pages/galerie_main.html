@@ -30,13 +30,13 @@
 
         <!-- localisation -->
         <p>
-            {% if galerie.localisation|length > 1 %}Elle a des antennes à :
+            {% if galerie.localisation|length > 1 and galerie.localisation[0].ville.nom|length > 0 %}Elle a des antennes à :
                 <ul>
                     {% for r in galerie.localisation %}
                         <li><a href="{{ url_for('ville_main', id_ville = r.id_ville)}}">{{r.ville.nom}} ({{r.ville.pays}})</a></li>
                     {% endfor %}
                 </ul>
-            {% elif galerie.localisation|length == 1 %}Elle est située à
+            {% elif galerie.localisation|length == 1 and galerie.localisation[0].ville.nom|length > 0 %}Elle est située à
                     {% for r in galerie.localisation %}
                         <a href="{{ url_for('ville_main', id_ville = r.id_ville) }}">{{r.ville.nom}} ({{r.ville.pays}})</a>.
                     {% endfor %}

@@ -225,10 +225,6 @@ def validate_ville(nom, longitude, latitude, pays, id_ville=None):
             (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
             tirets et espaces, miniscule en fin de chaîne)"
         )
-    if not isinstance(longitude, float):
-        erreurs.append("La longitude doit être un nombre décimal")
-    if not isinstance(latitude, float):
-        erreurs.append("La latitude doit être un nombre décimal")
     pays = clean_string(pays)
     paysregex = re.search(regexnp, pays)
     if not paysregex:
@@ -238,6 +234,21 @@ def validate_ville(nom, longitude, latitude, pays, id_ville=None):
             (majuscules non-accentuées uniquement et obligatoirement en début de mot, lettres accentuées ou non, \
             tirets et espaces, miniscule en fin de chaîne)"
         )
+    # vérifier que la longitude et la latitude sont valides
+    try:
+        longitude = re.sub(r",", ".", str(longitude)).strip()
+        longitude = float(longitude)
+        if not -180 <= longitude <= 180:
+            erreurs.append("La longitude doit être un nombre décimal compris entre -180 et 180")
+    except:
+        erreurs.append("La longitude doit être un nombre décimal compris entre -180 et 180")
+    try:
+        latitude = re.sub(r",", ".", str(latitude)).strip()
+        latitude = float(latitude)
+        if not -90 <= latitude <= 90:
+            erreurs.append("La latitude doit être un nombre décimal compris entre -90 et 90")
+    except:
+        erreurs.append("La latitude doit être un nombre décimal compris entre -90 et 90")
 
     # vérifier que la ville n'existe pas déjà dans la  base de données
     db_ville_check = Ville.query.filter(db.and_(
