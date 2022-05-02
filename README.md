@@ -33,7 +33,7 @@ utilisés et générés pendant l'utilisation de l'application
 le fonctionnement de l'application
 - [`img`](./img) : un dossier contenant les images utilisées dans ce README.
 - `README.md` : le présent document
-- `db_backup` : une version "de secours" de la base de données
+- `db_backup.sqlite` : une version "de secours" de la base de données
 - `path.py` : un fichier python qui donne le chemin du dossier actuel
 - `requirements.txt` : la liste des librairies à installer
 - `run.py` : le script python qui lance l'application
