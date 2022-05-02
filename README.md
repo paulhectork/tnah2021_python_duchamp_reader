@@ -14,24 +14,33 @@ représentent.
 
 Ce site a été développé dans le cadre du cours de python du master 2 TNAH de 
 l'école des Chartes (2021-2022) en utilisant notamment les frameworks
- `flask` et `sqlalchemy`. Le code est disponible sous licence libre GNU GPL 3.
+ `flask` et `sqlalchemy`. Le code est disponible sous licence libre GNU GPL 3. Le 
+site utilise la police [Mels](https://quentinbarba.fr/), disponible sous licence 
+libre. 
 
 ---
 
 ## Structure du dépôt
 
 - [`duchamp_reader`](./duchamp_reader) : le dossier contenant l'application
-	- `modeles` : les classes SQLAlchemy permettant de connecter la base de 
-données à l'application
-	- `static` : les données statiques: CSS, polices, javascript et images
-	- `templates` : les fichiers HTML et JSON utilisés et générés pendant
-l'utilisation de l'application
-	- `utils` : des fonctions diverses utilisées pour le fonctionnement de 
-l'application
+	- [`modeles`](./duchamp_reader/modeles) : les classes SQLAlchemy permettant 
+de connecter la base de données à l'application
+	- [`static`](./duchamp_reader/static) : les données statiques: CSS, 
+polices, javascript et images
+	- [`templates`](./duchamp_reader/templates) : les fichiers HTML et JSON 
+utilisés et générés pendant l'utilisation de l'application
+	- [`utils`](./duchamp_reader/utils) : des fonctions diverses utilisées pour 
+le fonctionnement de l'application
+- [`img`](./img) : un dossier contenant les images utilisées dans ce README.
+- `README.md` : le présent document
+- `db_backup` : une version "de secours" de la base de données
+- `path.py` : un fichier python qui donne le chemin du dossier actuel
+- `requirements.txt` : la liste des librairies à installer
+- `run.py` : le script python qui lance l'application
 
 ---
 
-## Installation (MAC-OS ou GNU Linux)
+## Installation (MACOS, Debian, Ubuntu)
 
 Pour lancer l'application, il est nécessaire d'avoir Python 3 installé sur son
 ordinateur. Pour commencer, **ouvrir un terminal** et entrer les commandes : 
@@ -51,7 +60,7 @@ pip install -r requirements.txt  # installer les dépendances
 python run.py #(ou 'python3 run.py' : lancer l'application)
 ```
 
-Le présent dépôt ne contient pas de base de donnée: celle-ci est créée au premier 
+Le présent dépôt ne contient pas de base de données: celle-ci est créée au premier 
 lancement de l'application. Si par hasard il y a un problème au lancement de
 l'application, modifier la ligne 17 du fichier `app.py`: à la place de
 ```python
