@@ -132,6 +132,11 @@
                                 duchamp_sparqler
                             </a>
                         </li>
+                        <li class="active" id="rienAvoir">
+                            <a href="{{ url_for('rien_a_voir') }}">
+                                rien à voir
+                            </a>
+                        </li>
                         <li class="active" id="sidebarAbout">
                             <a href="{{ url_for('about') }}">
                                 À propos
@@ -194,7 +199,8 @@
         </div>
 
 
-        <script type="text/javascript">
+    </body>
+    <script type="text/javascript">
             // COMPORTEMENT DU NAVBAR
 
             // définition des variables
@@ -260,22 +266,12 @@
                 var data = {"wikistatus": wiki.getAttribute("value")};
                 sendData(data);
             };
-            if (wikival == null){
-            window.localStorage.setItem("visited", true);
-                wiki.setAttribute("value", "active");
-                wikival = wiki.getAttribute("value");
 
-                // mettre à jour le css et le texte
-                wikitext.innerText = "activés";
-                wikicont.style.backgroundColor = plum;
-
-                // récupérer la valeur de l'attribut, le texte et le css
-                // et les sauvegarder en cookie
-                saveCookies();
-
-                // transmettre une requête asynchrone au serveur flask
-                var data = {"wikistatus": wiki.getAttribute("value")};
-                sendData(data);
+            // charger le css et le texte du bouton wikipedia au chargement
+            window.onload = function(){
+                console.log(wikisave)
+                wikitext.innerText = text;
+                wikicont.style.backgroundColor = css;
             };
 
             // activer / désactiver l'enrichissement wikipédia des pages artiste
@@ -304,6 +300,15 @@
                 sendData(data);
             };
 
+
+            // sauvegarder le css, le texte du bouton et le statut wikipedia dans des cookies pour
+            // maintenir le comportement du site après les changements de session
+            function saveCookies(){
+                localStorage.setItem("wikisave", wiki.getAttribute("value"));
+                localStorage.setItem("text", wikitext.innerText);
+                localStorage.setItem("css", wikicont.style.backgroundColor);
+            };
+
             // transmettre les données en requête asynchrone au serveur
             function sendData(data) {
                 $.ajax({
@@ -314,51 +319,6 @@
                     dataType: 'application/json'
                 });
             };
-
-            // sauvegarder le css, le texte du bouton et le statut wikipedia dans des cookies pour
-            // maintenir le comportement du site après les changements de session
-            function saveCookies(){
-                localStorage.setItem("wikisave", wiki.getAttribute("value"));
-                localStorage.setItem("text", wikitext.innerText);
-                localStorage.setItem("css", wikicont.style.backgroundColor);
-            };
-
-            // charger le css et le texte du bouton wikipedia au chargement
-            window.onload = function(){
-                wikitext.innerText = text;
-                wikicont.style.backgroundColor = css;
-            };
-
-            ////////////////////////////////////////////////////////////
-
-            /**
-            // EN FAIT CA MARCHE BOF
-            // GENERATION DYNAMIQUE DE GRAPHIQUES
-
-            // définition des variables
-            var send = document.querySelector("#send")
-
-            // si on est sur la bonne page, construction d'un
-            // json à renvoyer au serveur flask
-            if (send != null) {
-                send.addEventListener("click", graphmaker);
-
-                function graphmaker() {
-                    // récupérer les valeurs sélectionnées
-                    var xaxis = $("#xaxis").val();
-                    var yaxis = $("#yaxis").val();
-                    var graph = $("#graph").val();
-                    // si toutes les données ont été fournies, envoyer une requête au serveur
-                    if (xaxis == "None" ||
-                            yaxis == "None" ||
-                            graph == "None"
-                        ){
-                        window.alert("Sélectionnez toutes les données nécessaires puis renvoyez le formulaire")
-                        window.location.href = window.location.href
-                    };
-                };
-            };
-            **/
 
             ////////////////////////////////////////////////////////////
 
@@ -461,5 +421,4 @@
                 };
             };
         </script>
-    </body>
 </html>

@@ -15,7 +15,6 @@ app = Flask(
 app.config['SECRET_KEY'] = SECRET_KEY
 # configurer la base de données
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
-# app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"check_same_thread": False}
 # initier l'extension de la bdd
 db = SQLAlchemy(app)
 # configurer la gestion d'utilisateur-rice-s

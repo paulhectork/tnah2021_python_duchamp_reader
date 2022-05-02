@@ -11445,12 +11445,12 @@ a[data-toggle="collapse"] {
 
 .dropdown-toggle::after {
   position: absolute;
-  *top: 50%;
+  top: 50%;
   transform: translateY(-50%);
 }
 
 #sidebar .active {
-  margin-top: 13px;
+  margin-top: 10px;
 }
 
 #sidebar .active > a {
@@ -11628,20 +11628,26 @@ a[data-toggle="collapse"] {
   justify-content: space-between;
 }
 
-#sparqlform div {
-  width: 40%;
+
+.check .form-check {
+  width: 20%;
+  margin: 4% 0 4% 0;
 }
 
-#sparqlform div input {
-  margin: 0;
+.check div input {
+  position: relative;
+  height: 15px;
+  width: 15px;
+  margin-top: 15% !important;
+  margin-left: 0px;
+  padding-left: 0;
   padding-top: 0;
-  padding-bottom: 0;
 }
 
-#sparqlform div label {
+.check div label {
   padding-top: 5;
   padding-bottom: 5;
-  width: 40%;
+  width: 100%;
 }
 
 /* bouton enrichissements wikipedia */
@@ -11681,6 +11687,22 @@ a[data-toggle="collapse"] {
   width: 100%;
   height: 100%;
   border-radius: var(--height);
+}
+
+/* rienavoir */
+#rienavoir {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#rienavoir select {
+  width: 30vh;
+}
+
+#rienavoir #send {
+  margin-top: 25%;
 }
 
 

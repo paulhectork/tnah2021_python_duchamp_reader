@@ -1,4 +1,3 @@
-# jpense on peut le supprimer
 import os
 
 actual_path = os.path.dirname(os.path.abspath(__file__))

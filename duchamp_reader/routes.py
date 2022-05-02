@@ -27,7 +27,10 @@ from .utils.validation import validate_artiste, validate_galerie, validate_ville
 # et passer la variable "erreurs" au render_template
 # sinon (un seul message d'erreur), flash directement le message d'erreur sans le stocker dans une variable
 
+
+# cette requête est lancée un peu tout le temps pour mettre à jour le sidebar
 last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
+
 
 # ----- ROUTES GÉNÉRALES ----- #
 @app.route("/")
@@ -44,6 +47,7 @@ def accueil():
 
 @app.route("/about")
 def about():
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     return render_template("pages/about.html",
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
                            last_themes=last_themes, last_villes=last_villes)
@@ -58,6 +62,7 @@ def recherche():
     :rtype: objet render_template
     """
     # initialisation de la recherche: pagination, définition du titre, initialisation des variables
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     keyword = request.args.get("keyword", None)
     page = request.args.get("page", 1)
     if isinstance(page, str) and page.isdigit():
@@ -105,6 +110,7 @@ def inscription():
     """
 
     # si le formulaire d'inscription est envoyé, créer un nv compte d'utilisateur.ice
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     if request.method == "POST":
         mdp = request.form.get("mdp", None)
         mdpcheck = request.form.get("mdpcheck", None)
@@ -149,6 +155,7 @@ def connexion():
              connecte avec les mauvais identifiants, render_template vers la page de connexion avec un
              message d'erreur.
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # si l'utilisateurice est déjà conecté.e
     if current_user.is_authenticated is True:
         flash("Vous êtes déjà connecté.e. Veuillez vous déconnecter pour changer de compte.", "success")
@@ -184,6 +191,7 @@ def deconnexion():
 
     :return: déconnexion et redirection vers la page d'accueil
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     if current_user.is_authenticated is True:
         logout_user()
         flash("Vous êtes déconnecté.e", "success")
@@ -200,6 +208,7 @@ def artiste_index():
     :return: renvoi vers le fichier html d'index des artistes
     :rtype: objet render_template
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     page = request.args.get("page", 1)
     titre = "index des artistes"
     if isinstance(page, str) and page.isdigit():
@@ -226,27 +235,33 @@ def artiste_main(id_artiste):
     :return: objet render_template() renvoyant vers la page détaillée d'un.e artiste.
     :rtype: objet render_template()
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # requêtes; la requête principale est sur Nomination: c'est la table qui fait la jointure entre toutes les données
     nomination = Nomination.query.filter(Nomination.id_artiste == id_artiste).first()
     represente = RelationRepresente.query.filter(RelationRepresente.id_artiste == id_artiste).all()
     nominations_all = Nomination.query.filter(Nomination.annee == nomination.annee).all()
 
     # si les enrichissements wikipedia sont activés, lancer une requête sur wikipedia
-    if session["wikistatus"] == "active":
+    try:
+        if session["wikistatus"] == "active":
+            code, summary, bio, formation, carriere, travail, oeuvre, url, wikidict = \
+                wikimaker(full=nomination.artiste.full, nom=nomination.artiste.nom)
+            wikistatus = "active"
+        else:
+            code = None
+            summary = None
+            bio = None
+            formation = None
+            carriere = None
+            travail = None
+            oeuvre = None
+            url = None
+            wikidict = None
+            wikistatus = "inactive"
+    except:
         code, summary, bio, formation, carriere, travail, oeuvre, url, wikidict = \
             wikimaker(full=nomination.artiste.full, nom=nomination.artiste.nom)
         wikistatus = "active"
-    else:
-        code = None
-        summary = None
-        bio = None
-        formation = None
-        carriere = None
-        travail = None
-        oeuvre = None
-        url = None
-        wikidict = None
-        wikistatus = "inactive"
 
     # génération dynamique des cartes, si il y a des données géolocalisées à afficher
     # définition des coordonnées de la carte: zone sur laquelle centrer, coordonnées de la carte, taille du popup
@@ -413,6 +428,7 @@ def artiste_update(id_artiste):
 
     :param id_artiste: la clé primaire de l'artiste à modifier
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
@@ -590,6 +606,7 @@ def artiste_delete(id_artiste):
     :return: objet render_template renvoyant à l'index des artistes si tout va bien ; sinon,
     redirection vers la page principale de l'artiste en cours de suppression avec flash d'erreur
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour supprimer des données", "error")
@@ -630,6 +647,7 @@ def nomination_index():
     :return: renvoi vers le fichier html d'index des nominations
     :rtype: objet render_template
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     page = request.args.get("page", 1)
     titre = "Nominations"
     if isinstance(page, str) and page.isdigit():
@@ -653,6 +671,7 @@ def galerie_index():
     :return: renvoi vers le fichier html d'index des galeries
     :rtype: objet render_template
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     page = request.args.get("page", 1)
     titre = "index des galeries"
     if isinstance(page, str) and page.isdigit():
@@ -676,6 +695,7 @@ def galerie_main(id_galerie):
     :rtype: objet render_template()
     """
     # requêtes
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     galerie = Galerie.query.filter(Galerie.id == id_galerie).first()
 
     if len(galerie.localisation) > 0 and \
@@ -748,6 +768,7 @@ def galerie_add():
     :return: objet render_template avec des flashes contenant des messages d'erreurs ou une
     indication que l'ajout de données c'est bien passé
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # si l'utilisateur.ice n'est pas connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
@@ -849,6 +870,7 @@ def galerie_update(id_galerie):
     :param id_galerie: identifiant de la galerie en cours de modification
     :return:
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
@@ -1009,6 +1031,7 @@ def galerie_delete(id_galerie):
     :return: objet render_template renvoyant à l'index des galeries si tout va rien ; sinon,
     redirection vers la page principale de la galerie en cours de suppression avec flash d'erreur
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour supprimer des données", "error")
@@ -1047,6 +1070,7 @@ def ville_index():
     :return: renvoi vers le fichier html d'index des galeries
     :rtype: objet render_template
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     page = request.args.get("page", 1)
     titre = "index des villes"
     if isinstance(page, str) and page.isdigit():
@@ -1131,6 +1155,7 @@ def ville_add():
     :return: redirection vers l'index des villes si tout va bien ; sinon, redirection vers
     la page d'ajout avec un message d'erreur
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # les requêtes sont relancées pour éviter des erreurs sqlalchemy
     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
@@ -1190,6 +1215,7 @@ def ville_update(id_ville):
     :param id_ville: identifiant de la ville à modifier
     :return:
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour rajouter des données", "error")
@@ -1199,7 +1225,6 @@ def ville_update(id_ville):
     ville = Ville.query.get_or_404(id_ville)
     erreurs = []
     updated = False
-    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
     # si un formulaire est envoyé avec POST
     if request.method == "POST":
@@ -1256,6 +1281,7 @@ def ville_delete(id_ville):
     :return: objet render_template renvoyant à l'index des villes si tout va bien ; sinon,
     redirection vers la page principale de la ville en cours de suppression avec flash d'erreur
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour supprimer des données", "error")
@@ -1285,7 +1311,6 @@ def ville_delete(id_ville):
         return redirect(url_for("ville_main", id_ville=ville.id))
 
 
-
 # ----- ROUTES THEME ----- #
 @app.route("/theme")
 def theme_index():
@@ -1295,6 +1320,7 @@ def theme_index():
     :return: renvoi vers le fichier html d'index des galeries
     :rtype: objet render_template
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     page = request.args.get("page", 1)
     titre = "index des thèmes"
     if isinstance(page, str) and page.isdigit():
@@ -1309,7 +1335,12 @@ def theme_index():
 
 @app.route("/theme/<int:id_theme>")
 def theme_main(id_theme):
-    """fonction pour afficher la page principale d'un thème"""
+    """
+    fonction pour afficher la page principale d'un thème
+    :param id_theme: l'identifiant du theme
+    :return: objet render_template renvoyant à la page principale de l'artiste
+    """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     theme = Theme.query.filter(Theme.id == id_theme).first()
     return render_template("pages/theme_main.html", theme=theme,
                            last_nominations=last_nominations, last_artistes=last_artistes, last_galeries=last_galeries,
@@ -1318,7 +1349,10 @@ def theme_main(id_theme):
 
 @app.route("/theme/add", methods=["POST", "GET"])
 def theme_add():
-    """fonction de création d'un nouveau thème"""
+    """
+    fonction de création d'un nouveau thème
+    :return: objet render_template avec un message de réussite si tout va bien, message d'erreur sinon
+    """
     # les requêtes sont relancées pour éviter des erreurs sqlalchemy
     last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
 
@@ -1353,6 +1387,7 @@ def theme_update(id_theme):
 
     :param theme_id: la clé primaire du thème à modifier
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour modifier des données", "error")
@@ -1401,7 +1436,6 @@ def theme_update(id_theme):
                            last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
 
 
-
 @app.route("/theme/<int:id_theme>/delete")
 def theme_delete(id_theme):
     """
@@ -1411,6 +1445,7 @@ def theme_delete(id_theme):
     :return: objet render_template renvoyant à l'index des thèmes si tout va bien ; sinon,
     redirection vers la page principale du thème en cours de suppression avec flash d'erreur
     """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # vérifier si l'utilisateurice est connecté.e
     if current_user.is_authenticated is False:
         flash("Veuillez vous connecter pour supprimer des données", "error")
@@ -1439,6 +1474,14 @@ def theme_delete(id_theme):
 # ----- ROUTES SPARQL ----- #
 @app.route("/duchamp_sparqler", methods=["POST", "GET"])
 def sparql():
+    """
+    fonction permettant de lancer une requête wikidata et de rediriger l'utilisateurice vers
+    une page affichant les résultats, d'où iel peut télécharger les résultats au format demandé.
+
+    :return: objet render_template avec message d'erreur si il y a une erreur ; sinon redirection
+    vers la page affichant les résultats
+    """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     # ne requêter que les artistes ayant un ID wikidata
     artistes = Artiste.query.filter(Artiste.id_wikidata != "").order_by(Artiste.id).all()
     erreurs = []
@@ -1559,6 +1602,15 @@ def sparql_results_without_req():
 # ----- ROUTES RIEN À VOIR (VISUALISATIONS) ----- #
 @app.route("/rien_a_voir", methods=["GET", "POST"])
 def rien_a_voir():
+    """
+    route permettant de faire des visualisations à partir du jeu de données. l'utilisateurice
+    remplit un formulaire qui est renvoyé au serveur avec une requête POST ; ensuite, une
+    fonction est appelée pour construire la visualisation, la sauvegarder dans un objet
+    BytesIO et l'afficher dans un template jinja
+
+    :return: objet render_template avec le graphique produit
+    """
+    last_artistes, last_nominations, last_galeries, last_villes, last_themes = queries()
     if request.method == "POST":
         url, erreurs = a_voir(
             axis=request.form.get("axis"),
@@ -1638,18 +1690,5 @@ def asynchrone():
     # si la requête asynchrone concerne le statut wikipedia, stocker ce statut dans un cookie
     if "wikistatus" in list(asyncdata.keys()):
         session["wikistatus"] = asyncdata["wikistatus"]  # cookie pour le statut des enrichissements wikipedia
-
-    """
-    # si la requête asynchrone concerne les graphiques, traduire en JSON et stocker l'information
-    # dans un cookie
-    # le JSON envoyé par ajax est laid donc il doit être retravaillé comme suit
-    else:
-        try:
-            datagraph = json.loads(list(asyncdata.keys())[0])
-            session["datagraph"] = datagraph
-            print("OKKKKK")
-        except Exception as error:
-            print(error)
-    """
 
     return asyncdata

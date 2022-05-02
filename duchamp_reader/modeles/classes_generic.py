@@ -256,10 +256,10 @@ class Artiste(db.Model):
 class Nomination(db.Model):
     __tablename__ = "nomination"
     id = db.Column(db.Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
-    annee = db.Column(db.Integer, nullable=False) # format YYYY
-    laureat = db.Column(db.Boolean, nullable=False, default=0) # 1 si lauréat, 0 si non
-    id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"), nullable=False)
-    id_theme = db.Column(db.Integer, db.ForeignKey("theme.id"), nullable=False)
+    annee = db.Column(db.Integer, nullable=False)  # format YYYY
+    laureat = db.Column(db.Boolean, nullable=False, default=0)  # 1 si lauréat, 0 si non
+    id_artiste = db.Column(db.Integer, db.ForeignKey("artiste.id"))
+    id_theme = db.Column(db.Integer, db.ForeignKey("theme.id"))
     classname = db.Column(db.Text, nullable=False, default="nomination")
 
     authorship = db.relationship("AuthorshipNomination", back_populates="nomination")

@@ -34,8 +34,13 @@
         </p>
 
         <!-- sparql -->
-        <h2>Enrichir vos jeux de données</h2>
+        <h2>Enrichir les jeux de données</h2>
         <p>Explorez Wikidata avec le <a href="{{ url_for('sparql') }}">duchamp_sparqler</a>, un constructeur de requêtes SPARQL !</p>
+
+        <!-- visualisations -->
+        <h2>Rien à voir</h2>
+        <p>Grâce à <a href="{{ url_for('rien_a_voir') }}">rien à voir</a>, vous pouvez faire des visualisations
+        en sélectionnant les données et le type de graphique de votre choix.</p>
 
     {% else %}
         <p>La base de données est en cours de constitution. Des données doivent encore être ajoutées.</p>
