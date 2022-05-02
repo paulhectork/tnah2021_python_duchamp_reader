@@ -13,13 +13,13 @@
 
         <!-- artistes représenté.e.s -->
         <p>La galerie {{galerie.nom}}
-            {% if galerie.represent|length > 1 and galerie.represent.full|length > 1 %} représente les artistes
+            {% if galerie.represent|length > 1 and galerie.represent[0].id >= 1 %} représente les artistes
                 <ul>
                     {% for r in galerie.represent %}
                         <li><a href="{{ url_for('artiste_main', id_artiste=r.id_artiste) }}">{{r.artiste.full}}</a></li>
                     {% endfor %}
                 </ul>
-            {% elif galerie.represent|length == 1 and galerie.represent.full|length > 1 %}
+            {% elif galerie.represent|length == 1 and galerie.represent[0].id >= 1 %}
                 représente l'artiste
                 {% for r in galerie.represent %}
                     <a href="{{ url_for('artiste_main', id_artiste=r.id_artiste) }}">{{r.artiste.full}}</a>.

@@ -243,8 +243,25 @@
 
             // définir le comportement de base (à la première ouverture du site
             // ou si il n'y a pas de valeur pour wikival): wikipedia activé
-            if (!visited || wikival != null) {
+            if (!visited) {
                 window.localStorage.setItem("visited", true);
+                wiki.setAttribute("value", "active");
+                wikival = wiki.getAttribute("value");
+
+                // mettre à jour le css et le texte
+                wikitext.innerText = "activés";
+                wikicont.style.backgroundColor = plum;
+
+                // récupérer la valeur de l'attribut, le texte et le css
+                // et les sauvegarder en cookie
+                saveCookies();
+
+                // transmettre une requête asynchrone au serveur flask
+                var data = {"wikistatus": wiki.getAttribute("value")};
+                sendData(data);
+            };
+            if (wikival == null){
+            window.localStorage.setItem("visited", true);
                 wiki.setAttribute("value", "active");
                 wikival = wiki.getAttribute("value");
 
@@ -314,6 +331,7 @@
 
             ////////////////////////////////////////////////////////////
 
+            /**
             // EN FAIT CA MARCHE BOF
             // GENERATION DYNAMIQUE DE GRAPHIQUES
 
@@ -331,18 +349,16 @@
                     var yaxis = $("#yaxis").val();
                     var graph = $("#graph").val();
                     // si toutes les données ont été fournies, envoyer une requête au serveur
-                    if (xaxis != "None" ||
-                        yaxis != "None" ||
-                        graph != "None"){
-                        var datagraph = {"xaxis": xaxis, "yaxis": yaxis, "graph": graph};  // les données à transmettre
-                        // console.log(datagraph);
-                        // datagraph = JSON.stringify({"datagraph": datagraph})
-                        // sendData(datagraph);
-                    } else {
-                        window.alert("Sélectionnez toutes les données nécessaires puis renvoyez le formulaire");
+                    if (xaxis == "None" ||
+                            yaxis == "None" ||
+                            graph == "None"
+                        ){
+                        window.alert("Sélectionnez toutes les données nécessaires puis renvoyez le formulaire")
+                        window.location.href = window.location.href
                     };
                 };
             };
+            **/
 
             ////////////////////////////////////////////////////////////
 

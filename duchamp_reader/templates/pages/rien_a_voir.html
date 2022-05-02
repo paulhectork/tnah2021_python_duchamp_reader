@@ -11,25 +11,15 @@
     <p>Sélectionnez les données à visualiser </p>
 
     <form class="form" method="POST" action="{{ url_for('rien_a_voir') }}">
-        <!-- axe des ordonnées -->
-        <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <label for="xaxis" class="col-sm-2 col-form-label">Données en ordonnée</label>
-            <select type="text" class="form-select" id="xaxis" name="xaxis" aria-expanded="false">
-                <option value="None">Sélectionner...</option>
-                <option value="annee_nomination">Année de nomination</option>
-                <option value="BBB">B</option>
-                <option value="CCC">C</option>
-            </select>
-        </div>
 
-        <!-- axe des abscisses -->
+        <!-- données à afficher -->
         <div class="col-sm-10 dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <label for="yaxis" class="col-sm-2 col-form-label">Données en abscisse</label>
-            <select type="text" class="form-select" id="yaxis" name="yaxis" aria-expanded="false">
+            <label for="axis" class="col-sm-2 col-form-label">Données en abscisse</label>
+            <select type="text" class="form-select" id="axis" name="axis" aria-expanded="false">
                 <option value="None">Sélectionner...</option>
-                <option value="theme_count">Thème</option>
-                <option value="DDD">D</option>
-                <option value="EEE">E</option>
+                <option value="theme_count">Thèmes par an</option>
+                <option value="galerie_count">Galeries par an</option>
+                <option value="pays_count">Nombre de nominé.e.s par pays et par an</option>
             </select>
         </div>
 
@@ -47,6 +37,12 @@
         <!-- sumbit -->
         <div><button type="submit" class="btn btn-primary" id="send">Valider</button></div>
     </form>
+
+    {% if url %}
+        <h5>Résultat</h5>
+        <img src="data:image/png;base64, {{ url }}"/>
+    {% endif %}
+
     <!-- footer -->
     <div class="basdepage">
         <a class="btn" href="{{url_for('accueil')}}">Accueil</a>

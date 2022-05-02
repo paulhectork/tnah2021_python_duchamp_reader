@@ -1512,9 +1512,10 @@ def sparql():
 
     # return
     if len(erreurs) > 0:
-        erreurs = str(erreurs)
+        erreurs = "~".join(str(e) for e in erreurs)
         flash(erreurs, "error")
-    else: erreurs = ""
+    else:
+        erreurs = ""
     return render_template("pages/duchamp_sparqler.html", erreurs=erreurs,
                            artistes=artistes, last_nominations=last_nominations, last_artistes=last_artistes,
                            last_galeries=last_galeries, last_themes=last_themes, last_villes=last_villes)
@@ -1559,14 +1560,14 @@ def sparql_results_without_req():
 @app.route("/rien_a_voir", methods=["GET", "POST"])
 def rien_a_voir():
     if request.method == "POST":
-        a_voir(
-            xaxis=request.form.get("xaxis"),
-            yaxis=request.form.get("yaxis"),
+        url, erreurs = a_voir(
+            axis=request.form.get("axis"),
             graph=request.form.get("graph")
         )
-        #datagraph = session["datagraph"]
-        #print(datagraph["graph"])
-        return render_template("pages/rien_a_voir.html", last_nominations=last_nominations,
+        if len(erreurs) > 0:
+            erreurs = "~".join(str(e) for e in erreurs)
+            flash(erreurs, "error")
+        return render_template("pages/rien_a_voir.html", erreurs=erreurs, url=url, last_nominations=last_nominations,
                                last_artistes=last_artistes, last_galeries=last_galeries, last_themes=last_themes,
                                last_villes=last_villes)
     return render_template("pages/rien_a_voir.html", last_nominations=last_nominations,

@@ -13,13 +13,13 @@
 
         <!-- artistes travaillant avec ce thème -->
         <p>Ce thème
-            {% if theme.nomination|length > 1 and theme.nomination.artiste.nom|length > 0 %} a été traité par les artistes :
+            {% if theme.nomination|length > 1 and theme.nomination[0].artiste.nom|length > 0 %} a été traité par les artistes :
                 <ul>
                     {% for t in theme.nomination %}
                         <li><a href="{{ url_for('artiste_main', id_artiste=t.id_artiste) }}">{{t.artiste.full}}</a> (en {{t.annee}})</li>
                     {% endfor %}
                 </ul>
-            {% elif theme.nomination|length == 1 and theme.nomination.artiste.nom|length > 0 %}
+            {% elif theme.nomination|length == 1 and theme.nomination[0].artiste.nom|length > 0 %}
                 a été traité par l'artiste
                 {% for t in theme.nomination %}
                     <a href="{{ url_for('artiste_main', id_artiste=t.id_artiste) }}">{{t.artiste.full}}</a> en {{t.annee}}.
