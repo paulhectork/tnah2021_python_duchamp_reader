@@ -89,6 +89,8 @@ artistes, des galeries et des villes
 - construction de requêtes SPARQL lancées sur Wikidata pour les artistes de 
 la base de données; les résultats sont téléchargeables en `rdf-xml`, `xml` et 
 `json`.
+- enrichissements des pages artistes grâce à du "scraping" de Wikipedia (activable
+et désactivable via Javascript)
 - création de visualisations en fonction de données fournies par l'utilisateur.ice
 via la librairie matplotlib
 
