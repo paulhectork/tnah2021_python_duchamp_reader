@@ -28,6 +28,11 @@ db_create()
 db_populate()
 
 
+# ---- CRÉER LE DOSSIER MAPS ---- #
+if not os.path.isdir(cartes):
+    os.makedirs(cartes)
+
+
 # ----- NETTOYER LES FICHIERS CRÉÉS PENDANT L'UTILISATION ----- #
 def nettoyage():
     """Fonction permettant de supprimer les fichiers créées pendant l'utilisation et stockées dans les dossiers
